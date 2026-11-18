@@ -1,4 +1,5 @@
 """anvil progress: a short status summary from the topic's progress.md (design §7.6)."""
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -33,6 +34,20 @@ def progress_summary(cwd) -> dict | None:
         elif section == "decision log" and s.startswith("- ") and out["last_decision"] is None:
             out["last_decision"] = s[2:]
     return out
+
+
+def stop_note_hash(cwd) -> str:
+    """sha256 of the `## Stop note` section text (empty when there's no progress.md)."""
+    folder = state.topic_dir(cwd)
+    path = folder / "progress.md" if folder else None
+    note, section = [], None
+    if path and path.exists():
+        for line in docs.read_text(path).splitlines():
+            if line.startswith("## "):
+                section = line[3:].strip().lower()
+            elif section == "stop note":
+                note.append(line)
+    return hashlib.sha256("\n".join(note).strip().encode("utf-8")).hexdigest()
 
 
 def cmd_progress(args) -> int:

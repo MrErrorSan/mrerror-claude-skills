@@ -17,6 +17,7 @@ Every skill and every CLI module uses exactly these.
 - **Approved:** skipped (AFK) 2026-11-18 ("<quote>")
 - **Mode:** normal | redesign            (spec, or the spec part of a direct-size plan)
 - **Size:** trivial | direct | full
+- **Status:** draft | done <date>        (spec and plan; finish sets done)
 - **Synced branch:** <branch> (local) | <branch> (remote <remote>/<branch>)   (plan only)
 ```
 
@@ -68,6 +69,12 @@ Every skill and every CLI module uses exactly these.
 <!-- newest first; each: - 2026-11-18 **<choice>** — <reason>. Confidence: high|medium|low. Changes if: <fact>. -->
 ## Stop note
 ```
+
+- `Wave: <n> of <m>`: `<n>` is the wave number as written in the task table (a foundations wave is wave 0); `<m>` is the last wave's number.
+- Indented sub-bullets under a task (`  - tests: …`, `  - minor (deferred): …`) are notes on that task; they are not tasks and aren't counted.
+- `## Blockers` entries are `- ` bullets. The decision log is append-only: a reversed ruling gets a new entry naming the old one.
+- Commit-point lines: `- C<k> <sha> pushed <date>`, `- C<k> <sha> not pushed (push failed <date>)`, or `- C<k> <sha> local <date>` for a `Push: no` row.
+  The commit point that `finish` (or verify, in AFK) lands last is written before its own squash as `- C<k> (this commit) <date>`; the real sha and push result go in the finish report.
 
 **State directory:** `<git common dir>/anvil/`, or `~/.claude/anvil/<sanitised-cwd>/` outside git. It's never committed. Files:
 

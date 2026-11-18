@@ -77,6 +77,7 @@ is shared.>
 
 ### Field notes
 
+- **Status** stays `draft`; `anvil:finish` sets it to `done`.
 - **Mode** is `normal` or `redesign`. It decides which simplicity line applies, and whether **Replaces / stays** exists.
 - **Reference** is a link to the chosen mock or other reference, or `none`.
 - **Left to the builder** is what the builder check is told to skip. Keep it short; anything that changes what gets built belongs in a decision instead.
@@ -93,6 +94,7 @@ The same sections, kept short, at the top of the plan. `anvil:plan` adds its hea
 ```markdown
 # <Topic>: plan
 
+- **Status:** draft
 - **Approved:** no
 - **Mode:** normal
 - **Size:** direct

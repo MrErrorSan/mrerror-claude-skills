@@ -148,6 +148,10 @@ def afk_on(cwd, quote) -> None:
         raise GateError("The quote has no AFK phrase (for example \"AFK\", \"going to bed\", "
                         "\"don't ask\", \"just finish\").")
     state.save(cwd, "afk.json", {"on": True, "ts": time.time(), "quote": quote})
+    # The Stop note as it is now is the baseline, so a note written later in this
+    # same turn counts as new at the first stop.
+    from . import progress
+    state.save(cwd, "stop.json", {"hash": progress.stop_note_hash(cwd), "ts": time.time()})
 
 
 def afk_off(cwd) -> None:

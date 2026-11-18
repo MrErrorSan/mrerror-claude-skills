@@ -19,17 +19,15 @@ Each implementer sees only its own task section, the global constraints and its 
    - **Direct size:** `plan.md` already holds the spec part, written by brainstorm. Add the plan part underneath it in the same file. There is one stop, at the plan.
 4. Use [plan-template.md](references/plan-template.md) for the shape. The header lines and the three tables follow [formats.md](../../references/formats.md) exactly: `bin/anvil` parses them, and a renamed column or heading breaks the gates.
 
-If the work is bigger than its size (a direct topic needing more than about 5 tasks, or a question the spec doesn't answer), say so, step up with `anvil topic start <slug> --size full`, and go back to brainstorm rather than planning around the gap.
-
-## Scope check
-
-If the spec covers several independent subsystems, suggest one plan per subsystem, each producing working, testable software on its own.
+If the work is bigger than its size (a direct topic needing more than about 5 tasks, or a question the spec doesn't answer), say so, step up with `anvil topic start <slug> --size full`, move the spec part of `plan.md` into a new `spec.md`, and go back to brainstorm rather than planning around the gap.
 
 ## File structure first
 
+If the spec covers several independent subsystems, suggest one plan per subsystem, each working and testable on its own.
+
 Before drawing tasks, map which files get created or changed and what each one is for. This is where decomposition gets locked in.
 
-- One clear responsibility per file, with a clear interface. Small, focused files are easier to edit reliably.
+- One clear responsibility per file, with a clear interface.
 - Files that change together live together. Split by responsibility, not by technical layer.
 - In an existing codebase, follow its patterns. Split a file only when one you're changing has grown unwieldy.
 - Every new file, abstraction or option names the S-line that needs it. A piece with no S-line is over-building ([simplicity](../../references/simplicity.md)).
@@ -75,7 +73,7 @@ The test strategy replaces "do TDD, commit often". The rules are in [test-policy
 - **Stay in budget:** scaffolding, config or types get 1–2 smoke tests; a feature gets 3–5 behavior tests plus its smoke path; a bug gets a repro plus a regression guard; an enhancement covers only the new or changed behavior. Going over needs one line of reason in the plan.
 - **Test-first only for repros.** A bug-fix task writes its repro before the fix. Elsewhere the steps implement, then test.
 - **Each task names its targeted command,** run as `anvil run --scope targeted -- <cmd>`, so no lane needs the full suite.
-- **Record the full-suite command and how long it takes.** Take the duration from a recorded run, CI timings or the project docs; don't run a long suite just to time it. If it's unknown, write "not measured", and the build treats it as over 2 minutes (full suite once, at the end).
+- **Record the full-suite command, how long it takes, and the type-check command** (`Type-check: <command | none>`). Take the duration from a recorded run, CI timings or the project docs; don't run a long suite just to time it. If it's unknown, write "not measured", and the build treats it as over 2 minutes (full suite once, at the end).
 
 ## Commit points and the synced branch
 
@@ -87,7 +85,7 @@ Follow [git-flow](../../references/git-flow.md). The plan decides three things t
 
 ## Execution mode
 
-Run `anvil plan-check` once the task table is written, before presenting. It checks the table's mechanics: per wave, that write sets and shared resources don't collide, plus wave order, integrator-only paths, tasks naming no S-line, wave-0 tasks nothing depends on, unknown dependencies, the 4-lane cap and resource ids. It doesn't check that every live S-line has a task; self-review item 1 does.
+Run `anvil plan-check` once the task table is written, before presenting. It checks the table's mechanics (per-wave write-set and resource collisions, wave order, integrator-only paths, tasks with no S-line, dependencies, the lane cap, ids). It doesn't check that every live S-line has a task; self-review item 1 does.
 
 **When it reports findings,** do one of two things for each, and write it under `## Execution`:
 - fix the plan (split or narrow a write set, move a task to a later wave, add the missing dependency, hand the lockfile to the integrator) and run it again; or
@@ -98,7 +96,7 @@ A finding is never left unmentioned, and parallel is never proposed over one.
 **Propose a mode, with numbers.** Parallel is opted into at stop 2; it runs 3 lanes by default, 4 at most.
 - **Parallel pays** when the graph is wide (around 6 or more tasks, at least 3 ready at once after the foundations), the shared surface is frozen in T1, tasks are similar in size, and implementation time dominates each task.
 - **Sequential is faster** for a chain of dependent steps, 4 tasks or fewer, tightly coupled UI, contracts still in flux, mostly shared files, heavy per-lane environments, a build that will hit the usage limit anyway, or a project that forbids extra worktrees.
-- **About 4 tasks or fewer:** one line under `## Execution` is enough: sequential, and why. Lanes, merges and wave checks cost more than they save at that size.
+- **About 4 tasks or fewer:** one line under `## Execution` is enough: sequential, and why.
 - **Otherwise, give the numbers:** lanes per wave; the task count against the wave count; a rough time for each mode (sequential ≈ tasks × per-task time; parallel ≈ per wave, the slowest task plus the merge and wave check); and the saving. A well-split plan gets roughly 1.5–2.5x on the build stage, a chain about 1x. Parallel uses roughly 10–30% more tokens and drains the usage window as many times faster as it has lanes. If the build clearly won't fit one usage window, say so.
 
 **Checkpoints** go in the plan only where Saad asked for one, at the point he named, with his words quoted. Otherwise write "Checkpoints: none". Don't add your own.
@@ -110,12 +108,12 @@ When the plan is written, reread the spec with fresh eyes and check the plan aga
 1. **Spec coverage:** every live S-line has a task, and a test or a smoke path, or a stated reason why not. If an S-line has no task, add the task.
 2. **No piece without an S-line:** every row, new file and option traces to one.
 3. **Step scan:** each step lets the implementer write exactly one reasonable thing. A line that decides nothing is a gap; a body the signature and tests already determine is a transcript.
-4. **Interface consistency:** names, signatures and types used in later tasks match what earlier tasks produce. `clearLayers()` in T3 and `clearFullLayers()` in T7 is a bug.
+4. **Interface consistency:** names, signatures and types used in later tasks match what earlier tasks produce. `clearLayers()` in T3 against `clearFullLayers()` in T7 is a bug.
 5. **Review focus:** for each failure mode the spec implies, some task's tests exercise it, or it's listed with its test added.
 6. **Tables parse:** headings and columns as in the template, Writes backticked, waves integers.
-7. **Proportion:** a plan several times longer than its spec, or mostly code blocks, is a transcript of the program. Replace bodies with signatures, test names and assertions, and check each step is still unambiguous.
+7. **Proportion:** a plan several times longer than its spec, or mostly code blocks, is a transcript: replace bodies with signatures, test names and assertions, keeping each step unambiguous.
 
-Then create `progress.md` in the topic folder, or bring its `## Tasks` list in line with the task table (format in formats.md): stage `plan`, the wave count, every task as `- [ ] T<n> <title>`. Do this again whenever the plan changes, at stop 2 or in a revision before the build.
+Then create `progress.md` in the topic folder, or bring its `## Tasks` list in line with the task table (format in formats.md): stage `plan`, the wave count, every task as `- [ ] T<n> <title>`. Redo this whenever the plan changes.
 
 ## Stop 2
 
@@ -134,7 +132,7 @@ Then create `progress.md` in the topic folder, or bring its `## Tasks` list in l
 - **He asks for changes:** make them, run `anvil plan-check` again, present again, and stop again.
 - **The approve is refused:** say why in one line. Never retry with words he didn't type.
 
-**Pre-approval and AFK.** If Saad pre-approved the plan in his own words ("go straight to the build", "don't stop for the plan"), run `anvil approve plan --quote "<his words>" --pre`. If AFK is on, run `anvil approve plan --afk --quote "<his AFK words>"`. Either way, skip steps 2–4 of stop 2 (no present, no wait), and the plan stage runs with AFK decision-making: the calls he would have made at the stop (mode, synced branch, commit pushes) are made on his behalf, and each goes into the progress decision log with its reason, confidence and what would change it. `main` or `master` still isn't chosen without his explicit consent; pick a new branch instead.
+**Pre-approval and AFK.** If Saad pre-approved the plan in his own words ("go straight to the build", "don't stop for the plan"), run `anvil approve plan --quote "<his words>" --pre` (3+ words of his message). If AFK is on, run `anvil approve plan --afk --quote "<his AFK words>"`. Either way, skip steps 2–4 of stop 2 (no present, no wait), and the plan stage runs with AFK decision-making: the calls he would have made at the stop (mode, synced branch, commit pushes) are made on his behalf, and each goes into the progress decision log in the formats.md entry shape (choice, reason, confidence, changes if). `main` or `master` still isn't chosen without his explicit consent; pick a new branch instead.
 
 **Revising before the build.** To redo an approved plan before the build starts, set `- **Approved:** no`, change it, rerun `anvil plan-check` and present again. Once the build runs, changes go through its change flow-back.
 

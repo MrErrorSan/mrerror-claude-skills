@@ -213,6 +213,22 @@ Number them in build order, set the blocks and blocked-by links, space the due
 dates across the week, and mark what can run in parallel. Show the list and get
 a yes (section 3), then create the tickets.
 
+### From an Anvil plan
+
+An Anvil `plan.md` already holds most of each implementation ticket. Make one
+ticket per row of its `## Task table` (`T<n>`), and fill it from the plan:
+
+| Plan | Ticket |
+|---|---|
+| Spec cell (its S-lines) | Goal, pointing to those S-lines in the spec |
+| Writes | In scope |
+| Depends | Dependencies, as links to those tasks' tickets |
+| Test list rows for the task | Done when |
+
+Tasks in the same wave can run side by side. During the build, post the
+ticket comments (section 7) at the plan's commit points, where tasks land with
+a commit to point to.
+
 ## 7. Comments are the log
 
 Use absolute dates (`2026-11-19`), never "today".

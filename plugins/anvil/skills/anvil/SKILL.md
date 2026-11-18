@@ -30,11 +30,13 @@ Pick the size from how Saad describes the work, and state it in the first line o
 
 For direct or full: `anvil topic start <slug> --size <size> [--dir <project's doc location>]`, then `anvil:brainstorm`. Pass `--dir` when the project's doc rule names a location.
 
+**Another topic active.** If `anvil topic show` reports a different topic held at spec or plan and this request isn't part of it, tell Saad and offer to park it: `anvil topic end` (its documents stay; `anvil topic start <slug> --size <size> [--dir <folder>]` resumes it). In AFK, park it and log the decision. Research needs no parking: edits under `docs/research/` are never held.
+
 If the work grows mid-way, say so and step up: rerun `anvil topic start <slug> --size full` (the folder is kept). Going from direct to full, move the spec part of `plan.md` into a new `spec.md`.
 
 Trivial's one check is the project's narrowest relevant check, run through `anvil run --scope targeted -- <cmd>` when it's a test command.
 
-Demos and POCs are pre-production work: they go through the flow, sized like any other work. Only mocks are throwaway.
+Demos and POCs go through the flow, sized like any other work; only mocks are throwaway.
 
 **Research and architecture questions** end in a document Saad reviews, with no plan or build. Look first, ask one round of questions the way `anvil:brainstorm` does, then write `docs/research/YYYY-MM-DD-<topic>.md` and give him the path. Building on it afterwards is a new request.
 
@@ -49,13 +51,11 @@ brainstorm ─► spec ─[stop 1]─► plan ─[stop 2]─► build ─► ver
 | Stage | Skill | Ends with |
 |---|---|---|
 | brainstorm and spec | `anvil:brainstorm` | full: stop 1; direct: hands to `anvil:plan` in the same document |
-| plan | `anvil:plan` | stop 2, then a fresh session (`/clear`, `/anvil:build docs/<slug>/plan.md`) or straight on |
+| plan | `anvil:plan` | stop 2, then a fresh session or straight on |
 | build | `anvil:build` | every task `[x]` in `progress.md` |
 | verify | `anvil:verify` | the converge check, then Saad runs `/anvil:finish` |
 | finish | `anvil:finish` | Saad runs it; commit, push, clean-up, `anvil topic end` |
 | any stage | `anvil:debug` | a failure whose cause isn't obvious; then back to the stage |
-
-`anvil topic show` says where the current topic is. `anvil progress` prints the summary from `progress.md`.
 
 ## How a stop passes
 
@@ -65,7 +65,7 @@ brainstorm ─► spec ─[stop 1]─► plan ─[stop 2]─► build ─► ver
 
 Approval covers what he saw. "Sounds good" about an idea doesn't approve a document he hasn't read. Never write the `Approved:` line by hand; if `approve` refuses, tell him why.
 
-**Pre-approval.** When Saad's own words already pass a stop ("approve the spec yourself", "go straight to the build"), run `anvil approve <doc> --quote "<his exact words>" --pre` instead of stopping. That stage then runs with AFK decision-making: each choice you make for him goes into `progress.md`'s decision log with its reason and confidence.
+**Pre-approval.** When Saad's own words already pass a stop ("approve the spec yourself", "go straight to the build"), run `anvil approve <doc> --quote "<his exact words>" --pre` (3+ words of his message) instead of stopping. That stage then runs with AFK decision-making: each choice you make for him goes into `progress.md`'s decision log in the formats.md entry shape (choice, reason, confidence, changes if).
 
 **AFK.** When his message says he's away ("AFK", "I'm going to bed", "don't ask me"), use `anvil:afk`. It turns AFK on with his quote, and each skipped stop is recorded with `anvil approve <doc> --quote "<the AFK quote>" --afk`.
 
@@ -88,16 +88,16 @@ The project's `CLAUDE.md`, `.claude/rules/*` and doc-location rules override Anv
 ## Where files go
 
 - Topic documents: `docs/<slug>/` holds `spec.md`, `plan.md` and `progress.md` (direct size: `plan.md` and `progress.md`). Formats: [formats.md](../../references/formats.md).
-- Mocks: `docs/<slug>/mocks/`, rounds `-r2`, `-r3`, ….
+- Mocks: `<topic folder>/mocks/`, rounds `-r2`, `-r3`, ….
 - Research: `docs/research/YYYY-MM-DD-<topic>.md`.
-- Repos with `docs/superpowers/specs|plans` keep them: read those, and write new work to the default unless the project's rule names a place.
-- Status lives in `progress.md`, not in todo tools. Anvil's state sits under the git common dir and is never committed.
+- Repos with `docs/superpowers/specs|plans` keep them: read those; new work goes to the default unless a project rule names a place.
+- Status lives in `progress.md`, not in todo tools. Anvil's state is never committed.
 
 ## The other skills
 
 | Stage | Skill | Use |
 |---|---|---|
-| brainstorm | `anvil:ui-mockup` | the exploration loop: research, brief, 2 to 4 variants in parallel, comparison page, Saad's reaction |
+| brainstorm | `anvil:ui-mockup` | the mock exploration loop (variants in parallel, then Saad's reaction) |
 | brainstorm, spec | `anvil:cross-model` | research on big questions; review of decisions that are expensive to undo |
 | plan approved | `anvil:ticket-update` | split plan tasks into tickets, if the project tracks work |
 | build | `anvil:ticket-update`, `anvil:debug` | comments at real stops; failures with no obvious cause |
@@ -107,10 +107,10 @@ The project's `CLAUDE.md`, `.claude/rules/*` and doc-location rules override Anv
 
 ## Alongside Superpowers
 
-- Anvil is self-contained: it adapts the Superpowers 7.0.2 parts it uses, so the two plugins don't have to agree.
+- Anvil is self-contained: it adapts the Superpowers 7.0.2 parts it uses.
 - With both installed, Anvil's stage skills take the place of Superpowers' brainstorming, writing-plans, executing-plans, subagent-driven-development, test-driven-development, requesting-code-review, verification-before-completion, finishing-a-development-branch and systematic-debugging for work in this flow. Superpowers' writing-skills and diagnosing-superpowers stay usable.
 - Anvil only: turn Superpowers off with `enabledPlugins` (`false`). Superpowers only: `/plugin disable anvil`.
 
 ## The CLI
 
-`anvil <subcommand>`; every subcommand takes `--json`. Exit 0 means ok, 1 means refused (the reason is on stderr), 2 is a usage error. If a bare `anvil` isn't found, use the absolute path the session-start note gives. The full list is in [formats.md](../../references/formats.md).
+`anvil <subcommand> [--json]`: exit 0 ok, 1 refused (reason on stderr), 2 usage. If a bare `anvil` isn't found, use the absolute path the session-start note gives. `anvil topic show` says where the topic is; the full list is in [formats.md](../../references/formats.md).

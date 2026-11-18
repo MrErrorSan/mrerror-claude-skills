@@ -16,10 +16,11 @@ Parser facts worth knowing:
 ````markdown
 # <Topic>: plan
 
+- **Status:** draft
 - **Approved:** no
 - **Size:** full
 - **Synced branch:** <branch> (local)
-- **Spec:** [spec.md](spec.md), approved <date> by Saad ("<his words>")
+- **Spec:** [spec.md](spec.md), <its Approved value>
 - **Work branch:** `anvil/<slug>/work` (local)
 
 > **For agentic workers:**
@@ -61,6 +62,8 @@ Failure modes the spec implies but no task's tests would otherwise exercise, mos
 ## Test strategy
 
 Full suite: `<command>`, about <duration> (<measured from a recorded run | from CI | not measured>). <It runs once on the final state | It also runs after each wave, being under about 2 minutes.>
+
+Type-check: <command | none>
 
 | Test | Type | Spec | Breaks if it fails | Task |
 |---|---|---|---|---|
@@ -130,6 +133,7 @@ Brainstorm writes the spec part, in the shape given by the direct-size section o
 ````markdown
 # <Topic>: plan
 
+- **Status:** draft
 - **Approved:** no
 - **Mode:** normal
 - **Size:** direct
@@ -162,6 +166,8 @@ None found.
 ## Test strategy
 
 Full suite: `<command>`, about <duration>.
+
+Type-check: <command | none>
 
 | Test | Type | Spec | Breaks if it fails | Task |
 |---|---|---|---|---|

@@ -28,7 +28,7 @@ In an existing project, or when Saad has given you context (a spec, a plan, a ha
 
 Finding facts is your job, never Saad's. The decisions are his. Anything the repo, the docs or the earlier conversation can answer gets looked up, not asked, and nothing he has already decided gets reopened. When a lookup is broad (several modules, a library's behavior, how other projects solve it), hand it to a subagent with a narrow brief and keep going; only the questions that depend on its answer wait for it. Say what you looked for and what you found.
 
-**A bug with an unclear cause:** use `anvil:debug` to find the cause, then write the spec part: the bug, the expected behavior as S-lines, and the repro that becomes a keep test.
+**A bug with an unclear cause:** use `anvil:debug` to find the cause. At this stage debugging is read-only: probe with commands, or with scratch scripts outside the repo. Then write the spec part: the bug, the expected behavior as S-lines, and the repro. The repro test and the fix become plan tasks.
 
 ## The question round
 
@@ -60,6 +60,8 @@ End with one line: "Reply yes to take every recommendation, or yes except Q2: �
 
 If his answers open a new question that changes what gets built, ask it in one short follow-up round. Otherwise there is no second round: the rest becomes decisions in the spec.
 
+**Under AFK** (stated at session start; `anvil afk status`), don't end the turn for the round. Take each question's recommended answer (for an open question, your best reading of his request), log each in `progress.md`'s decision log (create it from formats.md if missing) in the formats.md entry shape (choice, reason, confidence, changes if), write it into the spec as `decided, Claude's call (AFK)`, and carry on.
+
 ## Variations when information is thin
 
 When Saad doesn't have the full picture yet, don't interrogate him. Show 2 or 3 worked options he can react to, and recommend one.
@@ -82,7 +84,7 @@ When the look itself is open and Saad's to decide, talking won't settle it. A qu
 5. Saad's reaction;
 6. if the round misses, a measured critique (`FLAWS.md`), and the next round (`-r2`, `-r3`, …) changes only what he reacted to.
 
-Mocks live in `docs/<slug>/mocks/` and are throwaway. The chosen one becomes the spec's visual reference: link it in the header, and point the S-lines that describe what he'll see at it.
+Mocks live in `<topic folder>/mocks/` and are throwaway. The chosen one becomes the spec's visual reference: link it in the header, and point the S-lines that describe what he'll see at it.
 
 ## When brainstorming ends
 
@@ -94,13 +96,13 @@ It ends when no question is left open. Every decision is in one of three places:
 
 If more than three of Saad's questions remain, the brainstorm isn't finished: ask them as a round first.
 
-If the work has grown past its size (open questions on a direct topic, more than about 5 tasks), say so and step up: `anvil topic start <slug> --size full`. If it's really several independent projects, say so, agree an order with Saad, and brainstorm them one at a time.
+If the work has grown past its size (open questions on a direct topic, more than about 5 tasks), say so and step up: `anvil topic start <slug> --size full`, and move the spec part of `plan.md` into a new `spec.md`. If it's really several independent projects, say so, agree an order with Saad, and brainstorm them one at a time.
 
 ## Write the spec
 
 Write a plain document, for a human, that a talented builder in the domain could plan from without going back to Saad. Use [spec-template.md](references/spec-template.md) and the pinned header and S-line formats in [formats.md](../../references/formats.md).
 
-- **Header:** `- **Approved:** no`, `- **Mode:** normal` or `redesign`, `- **Size:**`, dates, and the link to the mock or reference.
+- **Header:** `- **Status:** draft`, `- **Approved:** no`, `- **Mode:** normal` or `redesign`, `- **Size:**`, dates, and the link to the mock or reference.
 - **Waiting on you:** at most three questions, each with a recommended answer.
 - **Spec lines:** one behavior per line, numbered `S1`, `S2`, … in the parseable form. A line is never edited in place: a change gets a new number, and the old line is struck through and marked `RETIRED → S<n>`.
 - **Goals** carry a **Constraints** line (platform, performance, compatibility). **Left to the builder** lists what you're leaving open on purpose.
@@ -138,7 +140,7 @@ Direct size skips the builder check: the plan's own checks cover the merged docu
    - **`approve` refuses:** tell him the reason it gave. Don't work around it, and never write the `Approved:` line by hand.
 4. After approval: `anvil:plan` (it runs `anvil topic stage plan`).
 
-**Pre-approved or AFK.** If Saad's own words already pass this stop ("approve the spec yourself", "go straight to the build"), run `anvil approve spec --quote "<his exact words>" --pre` instead of stopping. If AFK is on, run `anvil approve spec --quote "<the AFK quote>" --afk`. Either way, the Waiting on you questions take their recommended answers, and each choice made for him goes into `progress.md`'s decision log with its reason and confidence (create the file from [formats.md](../../references/formats.md) if it isn't there). Then go on to `anvil:plan`, as after a normal approval.
+**Pre-approved or AFK.** If Saad's own words already pass this stop ("approve the spec yourself", "go straight to the build"), run `anvil approve spec --quote "<his exact words>" --pre` (3+ words of his message) instead of stopping. If AFK is on, run `anvil approve spec --quote "<the AFK quote>" --afk`. Either way, the Waiting on you questions take their recommended answers, and each choice made for him goes into `progress.md`'s decision log in the formats.md entry shape (choice, reason, confidence, changes if; create the file from [formats.md](../../references/formats.md) if it isn't there). Then go on to `anvil:plan`, as after a normal approval.
 
 ## Direct size: on to the plan
 
@@ -154,4 +156,3 @@ Once the spec part is written, invoke `anvil:plan` and carry on in the same `pla
 | "One more round of questions" | Points that don't change what gets built are your calls, written into the spec. |
 | "He said 'sounds good' to the idea" | Approval covers what he saw. Only `anvil approve` after `anvil present` passes the stop. |
 | "I'll start a small piece while he reads" | Nothing gets built before the stop. |
-| "The old code shows how it should work" | In a redesign, the spec's stays list says what is reused. The rest is designed from the spec. |

@@ -15,6 +15,7 @@ Commit points (C1, C2, …) sit only at wave boundaries. A small plan has one, a
 2. Squash the work branch into the synced branch as one commit, with the plan's message.
 3. Push, if the plan's row says `yes`.
 4. Reset the work branch to the synced branch's new tip, so the next squash doesn't re-apply commits that already landed.
+   A lane cut before this reset no longer shares history with the work branch (merging it conflicts on everything the squash landed). Bring its own commits over with `git cherry-pick <base>..<lane>` instead of merging, and only then delete the lane branch.
 5. Record it in `progress.md`: `- C1 <sha> pushed <date>`, and mark the tasks it closed `[x] C1`.
 
 Approving the plan, or pre-approving it, authorises its pushes. In AFK, Anvil pushes at each commit point.

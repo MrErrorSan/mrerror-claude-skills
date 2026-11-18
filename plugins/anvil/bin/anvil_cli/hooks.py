@@ -67,6 +67,11 @@ def session_start(event: dict) -> dict:
                      f"{topic['stage']}, folder {topic['dir']}). {line}")
     else:
         facts.append("No Anvil topic is active in this repo.")
+    afk = gate.afk_status(cwd)
+    if afk.get("on"):
+        facts.append(f"AFK is on, from Saad's words \"{afk.get('quote')}\": decisions go to the "
+                     "decision log instead of questions, and the Stop hook holds the run while "
+                     "tasks are open.")
     return {"hookSpecificOutput": {"hookEventName": "SessionStart",
                                    "additionalContext": "\n".join(facts)}}
 
@@ -94,8 +99,10 @@ def pre_tool_use(event: dict) -> dict:
         return _deny("Only `anvil approve` writes the Approved line; it checks Saad's words.")
     # PreToolUse also fires inside subagents, so this holds a build started early. Only
     # repo files are held: the scratchpad, memory and plans live outside the repo.
+    root = state.repo_root(cwd)
     if (topic.get("stage") in ("spec", "plan") and path is not None
-            and _inside(path, state.repo_root(cwd)) and not _inside(path, folder)):
+            and _inside(path, root) and not _inside(path, folder)
+            and not _inside(path, root / "docs" / "research")):  # research docs have no stops
         plan_ok, plan_reason = gate.check(cwd, "build")
         if not plan_ok:
             spec_ok, spec_reason = gate.check(cwd, "plan")
@@ -139,7 +146,7 @@ def _keep_test(folder: Path, path: Path) -> dict:
     specs = []
     for t in docs.parse_tests(docs.read_text(plan)):
         name = t.name.split("::")[0].strip()
-        if t.type != "keep" or not name:
+        if t.type not in ("keep", "repro") or not name:  # a repro stays on as a keep test
             continue
         if FILE_RE.search(name):
             hit = rel == name or rel.endswith("/" + name) or path.name == Path(name).name
@@ -212,7 +219,7 @@ def stop(event: dict) -> dict:
     path = state.topic_dir(cwd) / "progress.md"
     if not path.exists():
         return {}
-    section, open_ids, note = None, [], []
+    section, open_ids = None, []
     for line in docs.read_text(path).splitlines():
         if line.startswith("## "):
             section = line[3:].strip().lower()
@@ -220,10 +227,9 @@ def stop(event: dict) -> dict:
         m = TASK_RE.match(line)
         if section == "tasks" and m:
             open_ids.append(m.group(2))
-        elif section == "stop note":
-            note.append(line)
-    digest = hashlib.sha256("\n".join(note).strip().encode("utf-8")).hexdigest()
-    # No stop.json since AFK turned on: the note as it stands now is the baseline.
+    digest = progress.stop_note_hash(cwd)
+    # `afk on` records the baseline; without one since AFK turned on, the note as it
+    # stands now is the baseline.
     prev = state.load(cwd, "stop.json", None)
     fresh = prev and prev.get("ts", 0) >= (gate.afk_status(cwd).get("ts") or 0)
     prev_hash = prev["hash"] if fresh else digest

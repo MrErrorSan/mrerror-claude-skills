@@ -3,11 +3,12 @@ import io
 import shlex
 import sys
 import tempfile
+import time
 import unittest
 from pathlib import Path
 from unittest import mock
 
-from anvil_cli import hooks, results, state
+from anvil_cli import gate, hooks, results, state
 
 from .helpers import make_repo, write
 
@@ -101,6 +102,9 @@ class HookTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as outside:
             self.assertEqual(self.tool("Write", file_path=str(Path(outside) / "notes.md"),
                                        content="x"), {})
+        # Research docs have no stops, so they aren't held either.
+        self.assertEqual(self.tool("Write", content="x", file_path=str(
+            self.repo / "docs" / "research" / "2026-11-18-x.md")), {})
         # Plan stage with the plan still unapproved: the reason names the plan.
         state.save(self.repo, "active.json",
                    {"slug": "demo", "dir": "docs/demo", "size": "full", "stage": "plan"})
@@ -213,6 +217,22 @@ class HookTests(unittest.TestCase):
         (state.state_dir(self.repo) / "stop.json").unlink()
         self.afk_with_progress(note="- 2026-11-18 T2 needs a key Saad has.\n")
         self.assertEqual(self.stop()["decision"], "block")
+        # `afk on` records the baseline, so a note written later in the same turn is new
+        # at the first stop.
+        write(self.topic_dir / "progress.md", PROGRESS.format(note=""))
+        state.append_jsonl(self.repo, "prompts.jsonl",
+                           {"ts": time.time(), "prompt": "I'm going to bed, finish it"})
+        gate.afk_on(self.repo, "going to bed, finish it")
+        write(self.topic_dir / "progress.md",
+              PROGRESS.format(note="- 2026-11-18 T3 needs Saad's account.\n"))
+        self.assertEqual(self.stop(), {})
+
+    def test_session_start_states_afk(self):
+        ctx = lambda: hooks.session_start({"cwd": str(self.repo)})[
+            "hookSpecificOutput"]["additionalContext"]
+        self.assertNotIn("AFK is on", ctx())
+        state.save(self.repo, "afk.json", {"on": True, "ts": 1.0, "quote": "I'm AFK tonight"})
+        self.assertIn('AFK is on, from Saad\'s words "I\'m AFK tonight"', ctx())
 
     def test_prompt_logged(self):
         self.assertEqual(hooks.user_prompt_submit(

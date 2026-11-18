@@ -1,6 +1,6 @@
 # Progress: anvil-rebuild
 - **Stage:** build
-- **Wave:** 3 of 4
+- **Wave:** 4 of 4
 ## Tasks
 - [x] T1 Foundations (formats, CLI skeleton, parser, state) C1
 - [x] T2 Gates and AFK C1
@@ -11,18 +11,24 @@
 - [x] T7 anvil router and brainstorm skills C2
 - [x] T8 plan skill C2
 - [x] T9 build skill C2
-- [~] T10 verify and finish skills (lane anvil/anvil-1.0/T10)
-- [~] T11 debug skill (lane anvil/anvil-1.0/T11)
-- [~] T12 afk revision and ticket-update hook-in (lane anvil/anvil-1.0/T12)
+- [x] T10 verify and finish skills C3
+- [x] T11 debug skill C3
+- [x] T12 afk revision and ticket-update hook-in C3
 - [ ] T13 Packaging and skill lint
 - [ ] T14 Evals
 - [ ] T16 Upstream watch and provenance
 - [ ] T15 Integration and final verification (orchestrator)
 ## Commit points
 - C1 04a8360 pushed 2026-11-18
+- C2 7f7d574 pushed 2026-11-18
 ## Blockers
 ## Decision log
 <!-- newest first; each: - 2026-11-18 **<choice>** — <reason>. Confidence: high|medium|low. Changes if: <fact>. -->
+- 2026-11-18 **No separate wave-3 semantic review** — the T10 reviewer traced build ↔ verify ↔ finish hand-offs, and the T11/T12 reviewers checked against `hooks.py`/`gate.py`; the whole-branch final review (T15) and T13's skill lint cover the rest. Confidence: medium. Changes if: the final review finds wave-3 drift.
+- 2026-11-18 **Wave-3 lanes were cherry-picked, not merged** — they were cut before C2, and the work branch was reset onto the C2 squash, so a merge conflicted on every wave-2 file. Cherry-picking the six lane commits applied cleanly. The lesson is now in `references/git-flow.md` and `build/references/waves.md`. Confidence: high.
+- 2026-11-18 **The last commit point is recorded as `- C<k> (this commit) <date>` before its own squash; in AFK, verify lands it** — keeps one squashed commit per commit point (design §7.6) and keeps AFK pushes flowing, since `finish` can't be model-invoked. Confidence: medium. Changes if: Saad prefers finish to always land the last commit point.
+- 2026-11-18 **`afk on` records the Stop-note baseline; session-start states AFK; `repro` tests warn like `keep`; `docs/research/` is never held** — from the wave-2 and T12 reviews. Confidence: high.
+- 2026-11-18 **C2 landed before the wave-2 cross-skill fixes** — wave 2's per-task reviews were clean and pushing it protected the work; the cross-skill fixes travel in C3. Confidence: high.
 - 2026-11-18 **Wave 3 started before C2 landed** — T10-T12 depend only on T1/T2; their write sets don't touch wave 2's, and C2 squashes before any wave-3 lane merges. Confidence: high.
 - 2026-11-18 **Wave 2 verified: 44 tests green on the merged tree; hook smokes pass (session-start JSON, empty-PATH pre-tool-use → `{}` exit 0, `.cmd` route exit 0); hook scripts LF in the index; skills within budget, no forbidden words, only pinned CLI subcommands** — plus per-task reviews and a wave review for cross-skill drift. Confidence: high.
 - 2026-11-18 **The active topic's `progress.md` is left out of the result tree key and ignored by `lane-check`** — T9 found every progress edit made recorded results stale (no reuse at commit points), and sequential lanes got the orchestrator's own progress file flagged. Confidence: high. Changes if: a project keeps code-relevant data in progress.md (not expected).
