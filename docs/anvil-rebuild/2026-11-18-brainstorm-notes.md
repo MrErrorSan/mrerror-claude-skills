@@ -196,3 +196,31 @@ This is the mock-first precedent, from a company website redesign:
 - **The chosen mock feeds the spec:** it's the visual reference, and spec lines point at it. `ux-audit` checks the build against it.
 - **Research and architecture questions** end at a document Saad reviews. There's no plan or build stage.
 - **Demos and POCs** go through the full flow, sized to the work. There's no lighter "throwaway" path for them.
+
+## 9. Reframe after the research (2026-11-18)
+
+### What Saad said [user]
+
+- **He likes how Superpowers does things.** He wants it **faster**, mainly by running in parallel what it now runs one step at a time.
+  - Before deciding, evaluate the **consequences** of parallelizing. Then decide whether to do it, and only then how.
+- **He is not against verification or thorough testing, only against wasted time.** Example: a 20-minute suite runs in the subagent (20 min), then again in the main reviewer (40 min), then again before commit (60 min).
+  - If the suite took 20 seconds, it wouldn't matter.
+  - The bottleneck is **repeated runs of a slow suite against unchanged code.**
+- **Parallel building works best when agents are isolated, 3 to 4 at a time.** The aim is roughly 3 to 4 times Superpowers' default speed.
+- **The plan has to be designed for parallel work, starting from the spec stage.** A spec and plan written without parallel work in mind won't parallelize later.
+- **Check the claims circulating on social media and in skills** about "4 rules or questions that make Claude write simple, clean code without over-engineering". Keep only what holds up.
+- **Research how others already do this,** before settling on how Anvil does it.
+
+### Rule proposed from this [proposal]
+
+**A test result stays valid until the code changes.**
+- Each verification run is recorded against the exact code state it ran on (the git tree).
+- A later step reuses that result if the tree is unchanged. This applies to the reviewer, the pre-commit check and the finish stage.
+- It reruns only when the code has changed, and then only the tests the change affects. The full suite runs once, on the final state.
+
+### Research round 2 (running)
+
+Output goes to [research/](research/):
+- the consequences of parallelizing, and how others plan for parallel work;
+- avoiding repeated test runs;
+- the "simple code" rules.
