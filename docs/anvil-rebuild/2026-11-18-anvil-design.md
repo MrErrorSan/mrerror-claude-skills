@@ -245,10 +245,24 @@ The plan is for the model: how each spec line becomes code. It lives at `docs/<t
 - **Execution mode,** proposed at stop 2 with numbers ("4 tasks in wave 2, estimated time saved …"):
   - parallel, 3 lanes by default and 4 at most, opted into at the stop;
   - or sequential.
-- **Test strategy:**
-  - every test is listed as **keep** (guards core behavior, names its S-line, says what breaks if it fails) or **scaffold** (used during the build, deleted in finish);
-  - which tests are targeted per task;
-  - the full-suite command and how long it takes.
+- **Test strategy.** A hybrid: each kind of test covers what the others miss. Saad approves the test list at the plan stop.
+
+  | Type | What it is | When it runs |
+  |---|---|---|
+  | **Smoke** | One per main user-facing path: the thing starts and the path works (CLI call, curl, or a browser step). | After each merged wave, and on the final state. It's the behavior evidence the converge check uses. Kept few and short, because tests that touch a live service can't be reused. |
+  | **Keep** | Behavior tests at core seams. Each one names its S-line and says what breaks if it fails. | Targeted per task during the build. The full suite runs once at the end. |
+  | **Bug repro** | Written **before** the fix: the one place test-first is cheapest. | It then becomes a keep test. |
+  | **Scaffold** | Only used during the build. | Deleted in finish. The deletion is listed in the report. |
+
+  - **Budget per kind of work:**
+    - scaffolding, config or types: 1–2 smoke tests;
+    - a feature: 3–5 behavior tests per feature, plus its smoke path;
+    - a bug: a repro plus a regression guard;
+    - an enhancement: only the new or changed behavior.
+
+    Going over budget needs a reason in the plan. ([sentiment](research/2026-11-18-practitioner-sentiment.md) §4)
+  - **The plan names the tests that guard each task,** rather than saying "do TDD". Naming the affected tests is what cuts regressions; a TDD instruction without them made things worse (TDAD).
+  - The plan also records the full-suite command and how long it takes.
 - **Verification commands.**
 - **Commit points (C1, C2, …).** Each one names:
   - the tasks or waves it closes;
@@ -292,7 +306,8 @@ This stage starts from Superpowers 7.0.2 subagent-driven-development, which runs
   - run only the plan's **targeted** tests for its task, plus type-check;
   - never run the full suite;
   - commit in its worktree, with the project's pre-commit hook allowed to run on the targeted scope;
-  - report what it changed and which S-lines it covers.
+  - report what it changed and which S-lines it covers;
+  - for any test it touched, say whether **the test changed or the code changed**, and which S-line allows it.
 - **Per-task review.** Superpowers' single reviewer returns two verdicts: spec compliance against the task's S-lines first, then code quality. It **never reruns tests.**
   - It doesn't trust the implementer's report.
   - Fix rounds are capped at 5.
@@ -352,7 +367,20 @@ This stage starts from Superpowers 7.0.2 subagent-driven-development, which runs
 - **The spec and plan are marked done.** The progress file is kept as the record, not deleted (unlike Superpowers' logs).
 - **Tickets.** `ticket-update` posts a completion comment with evidence and the stand-up line, if the repo has a tracker.
 - **Branch safety.** No work on main or master without consent. Never force-push the synced branch. Resetting Anvil's own local work branch is allowed.
-- **The report** covers: what shipped, the verification evidence (real output), the decision log (most review-worthy first), the weakest part, and what wasn't done.
+- **The report** covers, in order:
+  1. what shipped;
+  2. the verification evidence (real output);
+  3. **the tests, by type:**
+     - keep tests, and the S-lines they guard;
+     - smoke paths run;
+     - bug repros added;
+     - scaffold tests deleted;
+     - any test changed, and why.
+
+     Failures and weak spots come first.
+  4. the decision log (most review-worthy first);
+  5. the weakest part;
+  6. what wasn't done.
 
 ### 7.9 `bin/anvil`, the one script
 
@@ -409,6 +437,19 @@ Decided in notes §7, and revised after research.
 | **Anvil only** (target) | Turn Superpowers off with `enabledPlugins` (`false`), per project or for the user |
 | **Both installed** (while building trust) | One line in Saad's global `~/.claude/CLAUDE.md`, plus Anvil's startup facts, plus distinct skill names. This works through wording only, so it's **measured with evals** |
 | **Superpowers only** (escape hatch) | `/plugin disable anvil` |
+
+### 7.14 Testing: Superpowers' defaults and what Anvil does instead
+
+| Saad's complaint | Superpowers 7.0.2 default | Anvil |
+|---|---|---|
+| Suites balloon to 1,000–2,000 tests | TDD's "Iron Law": every behavior gets a failing test first; every plan step says "write the failing test" | Per-work-type budget, four test types, test list approved at the plan stop (§7.5) |
+| Nobody knows why a test exists | "Every test names the break it catches"; no link to a requirement | Every keep test names its S-line and what breaks (§7.5) |
+| Unclear whether the test or the code changed | Implementer report; no test-vs-code statement | Mandatory "test changed / code changed + S-line" in the report; the hook warns on keep-test edits; the reviewer checks (§7.6) |
+| No pushback when requirements change | None | Change classification; retired S-line; `stale` lists the affected tests (§7.6) |
+| The 20-minute suite runs 3+ times | Implementer full suite before each commit; fresh run per claim; finishing runs it again (twice after a merge) | Targeted tests per task; result reuse by tree key; full suite once, or per wave only when under about 2 min (§7.6, §7.7) |
+| TDD is slow and stops when Saad is away | Mandatory; exceptions "ask your human partner" | Test-first only for bug repros; the plan decides the rest, so nothing stops to ask (§7.5) |
+| Can't tell what's critical | Nothing | Report lists tests by type, failures first (§7.8) |
+| Agents game tests under pressure (research) | Rules only | Hook guard, test-vs-code report, a reviewer who never saw the implementer's reasoning |
 
 ## 8. Maintenance
 
