@@ -62,6 +62,14 @@ def child_env() -> dict:
     return env
 
 
+def rmtree(path: Path) -> None:
+    """shutil.rmtree that also removes read-only files (git objects on Windows)."""
+    def onexc(func, p, _exc):
+        os.chmod(p, 0o700)
+        func(p)
+    shutil.rmtree(path, onexc=onexc)
+
+
 def sh(args, cwd=None, timeout=120, check=False, input=None) -> subprocess.CompletedProcess:
     return subprocess.run(args, cwd=cwd, capture_output=True, text=True, encoding="utf-8",
                           errors="replace", timeout=timeout, check=check, input=input)
@@ -206,7 +214,7 @@ def run_one(suite: str, case: dict, arm: str, k: int) -> dict:
         log(f"skip {run_id} (complete)")
         return json.loads(meta_path.read_text(encoding="utf-8"))
     if run_dir.exists():
-        shutil.rmtree(run_dir, ignore_errors=True)
+        rmtree(run_dir)
     run_dir.mkdir(parents=True)
     repo = run_dir / run_id            # unique name: Superpowers' global worktree dirs key on it
     base = make_repo(CASES / case["id"], repo)
@@ -441,7 +449,7 @@ def diff_stats(before: dict, after: dict) -> tuple[dict, str]:
 def grade_run(case: dict, repo: Path, base: str, run_dir: Path) -> dict:
     case_dir = CASES / case["id"]
     work = run_dir / "_grade"
-    shutil.rmtree(work, ignore_errors=True)
+    rmtree(work) if work.exists() else None
     work.mkdir()
     fixture = tree_files(case_dir / "files")
     best = None
