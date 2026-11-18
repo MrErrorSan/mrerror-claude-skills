@@ -45,6 +45,7 @@ COMMANDS: dict[str, str] = {
 }
 
 SCOPES = ("targeted", "full", "smoke")
+STAGES = ("spec", "plan", "build", "verify", "finish", "done")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -62,6 +63,7 @@ def build_parser() -> argparse.ArgumentParser:
     start.add_argument("slug")
     start.add_argument("--size", choices=("trivial", "direct", "full"), default="full")
     start.add_argument("--dir", help="topic folder (default docs/<slug>)")
+    tsub.add_parser("stage", parents=[common]).add_argument("stage", choices=STAGES)
     tsub.add_parser("show", parents=[common])
     tsub.add_parser("end", parents=[common])
 
@@ -143,7 +145,10 @@ def cmd_topic(args) -> int:
     cwd = Path.cwd()
     topic = state.active_topic(cwd)
     if args.action == "start":
-        topic = {"slug": args.slug, "dir": _topic_dir_arg(cwd, args.dir) or f"docs/{args.slug}",
+        # Restarting the same slug (a size step-up) keeps its folder unless --dir is given.
+        kept = topic["dir"] if topic and topic.get("slug") == args.slug else None
+        topic = {"slug": args.slug,
+                 "dir": _topic_dir_arg(cwd, args.dir) or kept or f"docs/{args.slug}",
                  "size": args.size,
                  "stage": {"trivial": "build", "direct": "plan"}.get(args.size, "spec")}
         state.save(cwd, "active.json", topic)
@@ -152,12 +157,21 @@ def cmd_topic(args) -> int:
             print("null")
         print("No active topic.", file=sys.stderr)
         return 1
+    elif args.action == "stage":
+        if args.stage in ("plan", "build"):
+            from . import gate
+            ok, reason = gate.check(cwd, args.stage)
+            if not ok:
+                print(reason, file=sys.stderr)
+                return 1
+        topic["stage"] = args.stage
+        state.save(cwd, "active.json", topic)
     elif args.action == "end":
         state.save(cwd, "active.json", None)
     if args.json:
         print(json.dumps(topic))
     else:
-        verb = {"start": "Started", "show": "Active", "end": "Ended"}[args.action]
+        verb = {"start": "Started", "stage": "Moved", "show": "Active", "end": "Ended"}[args.action]
         print(f"{verb} topic {topic['slug']}: size {topic['size']}, "
               f"stage {topic['stage']}, dir {topic['dir']}")
     return 0

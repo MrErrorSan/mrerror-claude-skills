@@ -1,28 +1,35 @@
 # Progress: anvil-rebuild
 - **Stage:** build
-- **Wave:** 2 of 4
+- **Wave:** 3 of 4
 ## Tasks
 - [x] T1 Foundations (formats, CLI skeleton, parser, state) C1
 - [x] T2 Gates and AFK C1
 - [x] T3 Parallel-safe check and lane check C1
 - [x] T4 Result reuse C1
 - [x] T6 Stale detection and progress C1
-- [ ] T5 Hooks
-- [ ] T7 anvil router and brainstorm skills
-- [ ] T8 plan skill
-- [ ] T9 build skill
-- [ ] T10 verify and finish skills
-- [ ] T11 debug skill
-- [ ] T12 afk revision and ticket-update hook-in
+- [x] T5 Hooks C2
+- [x] T7 anvil router and brainstorm skills C2
+- [x] T8 plan skill C2
+- [x] T9 build skill C2
+- [~] T10 verify and finish skills (lane anvil/anvil-1.0/T10)
+- [~] T11 debug skill (lane anvil/anvil-1.0/T11)
+- [~] T12 afk revision and ticket-update hook-in (lane anvil/anvil-1.0/T12)
 - [ ] T13 Packaging and skill lint
 - [ ] T14 Evals
 - [ ] T16 Upstream watch and provenance
 - [ ] T15 Integration and final verification (orchestrator)
 ## Commit points
-- C1 (waves 0-1) squashed onto anvil-rebuild; sha recorded after push
+- C1 04a8360 pushed 2026-11-18
 ## Blockers
 ## Decision log
 <!-- newest first; each: - 2026-11-18 **<choice>** — <reason>. Confidence: high|medium|low. Changes if: <fact>. -->
+- 2026-11-18 **Wave 3 started before C2 landed** — T10-T12 depend only on T1/T2; their write sets don't touch wave 2's, and C2 squashes before any wave-3 lane merges. Confidence: high.
+- 2026-11-18 **Wave 2 verified: 44 tests green on the merged tree; hook smokes pass (session-start JSON, empty-PATH pre-tool-use → `{}` exit 0, `.cmd` route exit 0); hook scripts LF in the index; skills within budget, no forbidden words, only pinned CLI subcommands** — plus per-task reviews and a wave review for cross-skill drift. Confidence: high.
+- 2026-11-18 **The active topic's `progress.md` is left out of the result tree key and ignored by `lane-check`** — T9 found every progress edit made recorded results stale (no reuse at commit points), and sequential lanes got the orchestrator's own progress file flagged. Confidence: high. Changes if: a project keeps code-relevant data in progress.md (not expected).
+- 2026-11-18 **`topic start` on the same slug keeps the stored folder unless `--dir` is given** — the T7 review found a size step-up dropped a project-rule `--dir`. Confidence: high.
+- 2026-11-18 **The PreToolUse gate does not hold Agent dispatch; it holds Edit/Write inside the repo but outside the topic folder** — brainstorm needs subagents in the spec stage (lookups, builder check, mock variants), and PreToolUse fires inside subagents too (hooks docs), so the edit hold still stops an early build. Writes outside the repo (scratchpad, memory) are never held. Confidence: high. Changes if: evals show builds starting early through Bash writes.
+- 2026-11-18 **skill-creator's `quick_validate.py` failing only on `disable-model-invocation` / `user-invocable` is accepted** — the validator's allowlist predates those Claude Code frontmatter keys, and the plan requires `disable-model-invocation` on `finish`. Every other validator failure is fixed. Confidence: high. Changes if: skill-creator adds the keys.
+- 2026-11-18 **Added `anvil topic stage <stage>` (plan and build gated by `check`)** — the skills need to move a topic between stages and the pinned CLI had no command for it. Documented in `references/formats.md`; stage hand-offs pinned in the skill-lane brief. Confidence: high. Changes if: none expected.
 - 2026-11-18 **Wave 1 verified: 35 tests green on the merged tree (`unittest discover`, ~40 s) plus an end-to-end CLI smoke from a subdirectory** — the smoke covered gate order, quote-after-present, stale, plan-check overlap, run/fresh reuse and invalidation, and progress. Confidence: high.
 - 2026-11-18 **The suite takes ~40 s, not the plan's "under 10 s"** — each `tree_key` and `state_dir` spawns git (~0.1-0.35 s on Windows). Still well under the design's ~2 min per-wave threshold, so it runs per wave. Confidence: high. Changes if: it passes ~2 min.
 - 2026-11-18 **T5 adds a guard: PreToolUse denies an Edit/Write that sets the topic's spec or plan `Approved:` line to anything but `no`** — the T2 review found that `check` reads only the header, so a hand-written header would pass a stop. Only `anvil approve` may write it. Confidence: medium. Changes if: the guard blocks legitimate edits (e.g. the change flow-back).

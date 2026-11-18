@@ -15,7 +15,7 @@ Every skill and every CLI module uses exactly these.
 - **Approved:** 2026-11-18 by Saad ("<quote>")
 - **Approved:** pre-approved by Saad 2026-11-18 ("<quote>")
 - **Approved:** skipped (AFK) 2026-11-18 ("<quote>")
-- **Mode:** normal | redesign            (spec only)
+- **Mode:** normal | redesign            (spec, or the spec part of a direct-size plan)
 - **Size:** trivial | direct | full
 - **Synced branch:** <branch> (local) | <branch> (remote <remote>/<branch>)   (plan only)
 ```
@@ -78,13 +78,15 @@ Every skill and every CLI module uses exactly these.
 | `prompts.jsonl` | `{ts, prompt}` per line, keeping the last 500 |
 | `afk.json` | `{on, ts, quote}` |
 | `results.jsonl` | `{key, tree, prefix, cmd, scope, exit, tests_ran, ts, summary}`, plus `external: true` when set |
+| `stop.json` | `{hash, ts}`: sha256 of the `## Stop note` section text, saved by the stop hook; a Stop note counts as new only while its hash differs |
 
-`result_key` includes the cwd prefix (`prefix`, the cwd relative to the repo root, empty at the root), so the same command run from two folders gets two keys. Submodule contents are not part of the key (unsupported).
+`result_key` includes the cwd prefix (`prefix`, the cwd relative to the repo root, empty at the root), so the same command run from two folders gets two keys. The active topic's `progress.md` is left out of the tree key, so status edits don't make results stale. Submodule contents are not part of the key (unsupported).
 
 **CLI** (`anvil <subcommand>`). Every subcommand supports `--json`. Exit codes: 0 = ok or yes, 1 = no or refused (with a reason on stderr), 2 = usage error.
 
 ```
-topic start <slug> [--size trivial|direct|full] [--dir <path>]   topic show   topic end
+topic start <slug> [--size trivial|direct|full] [--dir <path>]   topic stage <spec|plan|build|verify|finish|done>   topic show   topic end
+(`topic stage plan` and `topic stage build` are refused unless `check plan` / `check build` passes. Re-running `topic start` with a bigger `--size` steps a topic up a size.)
 present spec|plan
 approve spec|plan --quote "<text>" [--pre] [--afk]
 check plan|build
@@ -154,7 +156,7 @@ A cell that needs a literal `|` writes it as `\|`.
 
 **Is `bin/` on the Bash tool's PATH?** Yes. The Claude Code plugins reference, section "Standard layout", says of the `bin/` directory: "Files here are on the Bash tool's `PATH` while the plugin is enabled, so Claude runs them as bare commands." The same page notes that claude.ai and Cowork don't install a plugin that has a top-level `bin/` directory, and that `${CLAUDE_PLUGIN_ROOT}` is not set in the environment of Bash tool commands (it is substituted inline in skill content). Source: <https://code.claude.com/docs/en/plugins-reference#standard-layout>, checked 2026-11-18.
 
-**What skills do anyway.** Skills call the CLI by the absolute path that the session-start hook supplies (`<plugin root>/bin/anvil`), so a call works even where `bin/` is not on PATH.
+**How skills call it.** Skills write commands as bare `anvil <subcommand> …`. When a bare `anvil` isn't found, they use the absolute path that the session-start hook states:
 
 - Git Bash, macOS, Linux: `<plugin root>/bin/anvil <subcommand> …`
 - cmd.exe or PowerShell: `<plugin root>\bin\anvil.cmd <subcommand> …`

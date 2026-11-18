@@ -51,6 +51,14 @@ def tree_key(cwd: Path) -> str:
                 _git(root, "update-index", flag, "-z", "--stdin", env=env,
                      input="\0".join(paths) + "\0")
         _git(root, "-c", "core.safecrlf=false", "add", "-A", env=env)
+        # The active topic's progress.md is status, not code: editing it must not
+        # make recorded results stale.
+        topic_dir = state.topic_dir(cwd)
+        if topic_dir is not None:
+            progress = (topic_dir / "progress.md").resolve()
+            if progress.is_relative_to(root.resolve()):
+                _git(root, "rm", "--cached", "-q", "--ignore-unmatch", "--",
+                     progress.relative_to(root.resolve()).as_posix(), env=env)
         lines = ["tree " + _git(root, "write-tree", env=env)]
     for f in sorted([*(root / n for n in LOCKFILES), *root.glob("requirements*.txt")]):
         if f.is_file():

@@ -56,6 +56,16 @@ class ResultsTests(unittest.TestCase):
         self.assertNotEqual(results.result_key(self.repo / "a", PASS, "targeted"),
                             results.result_key(self.repo / "b", PASS, "targeted"))
 
+    def test_key_ignores_topic_progress_file(self):
+        state.save(self.repo, "active.json",
+                   {"slug": "demo", "dir": "docs/demo", "size": "full", "stage": "build"})
+        write(self.repo / "docs/demo/progress.md", "# Progress: demo\n- [ ] T1 a\n")
+        k0 = results.tree_key(self.repo)
+        write(self.repo / "docs/demo/progress.md", "# Progress: demo\n- [x] T1 a C1\n")
+        self.assertEqual(results.tree_key(self.repo), k0)
+        write(self.repo / "docs/demo/plan.md", "- **Approved:** no\n")
+        self.assertNotEqual(results.tree_key(self.repo), k0)
+
     def test_key_sees_assume_unchanged_edit(self):
         git(self.repo, "update-index", "--assume-unchanged", "README.md")
         k0 = results.tree_key(self.repo)

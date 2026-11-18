@@ -173,6 +173,7 @@ class PlanCheckTests(unittest.TestCase):
             write(lane / "README.md", "# changed\n")
             git(lane, "mv", "lib/util.py", "src/a/util.py")      # staged rename
             write(lane / "src/a/generated/api.ts", "x\n")        # integrator-only, inside writes
+            write(lane / "docs/demo/progress.md", "- [~] T2\n")  # orchestrator-owned, ignored
             state.save(lane, "active.json",
                        {"slug": "demo", "dir": "docs/demo", "size": "full", "stage": "build"})
             out, old = io.StringIO(), os.getcwd()

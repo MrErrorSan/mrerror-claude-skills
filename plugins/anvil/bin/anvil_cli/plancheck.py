@@ -267,8 +267,14 @@ def cmd_lane_check(args) -> int:
         print(f"{args.task}: not in the task table", file=sys.stderr)
         return 1
     try:
-        outside = sorted(set(lane_check(cwd, task, args.base))
-                         | set(_outside(_uncommitted(cwd), task.writes)))
+        outside = set(lane_check(cwd, task, args.base)) \
+            | set(_outside(_uncommitted(cwd), task.writes))
+        # The orchestrator owns the topic's progress.md; it isn't a lane write.
+        progress = (state.topic_dir(cwd) / "progress.md").resolve()
+        root = state.repo_root(cwd).resolve()
+        if progress.is_relative_to(root):
+            outside.discard(progress.relative_to(root).as_posix())
+        outside = sorted(outside)
     except subprocess.CalledProcessError as e:
         print(f"git failed: {e.stderr.strip()}", file=sys.stderr)
         return 2

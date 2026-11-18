@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Anvil Stop hook: runs `bin/anvil hook stop` on the hook JSON from stdin.
+# It runs bin/anvil with this same bash ($BASH), not a PATH lookup, because a WSL
+# bash.exe can come first on PATH on Windows. Fails open: if the CLI is missing,
+# finds no Python or exits non-zero, this prints {} and one line on stderr.
+case "$0" in */*|*\\*) d="${0%[/\\]*}" ;; *) d=. ;; esac
+{ err=$("${BASH:-bash}" "$d/../bin/anvil" hook stop 2>&1 1>&3 3>&-); } 3>&1
+if [ $? -ne 0 ]; then echo '{}'; echo "anvil: stop hook skipped: ${err##*$'\n'}" >&2
+elif [ -n "$err" ]; then echo "${err##*$'\n'}" >&2; fi
+exit 0
