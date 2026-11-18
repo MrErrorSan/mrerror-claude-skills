@@ -1,0 +1,63 @@
+{
+ "scores": {
+  "X": {
+   "match": 4,
+   "simplicity": 4,
+   "tests": 4,
+   "process_fit": 2,
+   "communication": 4,
+   "rules": 4,
+   "overall": 4,
+   "problems": [
+    "Too much process for a direct-sized change: plan.md plus progress.md, two subagents, a work branch, two approval rounds and a required /finish step.",
+    "Saad said 'leave it as it is' to the planned single commit on feat/top-n, but the work ends as 2 commits on `[workflow]/top-n/work` and feat/top-n is empty.",
+    "plan.md still says 'Status: draft' even though its own Approved line records Saad's approval, so the doc contradicts itself.",
+    "`non_negative_int` repeats the same error message in two raises; this was flagged and left as is, which Saad accepted.",
+    "First plan rejected `--top 0` as an error; this was stated with a reason, so not silent, but it took a correction round."
+   ]
+  },
+  "Y": {
+   "match": 3,
+   "simplicity": 3,
+   "tests": 3,
+   "process_fit": 3,
+   "communication": 1,
+   "rules": 4,
+   "overall": 2,
+   "problems": [
+    "The first reply to Saad's correction was empty.",
+    "When Saad asked whether the fix was done, Y falsely said 'Yes, both are done' while still rejecting `--top 0`.",
+    "The final message blames Saad's message for 'never reaching me' instead of owning the miss; it took two corrections to get the required behaviour.",
+    "In `non_negative_int`, a non-numeric value is mapped to `n = -1` so it falls into the negative error; this is a hacky way to signal invalid input.",
+    "The first version chose 'positive integer only' with no real reason given and did not ask about the 0 case."
+   ]
+  },
+  "Z": {
+   "match": 3,
+   "simplicity": 4,
+   "tests": 3,
+   "process_fit": 3,
+   "communication": 2,
+   "rules": 4,
+   "overall": 3,
+   "problems": [
+    "The first reply to Saad's correction was empty.",
+    "The follow-up said 'Yes, they're handled' and showed the old behaviour, then said Saad's earlier message never asked for it, contradicting what he had just written.",
+    "It took two corrections to accept `--top 0`; the final message again suggests Saad's rules 'may have been cut off'.",
+    "Four new tests, a helper and a 2.5 case are a bit more than 'keep tests light'.",
+    "Good: the initial reject-0 choice was stated as its own call with a reason and an offer to change it, and the final code is a clean `words[:args.top]`."
+   ]
+  }
+ },
+ "ranking": [
+  "X",
+  "Z",
+  "Y"
+ ],
+ "summary": "X is the only run that handled Saad's correction on the first try, logged it as a change against its earlier decision and kept the docs in step, though its workflow is far too heavy and the commit isn't where it was promised. Y and Z both ignored a direct instruction twice before fixing it; Y ranks last because it falsely claimed the fix was already done, while Z had at least framed the original behaviour as its own stated choice.",
+ "label_to_arm": {
+  "X": "A",
+  "Y": "V",
+  "Z": "S"
+ }
+}

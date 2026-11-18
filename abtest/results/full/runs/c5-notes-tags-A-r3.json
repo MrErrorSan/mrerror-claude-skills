@@ -1,0 +1,167 @@
+{
+ "run_id": "c5-notes-tags-A-r3",
+ "suite": "full",
+ "case": "c5-notes-tags",
+ "arm": "A",
+ "replicate": 3,
+ "status": "complete",
+ "end_reason": "done",
+ "plugin": "C:\\Users\\MrError\\Documents\\GitHub\\Mine\\mrerror-claude-skills\\plugins\\anvil",
+ "plugin_rev": "anvil@8c09d42",
+ "model": "claude-opus-5-5",
+ "effort": "high",
+ "loaded_plugins": [
+  "anvil",
+  "cc-plugin-agents-md",
+  "cc-plugin-telemetry",
+  "cc-plugin-privacy",
+  "cc-plugin-plugin-authoring"
+ ],
+ "agent_time_s": 734.9,
+ "wall_time_s": 1919.9,
+ "agent_invocations": 4,
+ "user_turns": 3,
+ "agent_num_turns": 46,
+ "cost_usd": 8.0896,
+ "cost_by_model": {
+  "claude-opus-5-5": 6.8128,
+  "claude-sonnet-5-5": 1.2607,
+  "claude-haiku-5-5": 0.0161
+ },
+ "sim_cost_usd": 0.08,
+ "tokens": {
+  "input": 344,
+  "output": 164715,
+  "cache_read": 13404554,
+  "cache_write": 672673
+ },
+ "sim_kinds": [
+  "question",
+  "approval_request",
+  "approval_request",
+  "other"
+ ],
+ "change_delivered_after_turn": null,
+ "tools": {
+  "tool_calls": 157,
+  "tool_calls_subagents": 78,
+  "by_tool": {
+   "Skill": 6,
+   "Bash": 87,
+   "Write": 7,
+   "Agent": 12,
+   "Read": 32,
+   "Grep": 5,
+   "Glob": 1,
+   "ToolSearch": 1,
+   "SendMessage": 5,
+   "Edit": 1
+  },
+  "test_runs": 30,
+  "test_runs_main": 8,
+  "skills": [
+   "anvil:anvil",
+   "anvil:brainstorm",
+   "anvil:plan",
+   "anvil:build",
+   "anvil:verify",
+   "anvil:cross-model"
+  ],
+  "subagents": 12,
+  "subagent_types": [
+   "general-purpose",
+   "general-purpose",
+   "general-purpose",
+   "general-purpose",
+   "general-purpose",
+   "general-purpose",
+   "general-purpose",
+   "general-purpose",
+   "general-purpose",
+   "general-purpose",
+   "general-purpose",
+   "general-purpose"
+  ],
+  "tool_errors": 6,
+  "ask_user_question": 0
+ },
+ "hooks_fired": [
+  "SessionStart:startup"
+ ],
+ "grade": {
+  "result_location": "worktree:c5-notes-tags-A-r3",
+  "hidden": {
+   "passed": 12,
+   "total": 12,
+   "by_category": {
+    "regression": {
+     "passed": 3,
+     "total": 3
+    },
+    "brief": {
+     "passed": 3,
+     "total": 3
+    },
+    "core": {
+     "passed": 4,
+     "total": 4
+    },
+    "edge": {
+     "passed": 2,
+     "total": 2
+    }
+   }
+  },
+  "hidden_failures": [],
+  "own_suite": {
+   "ran": 15,
+   "ok": true,
+   "seconds": 3.4,
+   "tail": ""
+  },
+  "diff": {
+   "code": {
+    "files": 2,
+    "added": 112,
+    "removed": 17
+   },
+   "tests": {
+    "files": 2,
+    "added": 218,
+    "removed": 0
+   },
+   "docs": {
+    "files": 4,
+    "added": 325,
+    "removed": 0
+   },
+   "other": {
+    "files": 0,
+    "added": 0,
+    "removed": 0
+   }
+  },
+  "new_docs": [
+   "docs/tags/plan.md",
+   "docs/tags/progress.md",
+   "docs/tags/spec.md"
+  ],
+  "changed_docs": [
+   "docs/decisions.md"
+  ],
+  "commits": 12,
+  "claude_trailers": 0,
+  "uncommitted_in_main": false,
+  "branches": [
+   "anvil/tags/work",
+   "feature/tags",
+   "main"
+  ],
+  "worktrees": 1,
+  "doc_rule": {
+   "new_docs_outside_rule": [],
+   "decisions_md_updated": true
+  }
+ },
+ "run_dir": "C:\\Users\\MrError\\AppData\\Local\\Temp\\anvil-abtest\\full\\c5-notes-tags-A-r3"
+}

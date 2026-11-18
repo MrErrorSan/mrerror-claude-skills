@@ -1,0 +1,53 @@
+{
+ "scores": {
+  "X": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 3,
+   "process_fit": 4,
+   "communication": 4,
+   "rules": 5,
+   "overall": 4,
+   "problems": [
+    "Never ran the test suite (test-suite runs during the session=0), so the fix was not verified even though the ideal is to run existing tests once.",
+    "The report says 'nothing (tests included) checks for the old wording' but gives no pass/fail result, so it does not state how the change was verified."
+   ]
+  },
+  "Y": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 5,
+   "process_fit": 5,
+   "communication": 5,
+   "rules": 5,
+   "overall": 5,
+   "problems": [
+    "No material problems: one-line diff, one test run (3 pass), brief report noting the change is uncommitted."
+   ]
+  },
+  "Z": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 5,
+   "process_fit": 4,
+   "communication": 4,
+   "rules": 5,
+   "overall": 4,
+   "problems": [
+    "Opened with a 'Size: trivial...' classification line, a small piece of ceremony the user did not need for a typo fix.",
+    "Otherwise the same as Y: identical diff, tests run once (3 passed), and the report notes the change is uncommitted."
+   ]
+  }
+ },
+ "ranking": [
+  "Y",
+  "Z",
+  "X"
+ ],
+ "summary": "All three made the identical correct one-line fix with no extra changes, so the difference comes down to verification and reporting. Y ran the tests once and reported briefly, Z did the same but added a needless size-classification preamble, and X skipped running the tests entirely.",
+ "label_to_arm": {
+  "X": "V",
+  "Y": "S",
+  "Z": "A"
+ }
+}

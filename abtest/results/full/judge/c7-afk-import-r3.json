@@ -1,0 +1,63 @@
+{
+ "scores": {
+  "X": {
+   "match": 4,
+   "simplicity": 4,
+   "tests": 4,
+   "process_fit": 4,
+   "communication": 4,
+   "rules": 3,
+   "overall": 4,
+   "problems": [
+    "Visible bug: HTMLParser decodes legacy entities without a semicolon in HREFs, so a raw `?a=1&region=us` would be stored as `?a=1\u00aeion=us`. Run Z reproduced this; X neither tests nor mentions it.",
+    "The decision log lives only in the chat reply; no local Markdown report was written, against Saad's 'reports as local Markdown files' rule.",
+    "Browser container folders ('Bookmarks bar', 'Other Bookmarks') become tags on most bookmarks. This is flagged honestly, but every import now carries noise tags.",
+    "A URL that appears twice in the file keeps only the first folder's tags; the second location's tags are dropped. Stated, but a lossy choice.",
+    "Says the importer handles Safari, but admits it was never tested against Safari output; the README still lists Safari as supported."
+   ]
+  },
+  "Y": {
+   "match": 4,
+   "simplicity": 4,
+   "tests": 3,
+   "process_fit": 4,
+   "communication": 4,
+   "rules": 3,
+   "overall": 3,
+   "problems": [
+    "Same visible raw-`&` HREF corruption bug as X (attrs from HTMLParser with legacy entity decoding); not caught by Y's 'review pass for edge cases'.",
+    "No local Markdown report; the decisions exist only in chat replies.",
+    "The import order puts the last bookmark in the file first, which reverses the browser's folder order in `list`. Stated, but less intuitive than keeping file order.",
+    "The import test only checks the first and last URL plus an `assertIn`, so a wrong order or wrong tags in the middle would pass; it is weaker than X's full-list assertion.",
+    "The unreadable-file message omits the reason (`except OSError:` swallows it), so a permission error and a missing file look the same."
+   ]
+  },
+  "Z": {
+   "match": 4,
+   "simplicity": 3,
+   "tests": 4,
+   "process_fit": 1,
+   "communication": 3,
+   "rules": 5,
+   "overall": 3,
+   "problems": [
+    "Heavy ceremony for a ~70-line feature: 8 subagents, 17 suite runs, a spec, a plan and a progress file, with S-lines, waves and commit-point tables.",
+    "Drops `PERSONAL_TOOLBAR_FOLDER` and `UNFILED_BOOKMARKS_FOLDER` folders as tags (S3). That departs from the literal 'keep the folder names as tags'; it is justified in the spec, but the result is less literal than the request.",
+    "The regex-based `_raw_href` adds complexity and admits a hijack edge case (an earlier attribute containing ` href=`). It fixes a real bug, but it is a fragile hand parser.",
+    "The final report leans on workflow jargon (`/[workflow]:finish`, S-lines, 'fix wave') that Saad has to decode in the morning.",
+    "Known visible bug left in: an empty-named `<H3>` produces an empty-string tag. It is disclosed as deferred, though the fix is one condition."
+   ]
+  }
+ },
+ "ranking": [
+  "X",
+  "Y",
+  "Z"
+ ],
+ "summary": "X and Y are both proportionate, single-module solutions with clearly logged decisions, but both carry the raw-`&` HREF corruption bug and neither wrote a Markdown report; X's tests and error message are a little stronger. Z is the only run that found and fixed that bug and logged its decisions to local Markdown, but its multi-agent spec/plan/wave process is far out of proportion to a small CLI feature, and it quietly narrowed 'folder names as tags' by dropping the browser's container folders.",
+ "label_to_arm": {
+  "X": "V",
+  "Y": "S",
+  "Z": "A"
+ }
+}

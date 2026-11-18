@@ -1,0 +1,57 @@
+{
+ "scores": {
+  "X": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 4,
+   "process_fit": 5,
+   "communication": 5,
+   "rules": 5,
+   "overall": 4,
+   "problems": [
+    "Tests ran only once (after the fix), so the new test was never shown failing before the fix and could pass for the wrong reason",
+    "Test lacks a whole-amount negative case such as -1200 -> '-12.00' to exercise zero cents with a sign",
+    "Says 'any negative amount was affected' but does not state why the Refunds line changing is acceptable given 'nothing else changes'; the reasoning is implied, not stated"
+   ]
+  },
+  "Y": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 3,
+   "process_fit": 5,
+   "communication": 4,
+   "rules": 5,
+   "overall": 4,
+   "problems": [
+    "test_money_negative includes money(0) == '0.00', which is not a negative case, so the test name and contents don't match",
+    "Tests ran only once, so there is no evidence the test failed before the fix",
+    "Final report claims the Net and positive balances are unchanged but shows no report output as evidence",
+    "No whole-amount negative case such as -1200"
+   ]
+  },
+  "Z": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 5,
+   "process_fit": 5,
+   "communication": 4,
+   "rules": 5,
+   "overall": 5,
+   "problems": [
+    "Stray progress text leaked into the final message ('The test fails with exactly the bug. Now the fix:'), making the report slightly messy",
+    "Does not explicitly frame the Refunds line change against 'nothing else changes', though it explains why it was wrong"
+   ]
+  }
+ },
+ "ranking": [
+  "Z",
+  "X",
+  "Y"
+ ],
+ "summary": "All three made the identical root-cause fix in money() with no over-building and clearly flagged that the Refunds line was also wrong. Z wins by showing its test failing before the fix and covering a whole-amount negative case; Y trails because its 'negative' test includes a zero case and it gave no report output as evidence.",
+ "label_to_arm": {
+  "X": "A",
+  "Y": "V",
+  "Z": "S"
+ }
+}

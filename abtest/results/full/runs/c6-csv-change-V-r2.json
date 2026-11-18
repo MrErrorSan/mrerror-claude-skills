@@ -1,0 +1,118 @@
+{
+ "run_id": "c6-csv-change-V-r2",
+ "suite": "full",
+ "case": "c6-csv-change",
+ "arm": "V",
+ "replicate": 2,
+ "status": "complete",
+ "end_reason": "done",
+ "plugin": null,
+ "plugin_rev": null,
+ "model": "claude-opus-5-5",
+ "effort": "high",
+ "loaded_plugins": [
+  "cc-plugin-telemetry",
+  "cc-plugin-privacy"
+ ],
+ "agent_time_s": 164.6,
+ "wall_time_s": 174.4,
+ "agent_invocations": 2,
+ "user_turns": 1,
+ "agent_num_turns": 23,
+ "cost_usd": 0.677,
+ "cost_by_model": {
+  "claude-opus-5-5": 0.677
+ },
+ "sim_cost_usd": 0.0314,
+ "tokens": {
+  "input": 44,
+  "output": 11079,
+  "cache_read": 857493,
+  "cache_write": 35472
+ },
+ "sim_kinds": [
+  "other",
+  "done"
+ ],
+ "change_delivered_after_turn": 0,
+ "tools": {
+  "tool_calls": 21,
+  "tool_calls_subagents": 0,
+  "by_tool": {
+   "Bash": 15,
+   "Read": 4,
+   "Edit": 2
+  },
+  "test_runs": 9,
+  "test_runs_main": 9,
+  "skills": [],
+  "subagents": 0,
+  "subagent_types": [],
+  "tool_errors": 0,
+  "ask_user_question": 0
+ },
+ "hooks_fired": [],
+ "grade": {
+  "result_location": "worktree:c6-csv-change-V-r2",
+  "hidden": {
+   "passed": 6,
+   "total": 6,
+   "by_category": {
+    "regression": {
+     "passed": 2,
+     "total": 2
+    },
+    "core": {
+     "passed": 3,
+     "total": 3
+    },
+    "edge": {
+     "passed": 1,
+     "total": 1
+    }
+   }
+  },
+  "hidden_failures": [],
+  "own_suite": {
+   "ran": 7,
+   "ok": true,
+   "seconds": 0.3,
+   "tail": ""
+  },
+  "diff": {
+   "code": {
+    "files": 2,
+    "added": 35,
+    "removed": 1
+   },
+   "tests": {
+    "files": 1,
+    "added": 67,
+    "removed": 0
+   },
+   "docs": {
+    "files": 1,
+    "added": 4,
+    "removed": 0
+   },
+   "other": {
+    "files": 0,
+    "added": 0,
+    "removed": 0
+   }
+  },
+  "new_docs": [],
+  "changed_docs": [
+   "README.md"
+  ],
+  "commits": 0,
+  "claude_trailers": 0,
+  "uncommitted_in_main": true,
+  "branches": [
+   "main"
+  ],
+  "worktrees": 1,
+  "doc_rule": null
+ },
+ "run_dir": "C:\\Users\\MrError\\AppData\\Local\\Temp\\anvil-abtest\\full\\c6-csv-change-V-r2"
+}

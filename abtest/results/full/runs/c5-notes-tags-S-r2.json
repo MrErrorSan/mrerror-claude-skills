@@ -1,0 +1,147 @@
+{
+ "run_id": "c5-notes-tags-S-r2",
+ "suite": "full",
+ "case": "c5-notes-tags",
+ "arm": "S",
+ "replicate": 2,
+ "status": "complete",
+ "end_reason": "done",
+ "plugin": "C:\\Users\\MrError\\.claude\\plugins\\cache\\claude-plugins-official\\superpowers\\7.0.2",
+ "plugin_rev": "superpowers@7.0.2",
+ "model": "claude-opus-5-5",
+ "effort": "high",
+ "loaded_plugins": [
+  "superpowers",
+  "cc-plugin-agents-md",
+  "cc-plugin-telemetry",
+  "cc-plugin-privacy",
+  "cc-plugin-plugin-authoring"
+ ],
+ "agent_time_s": 595.4,
+ "wall_time_s": 627.1,
+ "agent_invocations": 5,
+ "user_turns": 4,
+ "agent_num_turns": 49,
+ "cost_usd": 2.6786,
+ "cost_by_model": {
+  "claude-opus-5-5": 2.6786
+ },
+ "sim_cost_usd": 0.0909,
+ "tokens": {
+  "input": 90,
+  "output": 51941,
+  "cache_read": 3021554,
+  "cache_write": 145582
+ },
+ "sim_kinds": [
+  "choice",
+  "question",
+  "approval_request",
+  "approval_request",
+  "done"
+ ],
+ "change_delivered_after_turn": null,
+ "tools": {
+  "tool_calls": 48,
+  "tool_calls_subagents": 8,
+  "by_tool": {
+   "Skill": 4,
+   "Bash": 27,
+   "Write": 3,
+   "Edit": 11,
+   "Read": 2,
+   "Agent": 1
+  },
+  "test_runs": 13,
+  "test_runs_main": 12,
+  "skills": [
+   "superpowers:brainstorming",
+   "superpowers:writing-plans",
+   "superpowers:executing-plans",
+   "superpowers:test-driven-development"
+  ],
+  "subagents": 1,
+  "subagent_types": [
+   "general-purpose"
+  ],
+  "tool_errors": 2,
+  "ask_user_question": 0
+ },
+ "hooks_fired": [
+  "SessionStart:startup"
+ ],
+ "grade": {
+  "result_location": "worktree:c5-notes-tags-S-r2",
+  "hidden": {
+   "passed": 12,
+   "total": 12,
+   "by_category": {
+    "regression": {
+     "passed": 3,
+     "total": 3
+    },
+    "brief": {
+     "passed": 3,
+     "total": 3
+    },
+    "core": {
+     "passed": 4,
+     "total": 4
+    },
+    "edge": {
+     "passed": 2,
+     "total": 2
+    }
+   }
+  },
+  "hidden_failures": [],
+  "own_suite": {
+   "ran": 29,
+   "ok": true,
+   "seconds": 5.6,
+   "tail": ""
+  },
+  "diff": {
+   "code": {
+    "files": 2,
+    "added": 118,
+    "removed": 17
+   },
+   "tests": {
+    "files": 2,
+    "added": 190,
+    "removed": 0
+   },
+   "docs": {
+    "files": 4,
+    "added": 401,
+    "removed": 0
+   },
+   "other": {
+    "files": 1,
+    "added": 1,
+    "removed": 0
+   }
+  },
+  "new_docs": [
+   "docs/tags/design.md",
+   "docs/tags/plan.md"
+  ],
+  "changed_docs": [
+   "README.md",
+   "docs/decisions.md"
+  ],
+  "commits": 0,
+  "claude_trailers": 0,
+  "uncommitted_in_main": true,
+  "branches": [
+   "main"
+  ],
+  "worktrees": 1,
+  "doc_rule": {
+   "new_docs_outside_rule": [],
+   "decisions_md_updated": true
+  }
+ },
+ "run_dir": "C:\\Users\\MrError\\AppData\\Local\\Temp\\anvil-abtest\\full\\c5-notes-tags-S-r2"
+}

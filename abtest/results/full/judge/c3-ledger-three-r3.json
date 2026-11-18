@@ -1,0 +1,61 @@
+{
+ "scores": {
+  "X": {
+   "match": 3,
+   "simplicity": 3,
+   "tests": 4,
+   "process_fit": 1,
+   "communication": 3,
+   "rules": 4,
+   "overall": 2,
+   "problems": [
+    "Made both --csv and --json at once a usage error (mutually exclusive group) instead of writing both files; it was put in the approved plan but never asked as a question.",
+    "Heavy ceremony for a 'direct'-sized change: 8 subagents, lane briefs, review packages and 18 test-suite runs, including the ~20 s full suite after each task and re-review.",
+    "Added an unrequested S8/T3 feature (refusing to export over the --data file) mid-build without asking, which is over-building beyond the three asked additions.",
+    "plan.md still says 'Status: draft' and lists a synced branch and work branch that were never created, so the docs and the actual state disagree.",
+    "Bad --since date gives the opaque 'invalid fromisoformat value' message; the sort is duplicated in cli.py; it raised an Excel/BOM question it then had to resolve itself."
+   ]
+  },
+  "Y": {
+   "match": 3,
+   "simplicity": 4,
+   "tests": 4,
+   "process_fit": 3,
+   "communication": 4,
+   "rules": 5,
+   "overall": 4,
+   "problems": [
+    "Both flags at once is a usage error rather than writing both files; this is stated in the report but without a reason and never asked about.",
+    "No short plan or batched question for a three-feature change where the both-flags and bad-date behaviour were genuinely open.",
+    "Added an `oldest_first` helper to model.py that the request didn't need; a one-line sort was already there.",
+    "export_rows is shared between CSV and JSON (good), but the JSON key order and raw quoting aren't checked beyond equality."
+   ]
+  },
+  "Z": {
+   "match": 3,
+   "simplicity": 3,
+   "tests": 3,
+   "process_fit": 3,
+   "communication": 4,
+   "rules": 4,
+   "overall": 3,
+   "problems": [
+    "Changed `model.money()` for negative totals without being asked; this is scope creep into existing behaviour, though it was stated and tested.",
+    "Both flags at once is a usage error rather than writing both files; this is stated without a reason and never asked.",
+    "The export-flag and bad-date tests only assert that SystemExit is raised, not exit code 2.",
+    "No plan or questions for a three-part change with open behaviour decisions."
+   ]
+  }
+ },
+ "ranking": [
+  "Y",
+  "Z",
+  "X"
+ ],
+ "summary": "Y delivered all three features with shared row-building, focused fast tests, few suite runs and no scope creep. Z was similar but changed money() unasked and has weaker exit-code assertions, while X buried a small change under subagent ceremony, repeated slow-suite runs and an unrequested feature, and its plan doc doesn't match reality; all three wrongly made both flags an error instead of asking.",
+ "label_to_arm": {
+  "X": "A",
+  "Y": "S",
+  "Z": "V"
+ }
+}

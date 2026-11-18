@@ -1,0 +1,63 @@
+{
+ "scores": {
+  "X": {
+   "match": 4,
+   "simplicity": 5,
+   "tests": 4,
+   "process_fit": 4,
+   "communication": 4,
+   "rules": 4,
+   "overall": 4,
+   "problems": [
+    "The semicolon request is not named as a change of requirement; the reply opens with 'The export now uses semicolons' and never says it replaces the comma format the first delivery and its tests encoded.",
+    "The test update is vague: 'I updated the expected values' does not say which tests encoded the old comma/quoting format or why each changed.",
+    "Overwriting an existing file and the UTF-8 choice are decided silently; only the BOM is stated with a reason.",
+    "No local Markdown report is written; the final report exists only in chat.",
+    "The known negative-total bug ships unfixed into the CSV ('-1,99'). It is disclosed but not offered as a batched question with a recommendation."
+   ]
+  },
+  "Y": {
+   "match": 5,
+   "simplicity": 4,
+   "tests": 4,
+   "process_fit": 2,
+   "communication": 2,
+   "rules": 4,
+   "overall": 3,
+   "problems": [
+    "Ceremony is heavy for a roughly 20-line change: a plan approval gate, a work branch plus feat branch, 8 subagents, 17 test-suite runs and 6 commits, while the run itself labels the work 'Size: direct'.",
+    "User-facing text is full of workflow jargon ('All eight S-lines are met', 'T2 passed its re-review', 'handing over to verify', '/[workflow]:finish'), so it is hard to follow plainly.",
+    "The plan doc is partly stale: 'Status: draft' after approval, and 'S8 (if Q1 is accepted)' after Q1 was answered.",
+    "The progress log still has the entry 'Keep comma delimiter, no locale handling \u2014 S2 pins a comma-delimited header' next to the change-request entry, so the docs partially contradict the code.",
+    "The chat reply to the change ('Plan fixed...') does not itself name it as a change or say what it replaces. That explanation exists only in plan.md D8 and progress.md."
+   ]
+  },
+  "Z": {
+   "match": 4,
+   "simplicity": 3,
+   "tests": 4,
+   "process_fit": 3,
+   "communication": 4,
+   "rules": 4,
+   "overall": 3,
+   "problems": [
+    "It over-builds slightly: an unrequested `model.oldest_first()` refactor touches `list`, plus a `german_money()` helper and a `CSV_DELIMITER` constant that the one call site does not need.",
+    "There is visible churn over line endings ('I over-corrected...restore those') and a heredoc that 'mangled the escapes', which is noisy process for a small change.",
+    "The change is not named as a replacement of the comma format; 'Tests: updated for the new format' does not say which tests encoded the old format or why.",
+    "Overwriting an existing file is decided silently, and no local Markdown report is written.",
+    "The negative-total bug is left in the CSV ('-1,99'). It is disclosed but not raised as a question with a recommendation."
+   ]
+  }
+ },
+ "ranking": [
+  "X",
+  "Y",
+  "Z"
+ ],
+ "summary": "X delivers both formats with the simplest code and plain reporting; its weakness is that it never explicitly names the semicolon request as a change or says which tests it replaced. Y has the best change-handling paper trail and a sanctioned money() fix, but its ceremony and jargon are far out of proportion to the change, and its docs keep stale comma-era entries. Z matches functionally but adds an unrequested refactor and visible line-ending churn.",
+ "label_to_arm": {
+  "X": "V",
+  "Y": "A",
+  "Z": "S"
+ }
+}

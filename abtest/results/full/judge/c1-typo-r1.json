@@ -1,0 +1,54 @@
+{
+ "scores": {
+  "Y": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 5,
+   "process_fit": 5,
+   "communication": 5,
+   "rules": 5,
+   "overall": 5,
+   "problems": [
+    "Opening line 'Size: trivial. A one-word typo fix...' is a small piece of unneeded ceremony, though harmless"
+   ]
+  },
+  "Z": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 3,
+   "process_fit": 4,
+   "communication": 4,
+   "rules": 5,
+   "overall": 4,
+   "problems": [
+    "Never ran the existing test suite (test-suite runs=0), so the fix is unverified",
+    "Final report doesn't say verification was skipped; only the repo-wide search is reported"
+   ]
+  },
+  "X": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 3,
+   "process_fit": 4,
+   "communication": 4,
+   "rules": 5,
+   "overall": 4,
+   "problems": [
+    "Never ran the existing test suite (test-suite runs=0), and the report doesn't mention skipping it",
+    "First edit stripped the file's CRLF line endings, a self-inflicted churn it then had to repair",
+    "Report spends more words on its own line-ending mistake than on the fix, though disclosing it was honest and the final diff is clean"
+   ]
+  }
+ },
+ "ranking": [
+  "Y",
+  "Z",
+  "X"
+ ],
+ "summary": "All three made the identical one-line fix with no over-building, but only Y ran the existing tests once and reported that they passed. Z and X skipped verification without saying so, and X also briefly introduced a line-ending regression before reverting it.",
+ "label_to_arm": {
+  "X": "V",
+  "Y": "A",
+  "Z": "S"
+ }
+}

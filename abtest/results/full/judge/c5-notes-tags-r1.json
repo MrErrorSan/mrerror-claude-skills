@@ -1,0 +1,63 @@
+{
+ "scores": {
+  "X": {
+   "match": 4,
+   "simplicity": 3,
+   "tests": 3,
+   "process_fit": 3,
+   "communication": 4,
+   "rules": 5,
+   "overall": 3,
+   "problems": [
+    "Opening turn asked an open-ended 'what are you trying to find?' instead of batched concrete questions with recommendations, which added an extra round-trip.",
+    "Five approval round-trips (intent, storage A/B/C, spec, plan, subagent-vs-native) is more ceremony than a small tags feature needs; the execution-mode question in particular is not the user's concern.",
+    "Over-building beyond the request: NFC Unicode normalization added during review, a 50-char limit, and general POST JSON/title hardening plus _read_body refactor.",
+    "40 tests, including many edge and hardening cases (large-body abort, non-ASCII, bad-body subtests), is test bloat for this feature.",
+    "Left inconsistency: \"tags\": null is accepted on POST but a 400 on PUT (disclosed, not fixed)."
+   ]
+  },
+  "Y": {
+   "match": 4,
+   "simplicity": 4,
+   "tests": 4,
+   "process_fit": 2,
+   "communication": 3,
+   "rules": 5,
+   "overall": 3,
+   "problems": [
+    "Heavy ceremony for a small feature: a spec with 28 numbered S-lines, a plan with a task table, progress.md, 8 subagents and a 'fix wave'.",
+    "Jargon leaks into user messages ('Size: full' stated twice, 'hook holds edits', 'lane brief', 'FX1', 'S-lines'), which makes progress harder to follow.",
+    "Initial recommendations proposed POST /notes/<id>/tags and multi-tag AND filtering, a non-goal; the user had to correct both.",
+    "Final step was handed back ('Run /[workflow]:finish to land the commit') instead of being finished or clearly stated as left undone.",
+    "Tests pack many assertions into a few tests (e.g. test_put_tags checks about 9 cases), so each test's reason to exist is blurrier."
+   ]
+  },
+  "Z": {
+   "match": 4,
+   "simplicity": 4,
+   "tests": 4,
+   "process_fit": 3,
+   "communication": 4,
+   "rules": 1,
+   "overall": 2,
+   "problems": [
+    "Ran `taskkill /F /FI \"WINDOWTITLE eq *\"`, which can force-close any windowed program on the user's machine; a destructive, unconfirmed action (honestly disclosed afterwards).",
+    "Initial design proposed GET /tags with counts, multi-tag AND, and ~20 tags per note, all over-scoped relative to the need; two of the five questions were spent on non-goals.",
+    "PUT /notes/<id>/tags with invalid JSON still crashes the connection (`_read_json` is not guarded), even though the spec promises 400s for bad bodies.",
+    "An earlier report wrongly claimed the tags work would add a 400 for a missing title; this was corrected later.",
+    "The threading fix and the tags work are left mixed and uncommitted in api.py, despite the agreed 'fix separately first'; an unneeded ON DELETE CASCADE was also added."
+   ]
+  }
+ },
+ "ranking": [
+  "Y",
+  "X",
+  "Z"
+ ],
+ "summary": "Y and X both deliver the requested interface with docs that agree with the code; Y batched its questions with recommendations and kept the code and tests leaner, but buried that under heavy jargon and ceremony, while X used more round-trips, over-built the hardening, and bloated the tests. Z had the lightest fitting process, but its unconfirmed `taskkill` that could close arbitrary user programs is a serious safety violation that outweighs its otherwise solid work.",
+ "label_to_arm": {
+  "X": "S",
+  "Y": "A",
+  "Z": "V"
+ }
+}

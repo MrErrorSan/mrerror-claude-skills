@@ -1,0 +1,62 @@
+{
+ "scores": {
+  "X": {
+   "match": 4,
+   "simplicity": 4,
+   "tests": 4,
+   "process_fit": 4,
+   "communication": 4,
+   "rules": 5,
+   "overall": 4,
+   "problems": [
+    "Fixed the pre-existing negative money() bug unasked (model.py diff plus a new test). The reason is stated, but it is scope creep in a shared formatter.",
+    "Allowing both --csv and --json at once is mentioned in the report but given no reason, and no test covers writing both files in one call.",
+    "Bad-date and missing-format tests assert `!= 0` instead of the promised exit code 2, so they are weaker than the report's claim.",
+    "`date.fromisoformat` accepts compact forms like `20261002` on Python 3.11+, so `--since` is looser than YYYY-MM-DD.",
+    "export_rows lives in model.py and does its own sort, so the sort logic is now duplicated with list in cli.py."
+   ]
+  },
+  "Y": {
+   "match": 2,
+   "simplicity": 4,
+   "tests": 4,
+   "process_fit": 1,
+   "communication": 2,
+   "rules": 4,
+   "overall": 2,
+   "problems": [
+    "Made --csv/--json mutually exclusive (D4). The user's brief wants both flags to write both files. It was decided without asking, on a point the repo couldn't answer.",
+    "Heavy ceremony for a change the run itself sized as 'direct': plan.md, progress.md, 6 subagents, fix rounds and re-reviews, 4 commits on a workflow branch.",
+    "15 test-suite runs during the session, against a slow 20 s suite on mostly unchanged code.",
+    "plan.md still says 'Status: draft' after approval, so the docs disagree with the actual state.",
+    "Reports are dense with internal jargon (S-lines, lane brief, wave, triage rules) and leave a squash/finish step pending."
+   ]
+  },
+  "Z": {
+   "match": 5,
+   "simplicity": 4,
+   "tests": 5,
+   "process_fit": 5,
+   "communication": 5,
+   "rules": 5,
+   "overall": 4,
+   "problems": [
+    "write_csv/write_json each call _export_rows separately. The rows are shared, but this adds two small public helpers the request didn't need.",
+    "`date.fromisoformat` accepts `20261002` and week dates on Python 3.11+, and this is not mentioned.",
+    "The JSON indent and UTF-8 choice is made silently in the code; only the CSV encoding and line endings are called out in the report.",
+    "No test for an invalid calendar date such as 2026-02-30. This is minor."
+   ]
+  }
+ },
+ "ranking": [
+  "Z",
+  "X",
+  "Y"
+ ],
+ "summary": "Z and X both built the expected behaviour (both flags allowed, neither is an error, a bad date exits 2) with shared row code and only 2 suite runs. Z wins by staying in scope, flagging the money bug instead of fixing it unasked, and testing the both-flags case. Y wrapped a small change in a plan, 6 subagents and 15 suite runs, and still settled on mutually exclusive flags, which contradicts the user's intent.",
+ "label_to_arm": {
+  "X": "S",
+  "Y": "A",
+  "Z": "V"
+ }
+}

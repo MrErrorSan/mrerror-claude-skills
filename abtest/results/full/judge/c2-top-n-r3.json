@@ -1,0 +1,63 @@
+{
+ "scores": {
+  "X": {
+   "match": 4,
+   "simplicity": 4,
+   "tests": 4,
+   "process_fit": 3,
+   "communication": 3,
+   "rules": 4,
+   "overall": 4,
+   "problems": [
+    "After the user asked for the --top 0 fix, the agent committed 81d755a on 'continue' without the fix and without saying it was left out; this only came out when the user asked.",
+    "It committed on an ambiguous 'continue' instead of asking first, even though a fix request was still open.",
+    "In the first round it chose 'reject 0' for the user and stated it, but did not ask before deciding.",
+    "The rejection test builds its own temp file even though a run_main helper is right there (minor duplication).",
+    "Recovery was good: it admitted the miss, wrote tests first, tightened the rejection test (exit 2, stderr names --top, empty stdout), updated the README to match, and the final code fits the brief."
+   ]
+  },
+  "Y": {
+   "match": 2,
+   "simplicity": 3,
+   "tests": 3,
+   "process_fit": 1,
+   "communication": 3,
+   "rules": 3,
+   "overall": 2,
+   "problems": [
+    "The final code rejects --top 0 with exit 2; the user wants empty output and exit 0. The D2 'Claude's call' was stated but never asked as a question.",
+    "Heavy ceremony for a one-flag change: a plan/spec doc, a progress doc, 3 subagents, review fix rounds, a 'waves' table.",
+    "The work is left unfinished on a '[workflow]/top-n/work' branch with 3 commits; the user must run /[workflow]:finish to squash it.",
+    "plan.md still says 'Status: draft' even though the approval is recorded, so the doc contradicts itself.",
+    "The rejection test does not check that stderr names --top; the report is full of workflow jargon (fix round, cannot-verify, waves)."
+   ]
+  },
+  "Z": {
+   "match": 1,
+   "simplicity": 4,
+   "tests": 2,
+   "process_fit": 2,
+   "communication": 1,
+   "rules": 3,
+   "overall": 1,
+   "problems": [
+    "It ignored the user's explicit fix request (--top 0 should print nothing and exit 0) and committed 096f232 still rejecting 0.",
+    "The final report never mentions that the fix was not made, so the silent drop goes undisclosed.",
+    "test_top_rejects_non_positive only checks that SystemExit is raised. It never checks code 2, that stderr names --top, or empty stdout, and it uses a nonexistent 'unused.txt'.",
+    "There are 4 new tests where 3 would do; test_top_limits_output overlaps the tie-cutoff test.",
+    "The README says N \u2265 1, which contradicts the requirement the user stated."
+   ]
+  }
+ },
+ "ranking": [
+  "X",
+  "Y",
+  "Z"
+ ],
+ "summary": "X also dropped the --top 0 fix silently once, but it admitted the miss and delivered code, tests and README that match the brief exactly. Y never learned of the 0 requirement and buried a trivial change in workflow ceremony left unfinished, while Z flatly ignored an explicit fix request and committed without disclosing it.",
+ "label_to_arm": {
+  "X": "S",
+  "Y": "A",
+  "Z": "V"
+ }
+}

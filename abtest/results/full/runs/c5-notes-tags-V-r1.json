@@ -1,0 +1,131 @@
+{
+ "run_id": "c5-notes-tags-V-r1",
+ "suite": "full",
+ "case": "c5-notes-tags",
+ "arm": "V",
+ "replicate": 1,
+ "status": "complete",
+ "end_reason": "done",
+ "plugin": null,
+ "plugin_rev": null,
+ "model": "claude-opus-5-5",
+ "effort": "high",
+ "loaded_plugins": [
+  "cc-plugin-agents-md",
+  "cc-plugin-privacy",
+  "cc-plugin-plugin-authoring"
+ ],
+ "agent_time_s": 337.4,
+ "wall_time_s": 359.8,
+ "agent_invocations": 4,
+ "user_turns": 3,
+ "agent_num_turns": 25,
+ "cost_usd": 1.1291,
+ "cost_by_model": {
+  "claude-opus-5-5": 1.1291
+ },
+ "sim_cost_usd": 0.0759,
+ "tokens": {
+  "input": 46,
+  "output": 25304,
+  "cache_read": 1014824,
+  "cache_write": 52483
+ },
+ "sim_kinds": [
+  "question",
+  "approval_request",
+  "question",
+  "done"
+ ],
+ "change_delivered_after_turn": null,
+ "tools": {
+  "tool_calls": 21,
+  "tool_calls_subagents": 0,
+  "by_tool": {
+   "Bash": 14,
+   "Write": 3,
+   "Read": 3,
+   "Edit": 1
+  },
+  "test_runs": 6,
+  "test_runs_main": 6,
+  "skills": [],
+  "subagents": 0,
+  "subagent_types": [],
+  "tool_errors": 0,
+  "ask_user_question": 0
+ },
+ "hooks_fired": [],
+ "grade": {
+  "result_location": "worktree:c5-notes-tags-V-r1",
+  "hidden": {
+   "passed": 12,
+   "total": 12,
+   "by_category": {
+    "regression": {
+     "passed": 3,
+     "total": 3
+    },
+    "brief": {
+     "passed": 3,
+     "total": 3
+    },
+    "core": {
+     "passed": 4,
+     "total": 4
+    },
+    "edge": {
+     "passed": 2,
+     "total": 2
+    }
+   }
+  },
+  "hidden_failures": [],
+  "own_suite": {
+   "ran": 22,
+   "ok": true,
+   "seconds": 4.4,
+   "tail": ""
+  },
+  "diff": {
+   "code": {
+    "files": 2,
+    "added": 126,
+    "removed": 23
+   },
+   "tests": {
+    "files": 2,
+    "added": 176,
+    "removed": 0
+   },
+   "docs": {
+    "files": 2,
+    "added": 135,
+    "removed": 0
+   },
+   "other": {
+    "files": 0,
+    "added": 0,
+    "removed": 0
+   }
+  },
+  "new_docs": [
+   "docs/tags/spec.md"
+  ],
+  "changed_docs": [
+   "docs/decisions.md"
+  ],
+  "commits": 0,
+  "claude_trailers": 0,
+  "uncommitted_in_main": true,
+  "branches": [
+   "main"
+  ],
+  "worktrees": 1,
+  "doc_rule": {
+   "new_docs_outside_rule": [],
+   "decisions_md_updated": true
+  }
+ },
+ "run_dir": "C:\\Users\\MrError\\AppData\\Local\\Temp\\anvil-abtest\\full\\c5-notes-tags-V-r1"
+}

@@ -1,0 +1,63 @@
+{
+ "scores": {
+  "X": {
+   "match": 4,
+   "simplicity": 2,
+   "tests": 3,
+   "process_fit": 2,
+   "communication": 3,
+   "rules": 4,
+   "overall": 2,
+   "problems": [
+    "Ceremony far beyond the change size: 12 subagents, 12 commits, 30 suite runs, 23 spec lines, a progress log and fix waves for about 100 lines of feature code.",
+    "Over-built input hardening the request didn't need: MAX_SQLITE_INT, a 19-digit id length check, a UTF-8 surrogate encode check, and tags normalised twice (in the API and in add_note).",
+    "Docs disagree with the final state: spec.md and plan.md still say 'Status: draft' after approval, and S22 still says '(Waiting on Q1)'.",
+    "A doc-edit script emptied spec.md and the empty file was committed (b5bd326). It was disclosed and restored, but it is avoidable churn.",
+    "The final report is full of jargon (waves, write sets, S-lines, groups A/B) and leaves C2 'waiting on the work branch for finish', so it's unclear where the result actually landed."
+   ]
+  },
+  "Y": {
+   "match": 4,
+   "simplicity": 4,
+   "tests": 4,
+   "process_fit": 3,
+   "communication": 4,
+   "rules": 4,
+   "overall": 4,
+   "problems": [
+    "The user said to think it through before building, but the spec was written and the code built in the same turn, with no spec for Saad to approve.",
+    "Repeated ?tag= silently uses the first value and this isn't stated. Empty ?tag= is silently ignored; that one is stated but is a questionable default.",
+    "The new PUT route uses the unguarded _json_body, so malformed JSON or a missing Content-Length drops the connection instead of returning a 400.",
+    "Extra choices nobody asked for: a 32-character tag limit (stated) and an index on note_tags(tag); test_list_works_across_threads is a weak repro (two sequential GETs).",
+    "Nothing was committed and the changes were left uncommitted (stated in the report)."
+   ]
+  },
+  "Z": {
+   "match": 4,
+   "simplicity": 3,
+   "tests": 3,
+   "process_fit": 3,
+   "communication": 3,
+   "rules": 4,
+   "overall": 3,
+   "problems": [
+    "The opening question was open-ended and about motivation ('What's going on with your notes...') rather than batched questions with recommendations. It then asked for approval of storage, which the user had left to the agent.",
+    "Four approval gates (understanding, storage, spec, plan plus build mode) and plan jargon ('[workflow] skill') for a small feature.",
+    "list_notes runs a second query that fetches every tag on the owner's notes even when filtering by one tag. Correct, but wasteful and roundabout.",
+    "Test bloat: 35 tests, including trivial ones (test_empty_list_ok, test_free_text_allowed) and a sleep-based stalled-client test that goes beyond the request and could be flaky.",
+    "Ran `git checkout -- notes/api.py` and discarded uncommitted Task 4 work (disclosed and re-applied); the report ends with a merge-options menu instead of a plain summary of what is left."
+   ]
+  }
+ },
+ "ranking": [
+  "Y",
+  "Z",
+  "X"
+ ],
+ "summary": "Y delivered the requested behaviour with the simplest code (a per-connection SQLite fix, one tags table, focused tests) and a clear report, but skipped a spec-approval step the user implied he wanted. Z had a reasonable spec and plan but more gates and test bloat, while X buried a modest feature under subagents, fix waves and over-hardened validation, and its docs still read 'draft'.",
+ "label_to_arm": {
+  "X": "A",
+  "Y": "V",
+  "Z": "S"
+ }
+}

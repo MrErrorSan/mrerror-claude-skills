@@ -1,0 +1,63 @@
+{
+ "scores": {
+  "X": {
+   "match": 4,
+   "simplicity": 4,
+   "tests": 4,
+   "process_fit": 4,
+   "communication": 4,
+   "rules": 3,
+   "overall": 4,
+   "problems": [
+    "Decisions were logged only in the chat reply. No local Markdown report was written, which breaks Saad's 'reports as local Markdown files' rule (new docs=[]).",
+    "Browser root folders ('Bookmarks bar') become tags on nearly every bookmark. This is flagged, but the default is noisy.",
+    "An export with no bookmarks exits 1 with an error, while an empty-but-valid export is arguably a 0-import success. The choice is stated but debatable.",
+    "The second turn re-ran edge cases ad hoc and added no tests for them (Safari, malformed nesting, non-numeric dates), so those checks are not repeatable.",
+    "Ordering by ADD_DATE adds a sort rule the request didn't ask for. It is reasonable and stated."
+   ]
+  },
+  "Y": {
+   "match": 4,
+   "simplicity": 3,
+   "tests": 3,
+   "process_fit": 1,
+   "communication": 2,
+   "rules": 4,
+   "overall": 2,
+   "problems": [
+    "The ceremony is far out of proportion for a roughly 40-line feature: spec, plan and progress docs, 6 subagents, 17 suite runs, S-lines, waves, lanes and a C1 squash.",
+    "Reports are full of workflow jargon ('S-lines', 'lane-check', 'T1 reviewer', 'fresh can't reuse them') instead of plain language.",
+    "Gave six near-identical refusals to 'keep going', insisting on '/[workflow]:finish' and a merge command, which is rigid busywork in its own framing.",
+    "Known flaws were deferred instead of fixed (each a one-line fix): whitespace-only HREF saved as a bookmark, an import that adds nothing still rewrites or creates the store, and the error message names the file twice.",
+    "Imports Firefox place: query links as bookmarks. A duplicate URL across folders keeps only the first folder's tags, losing folder info. Tests bundle many assertions per case."
+   ]
+  },
+  "Z": {
+   "match": 3,
+   "simplicity": 4,
+   "tests": 4,
+   "process_fit": 4,
+   "communication": 4,
+   "rules": 3,
+   "overall": 3,
+   "problems": [
+    "Drops browser root folder names (PERSONAL_TOOLBAR/UNFILED) as tags. This departs from the literal 'keeping the folder names as tags', though the reason is stated.",
+    "Root handling is inconsistent: Chrome's 'Other bookmarks' becomes a tag but Firefox's 'Other Bookmarks' doesn't. This is acknowledged but makes the result browser-dependent.",
+    "Decisions were logged only in the chat reply, with no local Markdown report (new docs=[]), which breaks Saad's report rule.",
+    "Merged tag order for a duplicated URL follows ADD_DATE order, not file order (['Work','Recipes']). This is a subtle, unstated side effect of sorting before deduping.",
+    "Adds a tests/fixtures/ directory with two files. This is acceptable, but inline fixtures would have been enough."
+   ]
+  }
+ },
+ "ranking": [
+  "X",
+  "Z",
+  "Y"
+ ],
+ "summary": "X and Z both delivered a simple, tested import with clearly listed decisions in proportionate process. X stays literal on folder tags and follows up with useful edge-case checks, while Z silently narrows 'folder names' by dropping browser roots inconsistently, and neither wrote a local Markdown report. Y is the only run that wrote its decisions to local files, but it wrapped a tiny change in heavy multi-agent ceremony, jargon-laden reports and repetitive refusals, leaving known one-line bugs unfixed.",
+ "label_to_arm": {
+  "X": "S",
+  "Y": "A",
+  "Z": "V"
+ }
+}

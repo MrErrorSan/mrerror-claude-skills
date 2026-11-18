@@ -1,0 +1,126 @@
+{
+ "run_id": "c2-top-n-S-r2",
+ "suite": "full",
+ "case": "c2-top-n",
+ "arm": "S",
+ "replicate": 2,
+ "status": "complete",
+ "end_reason": "done",
+ "plugin": "C:\\Users\\MrError\\.claude\\plugins\\cache\\claude-plugins-official\\superpowers\\7.0.2",
+ "plugin_rev": "superpowers@7.0.2",
+ "model": "claude-opus-5-5",
+ "effort": "high",
+ "loaded_plugins": [
+  "superpowers",
+  "cc-plugin-agents-md",
+  "cc-plugin-privacy",
+  "cc-plugin-plugin-authoring"
+ ],
+ "agent_time_s": 97.2,
+ "wall_time_s": 111.0,
+ "agent_invocations": 4,
+ "user_turns": 3,
+ "agent_num_turns": 12,
+ "cost_usd": 0.4618,
+ "cost_by_model": {
+  "claude-opus-5-5": 0.4618
+ },
+ "sim_cost_usd": 0.0548,
+ "tokens": {
+  "input": 24,
+  "output": 6984,
+  "cache_read": 375053,
+  "cache_write": 30881
+ },
+ "sim_kinds": [
+  "other",
+  "other",
+  "question",
+  "done"
+ ],
+ "change_delivered_after_turn": null,
+ "tools": {
+  "tool_calls": 9,
+  "tool_calls_subagents": 0,
+  "by_tool": {
+   "Bash": 9
+  },
+  "test_runs": 6,
+  "test_runs_main": 6,
+  "skills": [],
+  "subagents": 0,
+  "subagent_types": [],
+  "tool_errors": 0,
+  "ask_user_question": 0
+ },
+ "hooks_fired": [
+  "SessionStart:startup"
+ ],
+ "grade": {
+  "result_location": "worktree:c2-top-n-S-r2",
+  "hidden": {
+   "passed": 11,
+   "total": 11,
+   "by_category": {
+    "regression": {
+     "passed": 3,
+     "total": 3
+    },
+    "brief": {
+     "passed": 2,
+     "total": 2
+    },
+    "core": {
+     "passed": 4,
+     "total": 4
+    },
+    "edge": {
+     "passed": 2,
+     "total": 2
+    }
+   }
+  },
+  "hidden_failures": [],
+  "own_suite": {
+   "ran": 7,
+   "ok": true,
+   "seconds": 0.2,
+   "tail": ""
+  },
+  "diff": {
+   "code": {
+    "files": 1,
+    "added": 15,
+    "removed": 1
+   },
+   "tests": {
+    "files": 1,
+    "added": 40,
+    "removed": 0
+   },
+   "docs": {
+    "files": 1,
+    "added": 2,
+    "removed": 0
+   },
+   "other": {
+    "files": 0,
+    "added": 0,
+    "removed": 0
+   }
+  },
+  "new_docs": [],
+  "changed_docs": [
+   "README.md"
+  ],
+  "commits": 0,
+  "claude_trailers": 0,
+  "uncommitted_in_main": true,
+  "branches": [
+   "main"
+  ],
+  "worktrees": 1,
+  "doc_rule": null
+ },
+ "run_dir": "C:\\Users\\MrError\\AppData\\Local\\Temp\\anvil-abtest\\full\\c2-top-n-S-r2"
+}

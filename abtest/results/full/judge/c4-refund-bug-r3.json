@@ -1,0 +1,58 @@
+{
+ "scores": {
+  "X": {
+   "match": 4,
+   "simplicity": 5,
+   "tests": 3,
+   "process_fit": 4,
+   "communication": 3,
+   "rules": 5,
+   "overall": 4,
+   "problems": [
+    "The test skips -1.00 and zero, even though the brief names -1.00 as an expected display; it covers only -19.99, -52.48 and -0.07.",
+    "The final message opens with a leaked fragment ('Refunds come to ... That's the same bug again.') that reads as confusing internal narration.",
+    "Tests ran only once, so there is no evidence the new test failed before the fix.",
+    "It does not say how the report fix was checked (no report output shown), only that it 'now shows -19.99'.",
+    "It does not mention that reports already shared with the wrong Refunds total were affected."
+   ]
+  },
+  "Y": {
+   "match": 4,
+   "simplicity": 5,
+   "tests": 5,
+   "process_fit": 5,
+   "communication": 4,
+   "rules": 5,
+   "overall": 4,
+   "problems": [
+    "The final message opens with a leaked fragment ('Fails as expected. Now the fix:') from mid-process narration.",
+    "It claims the report shows -19.99 but does not show the report output as evidence.",
+    "It applied the sign/abs display rule for all negatives without asking; this is reasonable and stated, but is a minor unconfirmed decision."
+   ]
+  },
+  "Z": {
+   "match": 4,
+   "simplicity": 5,
+   "tests": 4,
+   "process_fit": 5,
+   "communication": 5,
+   "rules": 5,
+   "overall": 4,
+   "problems": [
+    "Only one test-suite run, so there is no evidence the new negative-amount test failed before the fix.",
+    "It applied the sign/abs display rule for all negatives without asking; this is reasonable and stated, but is a minor unconfirmed decision."
+   ]
+  }
+ },
+ "ranking": [
+  "Z",
+  "Y",
+  "X"
+ ],
+ "summary": "All three made the same correct root-cause fix in money(). They differ in verification and reporting: Z pasted the actual corrected report and wrote a clean message, Y proved the test failed before the fix but leaked a fragment, and X wrote the thinnest test and also leaked a confusing fragment.",
+ "label_to_arm": {
+  "X": "A",
+  "Y": "S",
+  "Z": "V"
+ }
+}

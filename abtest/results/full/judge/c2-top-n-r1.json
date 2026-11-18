@@ -1,0 +1,63 @@
+{
+ "scores": {
+  "X": {
+   "match": 4,
+   "simplicity": 4,
+   "tests": 4,
+   "process_fit": 3,
+   "communication": 2,
+   "rules": 4,
+   "overall": 3,
+   "problems": [
+    "Silently made `--top 0` an error in round one with no question, which conflicted with the brief; the report did state it.",
+    "After the first correction it sent an empty reply. It then falsely said 'both are in place now' while `--top 0` still exited 2.",
+    "Misread the correction as a request to assert exit code 2 for 0, so it took a third user message to fix it.",
+    "Never named the change as a requirement change and never said what it conflicted with. It wrongly said 'these weren't separate requests before'.",
+    "The final state is good: all 4 new tests are focused, the invalid-value test checks exit 2, `--top` on stderr and empty stdout, and the README line-ending slip was caught and reverted."
+   ]
+  },
+  "Y": {
+   "match": 3,
+   "simplicity": 4,
+   "tests": 3,
+   "process_fit": 3,
+   "communication": 3,
+   "rules": 4,
+   "overall": 2,
+   "problems": [
+    "The invalid-value test checks only SystemExit and 'non-negative integer' in stderr. The user explicitly asked for exit 2, `--top` named on stderr and empty stdout; none of these is asserted.",
+    "Said 'You didn't mention these, so I kept them as errors' about negative and non-numeric N, although the user had spelled out exactly how they should behave.",
+    "Sent an empty reply after the first correction. It did honestly admit the fix had not been made.",
+    "The first-round narration is long and noisy about CRLF/LF churn the agent caused itself (sed broke the .py files, then restored them).",
+    "`except ValueError: n = -1` is a slightly hacky way to send non-numeric input to the error path. The `[: args.top]` slice is nicely minimal."
+   ]
+  },
+  "Z": {
+   "match": 5,
+   "simplicity": 4,
+   "tests": 5,
+   "process_fit": 2,
+   "communication": 4,
+   "rules": 4,
+   "overall": 4,
+   "problems": [
+    "Heavy ceremony for a two-line feature: plan.md, progress.md, verify.md, two reviewer subagents, a work branch plus a synced branch, and a re-approval round after the user had said 'rest is fine'.",
+    "The final code sits on `[workflow]/top-n/work`, not on the `feat/top-n` branch it proposed; that branch was created empty. It also left an open workflow topic that will block later work.",
+    "plan.md still says 'Status: draft' next to an 'Approved' line, so the doc is inconsistent.",
+    "There is a redundant `default=None` on `--top`; the reviewer flagged it and it was knowingly left in.",
+    "It did handle the change request well: named it as a CR, said it conflicted with D2/S5, retired those lines, and kept plan, README and code in agreement. Tests are 4 focused cases checking exit code, stdout and stderr."
+   ]
+  }
+ },
+ "ranking": [
+  "Z",
+  "X",
+  "Y"
+ ],
+ "summary": "Z is the only run that put the `--top 0` decision to the user before building, and it handled the change cleanly with docs and code in agreement. Its weakness is process far too heavy for a tiny feature. X and Y both needed repeated corrections after empty replies; X ended with tests that match the spec but made a false 'done' claim, while Y's final test still skips the exit-code, `--top`-on-stderr and empty-stdout checks the user asked for.",
+ "label_to_arm": {
+  "X": "V",
+  "Y": "S",
+  "Z": "A"
+ }
+}

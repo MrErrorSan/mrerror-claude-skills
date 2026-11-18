@@ -2,7 +2,7 @@
 
 - **Date:** 2026-11-18
 - **Question:** Is Anvil 1.0 (`plugins/anvil`, branch `anvil-rebuild`) at least as good as Superpowers 7.0.2 on the work Saad actually does? Good means correct, faster, and structured the way he wants. If yes, it can replace Superpowers.
-- **Status:** design only. Nothing has been run yet except the feasibility probes (§7).
+- **Status:** run complete (63 runs). Results: [2026-11-18-ab-results.md](2026-11-18-ab-results.md).
 
 ## 1. Why not `claude plugin eval`
 

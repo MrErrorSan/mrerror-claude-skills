@@ -1,0 +1,63 @@
+{
+ "scores": {
+  "X": {
+   "match": 4,
+   "simplicity": 3,
+   "tests": 4,
+   "process_fit": 2,
+   "communication": 3,
+   "rules": 4,
+   "overall": 3,
+   "problems": [
+    "Made both flags at once a usage error, but the brief wants both files written. It was stated in the plan and Saad approved it, but the run never asked how he wanted it to work.",
+    "Heavy ceremony for a medium change: 7 subagents, 14 test-suite runs (several on the full 20 s suite after each wave), two extra branches, 5 commits, and the work still isn't landed until Saad runs `/[workflow]:finish`.",
+    "Jargon-heavy reporting ('lane brief', 'waves', 'rulings', 'S-lines', 'fix round 1/5') makes progress harder to follow than plain language.",
+    "plan.md still says 'Status: draft' even though it records the approval, so the doc disagrees with the state.",
+    "The fixture is duplicated in tests/test_export.py and tests/test_list.py. Code is simple: one shared `_rows` with inline writers."
+   ]
+  },
+  "Y": {
+   "match": 3,
+   "simplicity": 3,
+   "tests": 3,
+   "process_fit": 3,
+   "communication": 4,
+   "rules": 3,
+   "overall": 3,
+   "problems": [
+    "Made both flags at once an error without asking. The brief wants both files written. The report states it, but only after the fact.",
+    "Changed `money()` in ledger/model.py without being asked. It was announced as a bug fix, but it is scope creep outside the three requested additions.",
+    "Asked no questions despite real ambiguities (both flags, bad-date behaviour) and offered no plan to approve for a three-part change.",
+    "Tests don't assert exit code 2 for the format-flag or bad-date errors. `test_quotes_customer_names_with_commas` mostly overlaps the full-rows CSV test.",
+    "No local Markdown report, only the chat summary. Work is left uncommitted."
+   ]
+  },
+  "Z": {
+   "match": 3,
+   "simplicity": 4,
+   "tests": 4,
+   "process_fit": 3,
+   "communication": 4,
+   "rules": 3,
+   "overall": 3,
+   "problems": [
+    "Made both flags at once an error, and the final report never mentions this behaviour. That is a silent decision, and it conflicts with the brief.",
+    "No plan or batched questions up front. The one question (negative totals) came after the build and had no clear recommendation.",
+    "Tests don't assert exit code 2 for the bad `--since` date or for the format-flag errors.",
+    "No local Markdown report, only the chat summary. Work is left uncommitted.",
+    "Good: it named its test fix as a test bug, not a code bug, shared `_export_row` between CSV and JSON, and changed `money()` only after Saad said 'your call'."
+   ]
+  }
+ },
+ "ranking": [
+  "Z",
+  "X",
+  "Y"
+ ],
+ "summary": "All three made `--csv` plus `--json` a usage error instead of writing both files; X at least got that approved in a plan, while Z left it unstated and Y stated it only afterwards. Z gives the leanest result, with compact tests and the scope change cleared with Saad, X is over-ceremonious and leaves the work unlanded, and Y expanded scope into model.py without asking.",
+ "label_to_arm": {
+  "X": "A",
+  "Y": "S",
+  "Z": "V"
+ }
+}

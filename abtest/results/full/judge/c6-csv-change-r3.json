@@ -1,0 +1,63 @@
+{
+ "scores": {
+  "X": {
+   "match": 4,
+   "simplicity": 4,
+   "tests": 4,
+   "process_fit": 4,
+   "communication": 4,
+   "rules": 4,
+   "overall": 4,
+   "problems": [
+    "The change reply does not name the change or what it replaces; it goes straight into 'The script stopped partway' with no line like 'this replaces the comma/dot format and its tests'.",
+    "It does not say which tests changed or why. 'tests/test_export.py now checks semicolons...' hides that the earlier comma-format assertions were rewritten.",
+    "The money() negative-number fix was outside the request. It was stated with a reason, but it still widens the change and alters `list` output.",
+    "The first-round 'Excel shows 12.50 as 12.5' caveat is minor noise. It did flag the European-locale risk up front, which was a good call.",
+    "No visible bug. The test fixtures cover a negative total, a semicolon in a name, embedded quotes, the BOM and order, all in 3 focused tests."
+   ]
+  },
+  "Y": {
+   "match": 3,
+   "simplicity": 3,
+   "tests": 3,
+   "process_fit": 2,
+   "communication": 3,
+   "rules": 4,
+   "overall": 3,
+   "problems": [
+    "Ceremony is far out of proportion for a ~10-line feature: a plan doc, an approval gate, 4 subagents, reviewers, 16 suite runs, 4 commits, a work branch and a '/workflow:finish' step, after the run itself labelled the size 'direct'.",
+    "The known money() negative bug is left in place, so any credit note reaches the accountant's file with a wrong total (-150 becomes -2.50). It was stated, but it is a visible correctness defect in the export.",
+    "The plan doc header says 'Status: draft' while also recording the approval, so the doc contradicts itself. Decision numbering skips D6.",
+    "Process jargon reaches the user ('lane brief', 'write set', 'preflight', 'stale check', 'plan-check'), which makes it harder for him to follow progress.",
+    "Tests are thin on the changed format: no test for a total of 1000 or more (1250,50), negatives or line breaks. The reviewer's gaps were deferred to 'hand checks' instead of added as tests."
+   ]
+  },
+  "Z": {
+   "match": 4,
+   "simplicity": 3,
+   "tests": 3,
+   "process_fit": 4,
+   "communication": 3,
+   "rules": 3,
+   "overall": 3,
+   "problems": [
+    "Over-built for the request: a new ledger/export.py module, a CSV_COLUMNS constant, a _decimal_comma helper, and model.chronological() refactoring `list`, none of which was needed.",
+    "The change reply does not frame it as a change or say what it conflicts with. It opens with a line-endings cleanup rather than the requirement change.",
+    "It does not say which tests were rewritten from the comma format, or why. The reply only says 'all 9 tests pass' and lists the files touched.",
+    "It accidentally converted CRLF to LF in 4 files during round 1 and had to revert. This was honestly reported, but it added churn and noise.",
+    "Minor test bloat: test_customer_with_comma_is_left_alone and test_no_invoices_writes_header_only overlap with the other tests or go beyond the request."
+   ]
+  }
+ },
+ "ranking": [
+  "X",
+  "Z",
+  "Y"
+ ],
+ "summary": "X delivered the simplest correct code, stated its decisions with reasons and kept docs in sync, though it never explicitly framed the change or named the rewritten tests. Y handled the change most formally in its docs but buried a trivial feature in heavy workflow ceremony and left a known negative-total bug in the export, while Z fixed that bug but over-abstracted the code and also skipped naming the change.",
+ "label_to_arm": {
+  "X": "S",
+  "Y": "A",
+  "Z": "V"
+ }
+}

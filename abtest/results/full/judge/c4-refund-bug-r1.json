@@ -1,0 +1,58 @@
+{
+ "scores": {
+  "X": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 5,
+   "process_fit": 5,
+   "communication": 4,
+   "rules": 5,
+   "overall": 5,
+   "problems": [
+    "The claim 'Any negative amount was printed wrong' is inaccurate: whole-dollar negatives such as -100 already printed correctly as -1.00, and X's own test includes that case.",
+    "The first visible message ('The test fails the same way the report does. Now the fix:') is a fragment that assumes context the user never saw.",
+    "The money(0) assertion sits inside the negatives test; it is harmless but does not belong to that test's stated purpose."
+   ]
+  },
+  "Y": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 5,
+   "process_fit": 4,
+   "communication": 4,
+   "rules": 5,
+   "overall": 4,
+   "problems": [
+    "It shows no report output as evidence. The suite ran only once, and nothing visible shows `python -m ledger report` was re-run, yet the report claims 'the report now shows -19.99'.",
+    "It writes 'the real total is 39.98 + 12.50 = 52.48' without the minus sign, which is a small inconsistency in a money report.",
+    "It does not state how the fix was verified beyond 'all 5 tests pass'."
+   ]
+  },
+  "Z": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 4,
+   "process_fit": 4,
+   "communication": 3,
+   "rules": 5,
+   "overall": 4,
+   "problems": [
+    "Its line-ending rewrite briefly corrupted the whole file. It reverted this, but it shows careless editing, and the user saw narration about it.",
+    "The test covers only three cases and misses the whole-dollar negative (-1.00) that the user would care about.",
+    "The report is disorganised: the Refunds side-effect is added after the Result section, as an afterthought.",
+    "'Every negative amount in the report was wrong' overgeneralises how far the bug reaches."
+   ]
+  }
+ },
+ "ranking": [
+  "X",
+  "Y",
+  "Z"
+ ],
+ "summary": "All three made the same correct root-cause fix in money(), so the ranking comes down to verification evidence, test coverage and report clarity. X shows the re-run report and has the broadest regression test; Y skips the visible report check; Z has a line-ending mishap, a thinner test and a less orderly report.",
+ "label_to_arm": {
+  "X": "S",
+  "Y": "V",
+  "Z": "A"
+ }
+}

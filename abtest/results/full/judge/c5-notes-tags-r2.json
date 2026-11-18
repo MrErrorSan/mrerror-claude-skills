@@ -1,0 +1,63 @@
+{
+ "scores": {
+  "X": {
+   "match": 5,
+   "simplicity": 4,
+   "tests": 3,
+   "process_fit": 3,
+   "communication": 4,
+   "rules": 5,
+   "overall": 4,
+   "problems": [
+    "Process is heavy for a small feature: a design doc, then a separate plan.md with skill boilerplate, then a reviewer subagent and a 'ledger'.",
+    "Test bloat: 29 tests, including near-duplicates (test_normalize_tag_single next to test_rejects_bad_shapes) and test_put_huge_id_is_404 for an edge nobody asked about.",
+    "MAX_ID guard in do_PUT is over-building; the same crash on POST /notes/abc/archive was left alone, so the hardening is inconsistent.",
+    "list_notes fetches every tag the owner has, not only tags on the returned notes (acknowledged, but avoidable with the same WHERE clause).",
+    "The lock plus check_same_thread=False serialises all DB work; it is a valid fix, but per-request connections would be simpler and the trade-off isn't explained."
+   ]
+  },
+  "Y": {
+   "match": 4,
+   "simplicity": 3,
+   "tests": 3,
+   "process_fit": 2,
+   "communication": 2,
+   "rules": 4,
+   "overall": 3,
+   "problems": [
+    "Ceremony far exceeds a small change: 'Size: full', a spec with 23 S-lines, a plan, progress.md, 6 subagents, waves and lanes, work branches, 4 commits, and a failed cross-model review attempt.",
+    "The first questions recommended out-of-scope features (AND multi-tag filtering, GET /tags with counts) that Saad then had to reject.",
+    "Communication is full of workflow jargon (S-lines, D-numbers, wave, lane, agy, '/[workflow]:finish'), and the long verify-harness debugging story is noise to the user.",
+    "Docs disagree with reality: spec.md and plan.md both say 'Status: draft' after approval; README not updated with the new endpoint or tag rules.",
+    "list_notes runs one query per note (N+1), deferred rather than fixed; tests pack many unrelated assertions into a few mega-tests (test_put_tags, test_set_tags_replaces_and_clears)."
+   ]
+  },
+  "Z": {
+   "match": 4,
+   "simplicity": 3,
+   "tests": 4,
+   "process_fit": 3,
+   "communication": 3,
+   "rules": 4,
+   "overall": 3,
+   "problems": [
+    "Saad asked to think it through before anything was built, but Z went straight from answers to building with no approval stop on the updated spec.",
+    "The proposed API included GET /tags (a non-goal) as part of the design rather than as an option.",
+    "Over-abstraction in api.py: a BadRequest class, _handle with lambda routes, _json_body and _note_id helpers. POST title/body validation also widens scope, even though Saad okayed the 400s.",
+    "The ASCII-only [a-z0-9_-] charset plus Kelvin-sign handling is a restrictive, clever choice. It was stated, but the trade-off for users is barely argued; an empty ?tag= is silently ignored.",
+    "README not updated with the new endpoint and tag rules, and the progress narration is cluttered with sed, heredoc and line-ending troubleshooting."
+   ]
+  }
+ },
+ "ranking": [
+  "X",
+  "Z",
+  "Y"
+ ],
+ "summary": "X matched the brief most closely. It asked one well-recommended question, stated every self-made call with a reason, gated the out-of-scope thread fix on Saad's approval, and kept README, decisions and design in sync. Its main faults are some test bloat and slightly heavy documents. Z was leaner but built without a spec approval despite 'think it through' and added handler abstractions, while Y buried a sound, simple implementation under heavy workflow ceremony, jargon and stale 'draft' docs.",
+ "label_to_arm": {
+  "X": "S",
+  "Y": "A",
+  "Z": "V"
+ }
+}

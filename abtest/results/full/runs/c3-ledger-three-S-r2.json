@@ -1,0 +1,128 @@
+{
+ "run_id": "c3-ledger-three-S-r2",
+ "suite": "full",
+ "case": "c3-ledger-three",
+ "arm": "S",
+ "replicate": 2,
+ "status": "complete",
+ "end_reason": "done",
+ "plugin": "C:\\Users\\MrError\\.claude\\plugins\\cache\\claude-plugins-official\\superpowers\\7.0.2",
+ "plugin_rev": "superpowers@7.0.2",
+ "model": "claude-opus-5-5",
+ "effort": "high",
+ "loaded_plugins": [
+  "superpowers",
+  "cc-plugin-agents-md",
+  "cc-plugin-privacy",
+  "cc-plugin-plugin-authoring"
+ ],
+ "agent_time_s": 88.4,
+ "wall_time_s": 91.8,
+ "agent_invocations": 1,
+ "user_turns": 0,
+ "agent_num_turns": 11,
+ "cost_usd": 0.3729,
+ "cost_by_model": {
+  "claude-opus-5-5": 0.3729
+ },
+ "sim_cost_usd": 0.0183,
+ "tokens": {
+  "input": 16,
+  "output": 5686,
+  "cache_read": 245502,
+  "cache_write": 26253
+ },
+ "sim_kinds": [
+  "done"
+ ],
+ "change_delivered_after_turn": null,
+ "tools": {
+  "tool_calls": 9,
+  "tool_calls_subagents": 0,
+  "by_tool": {
+   "Skill": 1,
+   "Bash": 3,
+   "Write": 2,
+   "Edit": 3
+  },
+  "test_runs": 2,
+  "test_runs_main": 2,
+  "skills": [
+   "superpowers:test-driven-development"
+  ],
+  "subagents": 0,
+  "subagent_types": [],
+  "tool_errors": 0,
+  "ask_user_question": 0
+ },
+ "hooks_fired": [
+  "SessionStart:startup"
+ ],
+ "grade": {
+  "result_location": "worktree:c3-ledger-three-S-r2",
+  "hidden": {
+   "passed": 12,
+   "total": 12,
+   "by_category": {
+    "regression": {
+     "passed": 3,
+     "total": 3
+    },
+    "brief": {
+     "passed": 2,
+     "total": 2
+    },
+    "core": {
+     "passed": 4,
+     "total": 4
+    },
+    "edge": {
+     "passed": 3,
+     "total": 3
+    }
+   }
+  },
+  "hidden_failures": [],
+  "own_suite": {
+   "ran": 11,
+   "ok": true,
+   "seconds": 15.4,
+   "tail": ""
+  },
+  "diff": {
+   "code": {
+    "files": 2,
+    "added": 47,
+    "removed": 3
+   },
+   "tests": {
+    "files": 2,
+    "added": 94,
+    "removed": 0
+   },
+   "docs": {
+    "files": 1,
+    "added": 5,
+    "removed": 1
+   },
+   "other": {
+    "files": 0,
+    "added": 0,
+    "removed": 0
+   }
+  },
+  "new_docs": [],
+  "changed_docs": [
+   "README.md"
+  ],
+  "commits": 0,
+  "claude_trailers": 0,
+  "uncommitted_in_main": true,
+  "branches": [
+   "main"
+  ],
+  "worktrees": 1,
+  "doc_rule": null
+ },
+ "run_dir": "C:\\Users\\MrError\\AppData\\Local\\Temp\\anvil-abtest\\full\\c3-ledger-three-S-r2"
+}

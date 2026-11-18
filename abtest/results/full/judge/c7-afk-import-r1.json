@@ -1,0 +1,63 @@
+{
+ "scores": {
+  "X": {
+   "match": 4,
+   "simplicity": 4,
+   "tests": 4,
+   "process_fit": 4,
+   "communication": 4,
+   "rules": 3,
+   "overall": 4,
+   "problems": [
+    "Decisions are logged only in chat; no local Markdown report was written, which breaks Saad's 'reports as local Markdown files' rule.",
+    "A URL filed in two folders keeps only the first folder's tags, so some folder names are dropped rather than kept as tags (decision 3).",
+    "Firefox `place:` smart-folder links ('Most Visited') are imported as bookmarks; the report acknowledges 'any link' but this pollutes the shelf.",
+    "`read_text(errors='replace')` silently mangles non-UTF-8 files instead of reporting them.",
+    "The first report said 'not committed' and a later turn committed; the change of plan was explained, but it is extra churn."
+   ]
+  },
+  "Y": {
+   "match": 5,
+   "simplicity": 4,
+   "tests": 4,
+   "process_fit": 4,
+   "communication": 5,
+   "rules": 3,
+   "overall": 4,
+   "problems": [
+    "Decisions are logged only in chat; there is no local Markdown report or decision file for the morning review.",
+    "Some test bloat: `test_imported_tags_show_in_list` and the unbalanced-markup test add little beyond the core import tests.",
+    "`read_text(errors='replace')` silently accepts corrupt or non-UTF-8 files.",
+    "The import message prints the full path, a small unrequested change to output wording; harmless, but not stated as a decision.",
+    "It left two commits after saying it would commit, and the end of the run is slightly unclear about the branch state."
+   ]
+  },
+  "Z": {
+   "match": 4,
+   "simplicity": 3,
+   "tests": 4,
+   "process_fit": 1,
+   "communication": 2,
+   "rules": 4,
+   "overall": 2,
+   "problems": [
+    "Heavy ceremony for a ~50-line feature: spec with retired S-lines, plan, progress log, 8 subagents and 17 test runs.",
+    "Out-of-scope change: `shelf/__main__.py` reconfigures stdout for all commands; it is logged, but it goes beyond the request.",
+    "Reports are full of workflow jargon ('lane brief', 'stop 2', '/[workflow]:finish', S-lines) that Saad has to decode.",
+    "The store is always rewritten even when nothing is imported, which creates an empty `[]` file; this is noted but left in.",
+    "Within-file duplicates keep only the first folder's tags, so other folder names are lost (same trade-off as X)."
+   ]
+  }
+ },
+ "ranking": [
+  "Y",
+  "X",
+  "Z"
+ ],
+ "summary": "Y and X both ship a small, correct importer with decisions clearly listed in chat. Y edges ahead by merging tags for URLs filed in several folders, skipping Firefox `place:` links and checking the Safari layout, though neither wrote the local Markdown report Saad's rules call for. Z documents decisions in files but buries a trivial feature under spec, plan and subagent ceremony, jargon-heavy reports and an out-of-scope `__main__` change.",
+ "label_to_arm": {
+  "X": "S",
+  "Y": "V",
+  "Z": "A"
+ }
+}

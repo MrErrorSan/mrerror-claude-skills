@@ -1,0 +1,63 @@
+{
+ "scores": {
+  "X": {
+   "match": 4,
+   "simplicity": 4,
+   "tests": 4,
+   "process_fit": 2,
+   "communication": 3,
+   "rules": 4,
+   "overall": 3,
+   "problems": [
+    "Heavy ceremony for a change the agent itself sized as 'direct': plan.md plus progress.md, 4 subagents, 17 test-suite runs, lane-checks and waves.",
+    "Workflow jargon leaks to the user ('Lane-check is clean', 'Dispatching the T1 reviewer', '`[workflow]/csv-export/work`', '/[workflow]:finish').",
+    "plan.md has a visible defect: the D6 text is broken by a mangled escape ('(`\\n`, quote only when needed)'), and Status still reads 'draft' after approval.",
+    "Work is left unsquashed on a workflow branch, two commits ahead of the agreed `feature/csv-export`; the promised single commit needs another command.",
+    "The chat reply after the change says only 'two tests' changed; it names them and gives reasons only in progress.md, not to the user."
+   ]
+  },
+  "Y": {
+   "match": 4,
+   "simplicity": 3,
+   "tests": 4,
+   "process_fit": 3,
+   "communication": 3,
+   "rules": 4,
+   "overall": 3,
+   "problems": [
+    "Adds a new `ledger/export.py` module with CSV_HEADER and CSV_DELIMITER constants and a `_total` helper the request didn't need; cli.py could hold this inline.",
+    "The semicolon request is never named as a change, and there is no statement of what it replaces or what it costs.",
+    "Test reporting is vague: 'updated the existing ones for the new format and added one' doesn't say which tests changed or why.",
+    "Line-ending churn is narrated at length ('The checks disagree with each other\u2026'), which is noise in the progress updates.",
+    "Leaves everything uncommitted and never asks whether to commit."
+   ]
+  },
+  "Z": {
+   "match": 4,
+   "simplicity": 4,
+   "tests": 4,
+   "process_fit": 4,
+   "communication": 4,
+   "rules": 4,
+   "overall": 3,
+   "problems": [
+    "Silently adds a stdout line, `print(f\"Wrote {len(invoices)} invoices to {args.csv}\")`, that wasn't requested and isn't mentioned in any report.",
+    "The change is not named as a change, and 'tests/test_export.py \u2026 updated for the new format' doesn't say which assertions encoded the comma format or why they changed.",
+    "Some test overlap: `test_semicolon_separated_with_decimal_comma` largely repeats the exact-row assertion in `test_header_then_one_row_per_invoice_oldest_first`.",
+    "The negative-money fix changes shared `model.money` behaviour; this is properly test-first and was approved by the user, but it widens the scope of the work.",
+    "No written spec or report file; the README is the only doc, though it does match the code."
+   ]
+  }
+ },
+ "ranking": [
+  "X",
+  "Z",
+  "Y"
+ ],
+ "summary": "X is the only run that treats the semicolon request as a change request: it retires the comma spec lines, logs the conflicts and records which tests changed and why. That puts it ahead despite heavy, jargon-laden ceremony and a mangled plan line. Z is lean and clear but adds an unflagged stdout print and explains its test changes vaguely, while Y over-builds a separate module with constants and never names the change or which tests it altered.",
+ "label_to_arm": {
+  "X": "A",
+  "Y": "V",
+  "Z": "S"
+ }
+}
