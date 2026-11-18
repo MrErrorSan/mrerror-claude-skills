@@ -169,3 +169,32 @@ Why:
 - `using-superpowers` itself says the user's instructions outrank its skills. Anvil's startup hook is installed by the user, so it counts as one of those instructions.
 - Anvil's skills get distinct names and descriptions, so they don't compete with Superpowers' skills for the same trigger.
 - To verify during the build: how a plugin's startup hook is declared in the current version of Claude Code, and whether its output arrives with the authority this design assumes.
+
+## 8. Mocks, research, demos (agreed in principle)
+
+### How a past website redesign ran [evidence]
+
+This is the mock-first precedent, from a company website redesign:
+
+1. **Research docs first:** the industry and competitor landscape, and the "product truth".
+2. **A design audit** made the case for change.
+3. **A shared `BRIEF.md` per round,** handed to parallel agents. Each agent wrote exactly one variant file and ran no git commands. There were 2 to 4 variants per round and 4 rounds.
+4. **A comparison `index.html` and screenshots** per round, plus an owner-review page built by a script.
+5. **A measured critique (`FLAWS.md`)** after a round missed. Its key finding: round 1 tested only visuals, because the copy was identical in every variant. Round 2 then changed the copy, which the owner had never objected to.
+6. **The build used the chosen mock as its reference.**
+
+### Kinds of work [user]
+
+- **Demo and POC are pre-production work, not throwaway.** They get the same treatment as a real feature. If they meet the developer's and the team's requirements, they ship. Otherwise they're iterated until they can.
+- **Throwaway work is limited to mocks,** including interactive mocks with realistic data. These are used to show a hard problem to a non-technical reviewer.
+  - The mock is kept as a reference.
+  - Once it's approved, the feature is built from the ground up.
+
+### How this fits the flow [proposal]
+
+- **Mocks, research and architecture options are brainstorm "variations",** not a separate pipeline.
+- **The exploration loop:** research, then a shared brief, then 2 to 4 variants built in parallel, then a comparison page, then Saad's reaction. A written critique follows if a round misses.
+  - **Each round changes only what Saad reacted to.**
+- **The chosen mock feeds the spec:** it's the visual reference, and spec lines point at it. `ux-audit` checks the build against it.
+- **Research and architecture questions** end at a document Saad reviews. There's no plan or build stage.
+- **Demos and POCs** go through the full flow, sized to the work. There's no lighter "throwaway" path for them.
