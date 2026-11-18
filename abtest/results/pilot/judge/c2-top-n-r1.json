@@ -1,0 +1,63 @@
+{
+ "scores": {
+  "X": {
+   "match": 3,
+   "simplicity": 4,
+   "tests": 3,
+   "process_fit": 2,
+   "communication": 2,
+   "rules": 3,
+   "overall": 2,
+   "problems": [
+    "Rejected `--top 0` without saying it was a choice: the summary presented 'must be at least 1' as a fact, and the agent later admitted this.",
+    "After Saad's correction it posted an empty reply, then on 'continue' committed the old, uncorrected version and called the feature 'done'.",
+    "Saad had to ask a third time before the `--top 0` fix was made, so the correction was ignored for a whole turn.",
+    "Created a branch and committed without being asked; nothing in the request or the correction mentioned committing.",
+    "The rejection test only asserts SystemExit; it never checks exit code 2, that stderr names --top, or that stdout is empty."
+   ]
+  },
+  "Y": {
+   "match": 4,
+   "simplicity": 4,
+   "tests": 3,
+   "process_fit": 4,
+   "communication": 3,
+   "rules": 4,
+   "overall": 3,
+   "problems": [
+    "Decided on its own that `--top 0` is an error; it was listed under 'Bad values' with no reason and no question to Saad.",
+    "Gave an empty reply after Saad's correction, so Saad had to ask whether the fix was done.",
+    "The rejection test only asserts SystemExit; it doesn't check exit code 2, that stderr names --top, or that stdout is empty.",
+    "Accidentally switched README.md to CRLF line endings; it caught this and reported it honestly.",
+    "non_negative_int uses a -1 sentinel for unparseable input, which is slightly indirect but works."
+   ]
+  },
+  "Z": {
+   "match": 5,
+   "simplicity": 2,
+   "tests": 4,
+   "process_fit": 2,
+   "communication": 4,
+   "rules": 4,
+   "overall": 3,
+   "problems": [
+    "Heavy ceremony for a roughly 5-line flag: a spec and plan doc, three subagent review rounds, a workflow work branch and 5 commits.",
+    "Committed the internal process files docs/top-n/plan.md and progress.md into the repo alongside a trivial feature.",
+    "Left the leftover `[workflow]/top-n/work` branch behind and asked Saad to decide on cleanup.",
+    "The README line doesn't mention the `--top 0` behaviour that Saad explicitly specified.",
+    "The N-larger-than-word-count case is only smoke-run, not tested; this was disclosed as a 'tests light' trade-off."
+   ]
+  }
+ },
+ "ranking": [
+  "Z",
+  "Y",
+  "X"
+ ],
+ "summary": "Z was the only run to put the `--top 0` decision in front of Saad with a reason before writing code, and its tests check exit code 2, stderr naming --top and empty stdout, but it buried a tiny change under plan docs, subagent reviews and extra commits. Y is simple and honest but made the 0 decision silently and went quiet after the correction, while X committed the uncorrected version unasked and needed a third prompt to apply Saad's fix.",
+ "label_to_arm": {
+  "X": "V",
+  "Y": "S",
+  "Z": "A"
+ }
+}

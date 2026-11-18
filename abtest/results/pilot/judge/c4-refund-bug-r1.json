@@ -1,0 +1,58 @@
+{
+ "scores": {
+  "X": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 5,
+   "process_fit": 5,
+   "communication": 4,
+   "rules": 5,
+   "overall": 5,
+   "problems": [
+    "The visible text opens with a stray fragment, 'Fails as expected. Now the fix:', which reads as leaked mid-process narration.",
+    "Ending with a question about committing is fine, but the report could have been one line shorter.",
+    "No other substantive problems: it fixes the root cause in money(), states the Refunds side-effect (-53.52 to -52.48), and covers zero and -1.00 in the test."
+   ]
+  },
+  "Y": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 4,
+   "process_fit": 5,
+   "communication": 5,
+   "rules": 5,
+   "overall": 4,
+   "problems": [
+    "The report never says the new test failed before the fix, so the regression value isn't shown, although two suite runs suggest it was checked.",
+    "There is no zero or sign-boundary case (money(0)) in the negative test, a minor gap next to X.",
+    "Otherwise clean: it fixes money(), explains the Refunds change, and shows the full corrected report."
+   ]
+  },
+  "Z": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 3,
+   "process_fit": 4,
+   "communication": 4,
+   "rules": 5,
+   "overall": 4,
+   "problems": [
+    "The suite ran only once, so the new test was never shown failing before the fix and regression coverage is unverified.",
+    "The test omits whole-unit negatives like -1.00 and zero, so coverage is thinner than X and Y.",
+    "It says 'the report prints the values above' but never shows the report output; only two values are quoted.",
+    "The root-cause fix and the Refunds disclosure are correct and match the request."
+   ]
+  }
+ },
+ "ranking": [
+  "X",
+  "Y",
+  "Z"
+ ],
+ "summary": "All three made the same correct root-cause fix in money() and openly reported the Refunds line correction, so they differ only in test rigor and reporting. X wins on the most complete test, which covers -1.00 and 0 and was confirmed failing before the fix, despite a stray opening fragment; Y is nearly as good; Z ran the suite only once, has the thinnest test, and doesn't show the corrected report.",
+ "label_to_arm": {
+  "X": "S",
+  "Y": "V",
+  "Z": "A"
+ }
+}

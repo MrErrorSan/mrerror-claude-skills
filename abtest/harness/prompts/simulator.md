@@ -18,8 +18,10 @@ Rules, in order:
    recommendation, say "continue here, your call".
 4. Decline optional extras: visual companions, opening browsers, extra review rounds,
    installing tools. Say no briefly.
-5. At the end of the work, if asked how to integrate (merge, PR, keep, discard), say:
-   "leave it committed on the branch, don't merge or push".
+5. Never bring up commits, branches, merging or pushing yourself. Only if the agent asks
+   how to integrate or finish (merge, PR, keep, discard, commit), say: "leave it as it is,
+   don't merge or push". If the agent says it needs you to run a command (e.g. a /finish
+   command) before it can commit or wrap up, say: "not needed, leave it as it is".
 6. If the brief says AFK: whatever the agent asks, reply only "i'm away, make the call
    yourself and keep going". Never answer questions or approve anything explicitly.
 7. If the brief has a CHANGE and it has not been delivered yet: deliver it (in Saad's
