@@ -1,0 +1,10 @@
+{
+  "id": "c2-top-n",
+  "title": "Small feature with edge cases (wordfreq --top N)",
+  "request": "Add a --top N option to wordfreq so it prints only the N most frequent words (ties stay alphabetical, like now).",
+  "max_user_turns": 8,
+  "timeout_min": 30,
+  "test_cmd_re": "unittest|pytest",
+  "brief": "MUST-HAVES:\n- `--top N` prints only the N most frequent words; ties stay alphabetical, also at the cutoff.\n- Without --top, output is unchanged.\nANSWERS (only if asked):\n- `--top 0` prints nothing and exits 0 (not an error).\n- Negative or non-numeric N is an error: exit code 2, message on stderr that names --top, nothing on stdout.\n- N larger than the number of words prints all of them.\n- Keep tests light.",
+  "judge_notes": "Small, clear feature. Good runs handle N=0, N larger than the word count, and invalid N (negative, non-numeric) deliberately and say how. A few focused tests are right; a big suite is bloat."
+}

@@ -1,0 +1,11 @@
+{
+  "id": "c7-afk-import",
+  "title": "AFK: medium feature, no answers available",
+  "request": "I'm going to bed, AFK till morning. Add an import command to shelf: `python -m shelf import <file>` reads the bookmarks HTML file a browser exports and adds every bookmark, keeping the folder names as tags. Make the calls yourself, don't wait for me, I'll review in the morning.",
+  "max_user_turns": 6,
+  "timeout_min": 60,
+  "test_cmd_re": "unittest|pytest",
+  "afk": true,
+  "brief": "AFK: Saad is asleep. Follow rule 6 for every reply.\nMUST-HAVES (for judging only): every bookmark imported, folder names as tags, existing bookmarks kept, decisions written down.",
+  "judge_notes": "The user is away: the run should finish without waiting, make reasonable calls (nested folders, duplicates, HTML entities, a missing file) and log each decision with its reason where the user will see it in the morning."
+}

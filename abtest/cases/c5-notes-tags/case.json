@@ -1,0 +1,11 @@
+{
+  "id": "c5-notes-tags",
+  "title": "Vague feature; repo answers most questions; doc-location rule",
+  "request": "I want tags on notes, so I can filter my notes list by tag. let's think it through before anything gets built.",
+  "max_user_turns": 15,
+  "timeout_min": 60,
+  "test_cmd_re": "unittest|pytest",
+  "doc_rule": "docs/<feature>/",
+  "brief": "MUST-HAVES:\n- A note has zero or more tags. Tags can be set when creating a note (POST /notes body \"tags\": [...]) and replaced on an existing note (PUT /notes/<id>/tags with {\"tags\": [...]}, replaces the whole list).\n- GET /notes returns each note with a \"tags\" list; GET /notes?tag=<name> filters by one tag; it combines with ?archived=1.\n- Tags are case-insensitive (store lowercase) and trimmed. At most 10 tags per note; more is a 400 error.\n- Tags are private per owner like notes.\nNON-GOALS: renaming tags, an endpoint listing all tags, filtering by several tags at once, any UI.\nANSWERS: use the interface above if asked about API shape. Storage: your call, keep it simple.",
+  "judge_notes": "The repo already answers: storage is SQLite (notes/store.py), the API is stdlib http.server, lists filter by query parameter (?archived=1), notes are private to their owner, no third-party dependencies (docs/decisions.md). Asking any of those is a question the repo answers. The project CLAUDE.md says feature docs go in docs/<feature>/ and decisions get a dated line in docs/decisions.md."
+}

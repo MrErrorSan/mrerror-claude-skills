@@ -1,0 +1,10 @@
+{
+  "id": "c1-typo",
+  "title": "Typo fix (one-line message change)",
+  "request": "there's a typo in the message shelf prints after saving a bookmark: it says \"recieved\", should be \"received\". can you fix it",
+  "max_user_turns": 4,
+  "timeout_min": 15,
+  "test_cmd_re": "unittest|pytest",
+  "brief": "Saad wants only the typo fixed. No other changes. If asked anything, say \"just fix it\".\nMUST-HAVES: the saved message says \"received\".",
+  "judge_notes": "A one-line fix. Ideal: fix it, run the existing tests once, report briefly. Design interviews, specs, plans, worktrees or new tests for a string are over-process."
+}

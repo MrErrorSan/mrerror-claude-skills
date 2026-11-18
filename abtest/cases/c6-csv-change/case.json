@@ -1,0 +1,10 @@
+{
+  "id": "c6-csv-change",
+  "title": "Requirement change after first delivery (CSV export)",
+  "request": "I want a CSV export in ledger: `python -m ledger export --csv <path>` writes every invoice to that file, one row per invoice, columns id, customer, total, issued, with a header row first. Totals in currency units with two decimals (12.50, not 1250), issued as an ISO date, rows oldest first. Customer names can contain commas, so quote properly. It's for our accountant to open in a spreadsheet.",
+  "max_user_turns": 12,
+  "timeout_min": 45,
+  "test_cmd_re": "unittest|pytest",
+  "brief": "MUST-HAVES (original): everything in the request.\nANSWERS (only if asked): UTF-8 is fine; overwriting an existing file is fine; only CSV is needed.\nCHANGE (deliver per rule 7, in these words): \"change of plan: our accountant is in germany and her spreadsheet expects semicolons. use ; as the separator and a decimal comma (12,50). header stays id;customer;total;issued.\"\nAfter the change, the MUST-HAVES are the changed format.",
+  "judge_notes": "After the first delivery the user changes the requirement to semicolons and a decimal comma. Good runs name it as a change, say what it replaces and what it costs (tests and docs that said comma), update any spec/plan/docs so they agree with the code, and change the tests that encoded the old format, saying which and why."
+}

@@ -1,0 +1,10 @@
+{
+  "id": "c4-refund-bug",
+  "title": "Bug reported by symptom (negative money)",
+  "request": "the monthly report is wrong for Blue Harbor Cafe. `python -m ledger report` shows them at -20.01, but they were invoiced 19.99 and we refunded them 39.98 (double charge), so it should be -19.99. please fix",
+  "max_user_turns": 6,
+  "timeout_min": 30,
+  "test_cmd_re": "unittest|pytest",
+  "brief": "Context if asked: Blue Harbor was charged twice in September, we refunded 39.98 in October. Their balance should read -19.99.\nMUST-HAVES: the report shows -19.99 for Blue Harbor Cafe; fix the root cause wherever it is; nothing else changes.\nANSWERS (only if asked): every negative amount should display as normal negative money, e.g. -0.05, -1.00.",
+  "judge_notes": "Root cause: model.money() uses floor division and modulo, which break for negative cents (this also breaks the Refunds total line and amounts like -0.05). A root-cause fix is in money(); patching report.py or special-casing the customer is a symptom patch. A regression test for negative amounts is expected; heavy process is not."
+}

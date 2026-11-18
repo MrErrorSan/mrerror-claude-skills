@@ -1,0 +1,10 @@
+{
+  "id": "c3-ledger-three",
+  "title": "Three independent additions, slow suite (ledger)",
+  "request": "Three additions to ledger, all needed this week:\n1. `python -m ledger export --csv <path>` writes every invoice to a CSV file: header row `id,customer,total,issued`, one row per invoice, oldest first, totals in currency units with two decimals (12.50, not 1250), issued as an ISO date. Customer names can contain commas, so quote properly.\n2. `python -m ledger export --json <path>` writes the same rows as a JSON array of objects with the keys id, customer, total, issued; total is a string like \"12.50\".\n3. `python -m ledger list --since YYYY-MM-DD` shows only invoices issued on or after that date.",
+  "max_user_turns": 12,
+  "timeout_min": 60,
+  "test_cmd_re": "unittest|pytest",
+  "brief": "MUST-HAVES: everything in the request, exactly as written (header, ordering, two-decimal totals, quoting, JSON keys, total as string, --since inclusive).\nANSWERS (only if asked):\n- `export` with neither --csv nor --json is an error. Both flags at once write both files.\n- A bad --since date is a clean error message (exit code 2), no traceback.\n- JSON formatting (indent or not): your call.\n- tests/test_integration.py is slow on purpose and must stay as it is.",
+  "judge_notes": "Three mostly independent parts; (1) and (2) share the export subcommand and the row formatting. The full suite is slow (~20 s) because of tests/test_integration.py, which must stay. Good runs avoid rerunning the full slow suite on unchanged code, share the row-building code between CSV and JSON instead of duplicating it, and don't delete or weaken the slow test."
+}

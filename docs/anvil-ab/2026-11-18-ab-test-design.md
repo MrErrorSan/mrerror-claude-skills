@@ -27,12 +27,12 @@ A small Python runner in `abtest/`, driving `claude -p` directly.
 2. Start the agent:
 
    ```
-   claude -p <request> --setting-sources "" --plugin-dir <arm plugin> \
+   claude -p <request> --setting-sources project --plugin-dir <arm plugin> \
      --model <pinned> --effort <pinned> --permission-mode bypassPermissions \
-     --output-format stream-json --verbose --session-id <uuid>
+     --disallowedTools AskUserQuestion --output-format stream-json --verbose --session-id <uuid>
    ```
 
-   `--setting-sources ""` loads none of the installed plugins and none of the loose `~/.claude/skills` copies. Only the arm's plugin loads, with its own hooks. This was probed; see §7.
+   `--setting-sources project` loads none of the installed plugins and none of the loose `~/.claude/skills` copies. Only the arm's plugin loads, with its own hooks. It does load Saad's global `CLAUDE.md` and the fixture's `CLAUDE.md`. This was probed; see §7. `AskUserQuestion` is off in every arm, because `-p` has no dialog, so questions come as text.
 3. **The simulated user.** When the agent's turn ends, a separate Claude call plays Saad. It has no plugins and no tools. It gets the case's hidden **user brief** and the agent's last message, and writes Saad's reply. The reply goes back with `--resume <uuid>`. This repeats until the agent says it's done, or it hits the case's cap on user turns.
 4. **Grading.** The hidden acceptance tests are copied in only after the session ends, so the agent never sees them. They run along with the fixture's original tests. Then the measures below are collected.
 
@@ -49,7 +49,7 @@ A small Python runner in `abtest/`, driving `claude -p` directly.
 - **S: Superpowers 7.0.2.** The installed cache copy.
 - **V: vanilla**, no plugin (optional). It shows whether either plugin beats plain Claude at all, and it's the cheapest control.
 
-Saad's global `~/.claude/CLAUDE.md` still loads in every arm (`--setting-sources` doesn't remove it). It's the same for all arms and it's his real environment, so it stays. Cases also grade whether each arm obeys it: no co-author trailer, no Artifacts.
+Saad's global `~/.claude/CLAUDE.md` loads in every arm. It's the same for all arms and it's his real environment, so it stays. Cases also grade whether each arm obeys it: no co-author trailer, no Artifacts.
 
 ## 3. Measures
 
@@ -116,7 +116,11 @@ Any miss becomes a finding with the transcript excerpt, a ranked severity and a 
 ## 7. Feasibility probes (done 2026-11-18, Haiku, about $0.01)
 
 - **`--safe-mode` does not isolate.** All installed plugins still loaded, Superpowers included. Rejected.
-- **`--setting-sources ""` isolates.** Only the `--plugin-dir` plugin and three built-ins loaded. No loose user skills loaded. The user `CLAUDE.md` still loads.
+- **`--setting-sources ""` isolates too far.** It also drops both `CLAUDE.md` files. An earlier Haiku probe that answered "yes" was a guess; Sonnet confirmed it.
+- **`--setting-sources project` is the right setting.** Only the `--plugin-dir` plugin and three built-ins load, and no loose user skills. Saad's global `CLAUDE.md` and the fixture's `CLAUDE.md` both load.
+- **Run repos live outside this checkout.** Otherwise this repo's `CLAUDE.md` ("commit and push after every unit of work") would load as a parent directory's file.
+- **Cost fields.** `total_cost_usd` and `modelUsage` are cumulative across `--resume` calls and include subagents. `usage` and `num_turns` are per call and cover the main thread only.
+- **Hidden tests self-check.** `ab.py selftest` passes on all 7 cases. Every reference solution passes 100% of its hidden tests, and every untouched fixture passes its regression tests.
 - **Anvil hooks under `claude -p` work.** SessionStart fired. UserPromptSubmit logged both the first prompt and the `--resume` follow-up to `.git/anvil/prompts.jsonl`. This settles two open questions from the 1.0 handover: a scripted user can pass Anvil's stops.
 - **`gate.INJECTED_RE` already filters `<cross-session` messages**, so a peer session's text can't count as Saad's words.
 
