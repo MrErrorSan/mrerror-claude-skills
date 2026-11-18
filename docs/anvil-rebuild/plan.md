@@ -41,6 +41,14 @@ Each line is copied from the spec.
 - **Descriptions say when to use the skill.** They don't summarise its workflow.
 - **No forbidden tools or links.** No todo-tool instructions (TodoWrite/Task\* are gone). No Artifacts. No Superpowers skill invoked from an Anvil skill.
 - **Credit and exclusions.** Superpowers is MIT: ship `NOTICE`, and credit it in the README. Leave out its logo, the visual companion and the visual companion's telemetry.
+- **Skills are written with Anthropic's `skill-creator`.** Every skill lane (T7–T12) runs `skill-creator:skill-creator` first and follows its Skill Writing Guide (anatomy, progressive disclosure, writing patterns). It then runs `python -I <skill-creator>/scripts/quick_validate.py <skill dir>` on its skill. **Saad's requirement.**
+- **Provenance in every lane report.** For each file written, the report states:
+  - its Superpowers source(s);
+  - its status: **verbatim**, **lightly edited** (wording only), **adapted** (behavior changed) or **new**;
+  - what was kept;
+  - what was changed, and why, citing the design section or requirement.
+
+  T16 compiles these into `upstream/superpowers/provenance.md`. **Saad's requirement.**
 - **Source line on every adapted file.** It's an HTML comment placed right after the frontmatter: `<!-- adapted from superpowers@7.0.2: skills/<path> -->`. List every source a file draws on. The upstream watch (design §8) depends on it.
 - **Platform.** Windows 11 with Git Bash comes first. Python is called as `python`, then `py -3`, then `python3`. On this machine `python3` is the broken Microsoft Store stub.
 - **Commit messages** carry no Claude co-author trailer.
@@ -75,8 +83,9 @@ These are failure modes the spec implies but no task's tests would otherwise cat
 | T10 | §7.7, §7.8 | `plugins/anvil/skills/verify/**`, `plugins/anvil/skills/finish/**` | - | T1 | 3 | yes |
 | T11 | §7.6 (debug) | `plugins/anvil/skills/debug/**` | - | T1 | 3 | yes |
 | T12 | §7.11 (afk, tickets) | `plugins/anvil/skills/afk/**`, `plugins/anvil/skills/ticket-update/SKILL.md` | - | T1, T2 | 3 | yes |
-| T13 | §5, §8, §10.2 | `plugins/anvil/.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`, `README.md`, `tests/anvil_cli/test_skills.py`, `plugins/anvil/references/upstream.md` | - | T7–T12 | 4 | yes |
+| T13 | §5, §8.2, §10.2 | `plugins/anvil/.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`, `README.md`, `tests/anvil_cli/test_skills.py` | - | T7–T12 | 4 | yes |
 | T14 | §9.1 | `plugins/anvil/evals/**` | - | T5, T7–T12 | 4 | yes |
+| T16 | §8.1 | `upstream/superpowers/**`, `docs/anvil-principles.md`, `.claude/skills/superpowers-upstream/**`, `tests/anvil_cli/test_upstream.py` | - | T7–T12 | 4 | yes |
 
 **Integrator-only work** (the orchestrator, not a lane):
 - merges, per-wave checks and commit points;
@@ -87,7 +96,7 @@ No lockfiles, generated files or migrations are involved.
 ## Parallel-safe check, done by hand (the `plan-check` CLI doesn't exist yet)
 
 - **Write sets don't overlap.** T1 owns `cli.py`, which registers every subcommand by module name. Lanes never edit `cli.py`.
-- **Dependencies only point at earlier waves.** T5 needs T2 and T4 from wave 1. T12 needs T2 from wave 1. T13 and T14 need wave 2 and wave 3.
+- **Dependencies only point at earlier waves.** T5 needs T2 and T4 from wave 1. T12 needs T2 from wave 1. T13, T14 and T16 need wave 2 and wave 3.
 - **No shared resources.** No ports, no database, no dev server.
 - **One deliberate overlap.** `tests/anvil_cli/test_skills.py` is written in T13, after every skill lane has landed. It's the mechanical consistency check across the parallel skill lanes.
 
@@ -99,9 +108,9 @@ No lockfiles, generated files or migrations are involved.
 | 1 | T2, T3, T4, T6 (4 lanes) | replaces 4 sequential tasks |
 | 2 | T5, T7, T8, T9 (4 lanes) | replaces 4 |
 | 3 | T10, T11, T12 (3 lanes) | replaces 3 |
-| 4 | T13, T14 (2 lanes) | replaces 2 |
+| 4 | T13, T14, T16 (3 lanes) | replaces 3 |
 
-That's 14 tasks in 5 waves. Done one at a time, it would be 14 sequential tasks. The expected saving on the build stage is roughly 1.5 to 2.5 times, because the skill lanes are similar in size.
+That's 15 tasks in 5 waves. Done one at a time, it would be 15 sequential tasks. The expected saving on the build stage is roughly 1.5 to 2.5 times, because the skill lanes are similar in size.
 
 - **Proposed mode:** parallel, 4 lanes maximum, with a per-task review in every lane.
 - **Lane isolation, Claude's call:** the orchestrator creates each lane's worktree itself, with `git worktree add ../anvil-lane-<task> -b anvil/anvil-1.0/<task> anvil/anvil-1.0/work`. Agents are briefed with that absolute path.
@@ -153,6 +162,9 @@ The full suite is `python -I -m unittest discover -s tests -t .`. It's expected 
 | `smoke: session-start emits valid JSON` | smoke | §7.13 | Anvil never bootstrapping | T5 |
 | `smoke: run-hook with empty PATH exits 0` | smoke | Review focus 3 | Hooks blocking everything | T5 |
 | `smoke: claude plugin details lists all skills` | smoke | §10.2 | A broken install | T15 |
+| `test_upstream.test_source_map_matches_comments` | keep | §8.1 | The upstream watch missing an adapted file | T16 |
+| `test_upstream.test_provenance_lists_every_mapped_file` | keep | §8.1 | The provenance report going out of date | T16 |
+| `smoke: prepare_review.py v7.0.2 --base v7.0.2` gives an empty diff, and `--help` works | smoke | §8.1 | The runbook unusable on the first release | T16 |
 | Fixture repos under `tests/anvil_cli/fixtures/` (git init on the fly by `helpers.py`) | scaffold → **kept** as test helpers | - | - | T1 |
 
 No bug-repro tests: this plan fixes no reported bug.
@@ -166,7 +178,7 @@ The evals in T14 are behavior checks, not unit tests. They run in WSL2 (T15).
 | C1 | waves 0–1 (T1, T2, T3, T4, T6) | `feat(anvil): bin/anvil CLI with shared formats, gates, plan-check, result reuse and stale detection` | yes |
 | C2 | wave 2 (T5, T7, T8, T9) | `feat(anvil): hooks, router, brainstorm, plan and build skills` | yes |
 | C3 | wave 3 (T10, T11, T12) | `feat(anvil): verify, finish, debug and revised afk skills` | yes |
-| C4 | wave 4 plus T15 (T13, T14) | `feat(anvil): 1.0 packaging, skill lint and evals` | yes |
+| C4 | wave 4 plus T15 (T13, T14, T16) | `feat(anvil): 1.0 packaging, skill lint, evals, upstream watch and provenance` | yes |
 
 At each commit point:
 1. Squash the work branch onto `anvil-rebuild`.
@@ -702,7 +714,7 @@ Ticket comments are posted at commit points.
 
 ## T13: Packaging and skill lint
 
-- **Spec:** §5, §8, §10.2.
+- **Spec:** §5, §8.2, §10.2.
 - **Files:** `plugins/anvil/.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`, `README.md` and `tests/anvil_cli/test_skills.py`.
 - **`plugin.json`:** `"version": "1.0.0"`. Remove `dependencies` entirely. The description says what Anvil is: "Saad's development workflow: brainstorm, spec, plan, parallel build, verify, finish." Keywords stay.
 - **`marketplace.json`:** remove `allowCrossMarketplaceDependenciesOn`, and update both descriptions.
@@ -714,13 +726,6 @@ Ticket comments are posted at commit points.
   - coexistence with Superpowers (the three setups from §7.13);
   - credits and NOTICE;
   - the layout.
-- **`references/upstream.md`.** The upstream-watch procedure:
-  1. Run `gh release list -R obra/superpowers`.
-  2. For each new release, diff the source files named in the `adapted from` comments: `git diff v7.0.2..vX -- <paths>` in a clone.
-  3. Record adopt or reject, with a reason, in a dated table in this file.
-  4. Bump the `adapted from` versions for the files adopted.
-
-  The trigger is manual, as listed in the README's maintenance section.
 - **`test_skills.py`:**
   - for every `plugins/anvil/skills/*/SKILL.md`: frontmatter has `name` and `description`; size under 20,000; none of the forbidden words (case-sensitive `MUST`, `IMPORTANT`, `EXTREMELY`, `ABSOLUTELY`, `Iron Law`);
   - no `superpowers:` skill invocation, and no `TodoWrite`;
@@ -756,6 +761,65 @@ Ticket comments are posted at commit points.
 2. Validate the YAML, by parsing it with `python -I -c` if PyYAML is present, or else by eye.
 3. Report. **Don't run the evals.** T15 runs them in WSL2.
 
+## T16: Upstream watch and provenance
+
+- **Spec:** §8.1.
+- **Files:**
+  - create the `upstream/superpowers/{README.md, baseline.json, source-map.json, decisions.md, provenance.md, provenance/diffs/*.diff, reviews/.gitkeep}` files;
+  - create `upstream/superpowers/tools/{prepare_review.py, provenance.py}`;
+  - create `docs/anvil-principles.md`;
+  - create `.claude/skills/superpowers-upstream/SKILL.md`;
+  - create `tests/anvil_cli/test_upstream.py`. The test touches only T16 tools.
+
+**`baseline.json`:**
+```json
+{"repo": "obra/superpowers", "version": "7.0.2", "tag": "v7.0.2", "sha": "22f0b463e7a5e579904dd6211a520321035526f7", "released": "2026-11-03", "synced": "<build date>"}
+```
+
+**Interfaces:**
+
+```python
+# provenance.py
+def read_sources(repo: Path) -> dict[str, list[str]]
+#   Anvil path → Superpowers paths, from the "adapted from superpowers@<v>:" comments
+def classify(src_text: str, dst_text: str) -> str
+#   "verbatim" (identical after line-ending normalisation)
+#   | "lightly edited" (difflib ratio ≥ 0.85) | "adapted" (< 0.85)
+def write_source_map(repo) -> None
+def write_diffs(repo, sp_root: Path) -> list[Path]
+#   git diff --no-index <sp file> <anvil file>
+#   → provenance/diffs/<anvil path, '/'→'__'>.diff
+# prepare_review.py
+#   CLI: prepare_review.py <new-tag> [--base <tag>] [--cache <dir>]
+#   clones or fetches obra/superpowers into the cache; checks out both tags;
+#   writes reviews/<date>-<new-tag>.md as a scaffold with these sections:
+#   Release notes | Mapped changes (per Anvil file, with diff) | Unmapped changes | Verdicts (empty table)
+```
+
+**Steps:**
+1. Write `test_upstream.py`:
+   - `read_sources` finds the comments in fixture files;
+   - `classify` returns each of its three labels;
+   - every entry in `source-map.json` appears in `provenance.md`.
+
+   Confirm the tests fail.
+2. Implement the two tools until the tests pass.
+3. **Provenance.**
+   - Run `provenance.py` against `~/.claude/plugins/cache/claude-plugins-official/superpowers/7.0.2`. That generates `source-map.json`, the diffs, and the status column.
+   - Write `provenance.md`, one table row per Anvil file: `| Anvil file | Superpowers source(s) | Status | Kept | Changed, and why |`. The "Kept" and "Changed" cells come from the lane reports (T7–T12).
+   - Add a second table of Superpowers parts **not taken**, with the reason for each: `using-superpowers`, `writing-skills`, `diagnosing-superpowers`, the visual companion, the other-agent-tool shims, the TDD Iron Law, the `sdd-*` scripts and others.
+   - Add a short list of **files copied verbatim**. Expected candidates are `run-hook.cmd` and `find-polluter.sh`, but the tool decides.
+4. **Write `decisions.md`,** seeded from the [inventory](research/2026-11-18-superpowers-inventory.md) stage-mapping table: one row per keep, rewrite or drop decision taken at 7.0.2, with its reason.
+5. **Write `docs/anvil-principles.md`.** Number every item labelled **[user]** in the [brainstorm notes](2026-11-18-brainstorm-notes.md) as P1, P2, …, one line each, with the section it came from.
+6. **Write `README.md`:**
+   - the runbook, copied from design §8.1: data, read, classify, report, stop, apply;
+   - the rubric table;
+   - the AFK exception (A and B only);
+   - what to update after applying.
+7. **Write `.claude/skills/superpowers-upstream/SKILL.md`.** It triggers on "check Superpowers upstream", "new superpowers release" and similar, and points to the README. Use `skill-creator`, then run `quick_validate.py`.
+8. Smoke-test `prepare_review.py v7.0.2 --base v7.0.2`. Expect an empty "Mapped changes" section.
+9. Report.
+
 ## T15: Integration and final verification (orchestrator)
 
 1. Run the full suite, `python -I -m unittest discover -s tests -t .`, on the final merged state with `anvil run --scope full`, and record the output.
@@ -766,10 +830,20 @@ Ticket comments are posted at commit points.
 4. **Evals in WSL2.** Check `wsl -- claude --version`.
    - **If Claude Code isn't installed in WSL, stop and ask Saad** before installing anything there.
    - Otherwise run `claude plugin eval <repo>/plugins/anvil --concurrency 2` from WSL and record the scores and the with-vs-without deltas.
-5. **Converge check** against this plan and the design. Every task is done. Every design section listed in the task table is covered, or listed as left to a later plan.
-6. **Regression review** (Saad's request). This is a whole-branch review against the old Anvil (`git diff 46b7535 -- plugins/anvil`). Run it once with the final-review prompt and once with `cross-model`.
-7. **Stop and hand over** to Saad: the report and these **actions needing his consent**:
+5. **Skill-creator verification** (design §8.3):
+   - **Structure:** run `quick_validate.py` on every skill.
+   - **Test cases:** for `anvil`, `brainstorm`, `plan` and `build`, run 2 or 3 realistic prompts each, with the skill and with a no-skill baseline, then grade them with its grader.
+     - The results go to `docs/anvil-rebuild/verification/skill-creator/`.
+     - Skip its browser viewer; write the summary in markdown.
+   - **Description optimization** for the `anvil` router and `brainstorm`:
+     - Generate the should-trigger and should-not-trigger queries.
+     - **Show the query set to Saad before running the loop.** skill-creator asks for that review.
+     - Apply only description changes that improve the score.
+6. **Converge check** against this plan and the design. Every task is done. Every design section listed in the task table is covered, or listed as left to a later plan.
+7. **Regression review** (Saad's request). This is a whole-branch review against the old Anvil (`git diff 46b7535 -- plugins/anvil`). Run it once with the final-review prompt and once with `cross-model`.
+8. **Stop and hand over** to Saad: the report and these **actions needing his consent**:
    - removing the loose `~/.claude/skills/{anvil,afk}` copies (`cross-model-review` stays until phase 4);
    - adding the coexistence line to `~/.claude/CLAUDE.md`;
    - turning on marketplace auto-update;
    - squash-merging `anvil-rebuild` into `main`.
+   - **Provenance summary in the handover.** List which Superpowers files were taken **verbatim**, which were **lightly edited**, which were **adapted** and how, and which were **not taken**. Link `upstream/superpowers/provenance.md` and the diffs. **Saad's requirement.**

@@ -453,10 +453,71 @@ Decided in notes §7, and revised after research.
 
 ## 8. Maintenance
 
-- **Upstream watch.** Each copied file records its source (`superpowers@7.0.2 skills/…`). On each Superpowers release, Anvil runs a diff against those sources, and each change is adopted or rejected deliberately, with a note.
-  - The trigger is manual: a `/anvil:upstream` command or a checklist item. A schedule is possible later.
-- **Releases.** Bump `plugin.json` `version` every release, otherwise other machines never update. Turn on auto-update for this marketplace on each machine.
-- **Evals.** These are rerun when the default model changes, and before each release.
+### 8.1 Upstream watch: what happens when Superpowers releases
+
+Agreed with Saad on 2026-11-18.
+
+```
+upstream/superpowers/
+  README.md          the runbook a fresh agent follows
+  baseline.json      Superpowers version Anvil last synced to (7.0.2, 22f0b463, 2026-11-03)
+  source-map.json    Anvil file ↔ Superpowers source file(s), generated from the "adapted from" comments
+  decisions.md       append-only ledger of every upstream change considered: verdict, reason, date
+                     (seeded with the 7.0.2 decisions)
+  provenance.md      per Anvil file: verbatim | lightly edited | adapted | new, what was kept, what changed and why
+  provenance/diffs/  one diff per adapted file (Superpowers source → Anvil file)
+  reviews/           one review report per release (YYYY-MM-DD-vX.Y.Z.md)
+  tools/             prepare_review.py (data for a release), provenance.py (diffs and similarity)
+docs/anvil-principles.md   Saad's decisions as numbered principles (P1…), which verdicts cite
+.claude/skills/superpowers-upstream/SKILL.md   project-only skill pointing to the runbook
+```
+
+**What the agent does:**
+
+1. **Gather the data.** `prepare_review.py <new tag>` produces:
+   - per-file diffs for every mapped Superpowers file, shown next to the Anvil file it feeds;
+   - a list of upstream changes with no mapping, such as new skills or files;
+   - the release notes between the two versions, with linked issues and any eval numbers.
+2. **Read the Anvil side:**
+   - the mapped files;
+   - the principles;
+   - the design's goals and anti-goals;
+   - the ledger. A rejection already recorded there isn't reopened without new evidence.
+3. **Classify every change and give it a verdict** with this rubric:
+
+| Kind of upstream change | Default verdict |
+|---|---|
+| A. A bug or robustness fix in copied material | Adopt |
+| B. Model or Claude Code compatibility | Adopt if it applies to Claude Code; confirm against Anthropic's docs |
+| C. A behavior improvement with evidence | Adopt or adapt if it fits the principles. On a conflict, take the mechanism, not the rule |
+| D. A behavior change without evidence | Reject, with a note |
+| E. A change where Anvil deliberately differs (TDD Iron Law, sequential-only build, ceremony, forceful wording, deleting logs) | Reject, unless the new evidence answers Saad's original reason. Then it goes to Saad |
+| F. A new skill or feature | Never adopted automatically; listed as a candidate for Saad |
+| G. Support for other agent tools | Ignore |
+
+   **Anything that changes the flow, the stops or a principle always goes to Saad.** Each candidate is also weighed on cost: the 20k skill-size budget, and whether it adds ceremony.
+
+4. **Write the review report,** one row per change: the change, its category, verdict, reason (a principle id or evidence), and the Anvil files affected. Then **stop for Saad's approval.**
+   - **Exception:** in AFK, only A and B are applied without waiting. **Claude's recommendation; Saad answered "that is good".**
+5. **Apply** the approved changes as a normal Anvil plan:
+   1. edit the files;
+   2. rerun the skill lint and the evals;
+   3. update `baseline.json`, the "adapted from" versions, `provenance.md` and the diffs, and the ledger.
+
+**Trigger:** manual ("check Superpowers upstream"), or a weekly `/schedule` routine that only reports whether a new release exists. There's no network check at session start.
+
+### 8.2 Releases and evals
+
+- **Releases.** Bump `plugin.json` `version` every release; otherwise other machines never update. Turn on auto-update for this marketplace on each machine.
+- **Evals.** Rerun them when the default model changes, and before each release.
+
+### 8.3 Skill authoring and verification
+
+Saad's requirement: every Anvil skill is written and checked with **Anthropic's `skill-creator` skill** (claude-plugins-official). That means:
+- its Skill Writing Guide while writing;
+- `quick_validate.py` on each skill;
+- after implementation, its test-case runs (with the skill vs a baseline, then graded);
+- description optimization for triggering. This applies at least to the `anvil` router and to `brainstorm`.
 
 ## 9. How we know it's better: no-regression checks
 
