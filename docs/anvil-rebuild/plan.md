@@ -1,7 +1,7 @@
 # Anvil 1.0: Implementation Plan (phases 1–2: core flow and packaging)
 
 - **Spec:** [2026-11-18-anvil-design.md](2026-11-18-anvil-design.md). Approved by Saad on 2026-11-18 ("Okay, that's all look good, and I approve").
-- **Approved:** no (waiting at stop 2)
+- **Approved:** 2026-11-18 by Saad ("1 yes"), with execution in a fresh session
 - **Synced branch:** `anvil-rebuild` (remote `origin/anvil-rebuild`)
 - **Work branch:** `anvil/anvil-1.0/work` (local)
 - **Size:** full
