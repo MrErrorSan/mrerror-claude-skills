@@ -255,3 +255,29 @@ Output goes to [research/](research/):
 - Matt Pocock's skills
 - other alternatives
 - the plugin update mechanics
+
+### "Superpowers is bloated and lagging behind": what's true [evidence, checked 2026-11-18]
+
+- **Release cadence: not lagging.** There were five releases between 2026-09-19 and 2026-11-03 (6.4.1 to 7.0.2), and the release notes cite evals run on Opus 5.5 and Sonnet 5.
+- **Keeping up with model and tool changes: partly lagging.**
+  - Claude Code removed the todo tools on 2026-08-14. Superpowers issue #2177, which reports this, is still **open**.
+  - 7.0.2 still says "todo per task" in subagent-driven-development (line 131) and executing-plans (line 145).
+  - Forceful wording remains: 17× MUST, 10× IMPORTANT, 3× EXTREMELY, and a "1% chance" rule in the startup text. Anthropic now says this kind of wording makes current models over-apply rules.
+- **Bloat in context: modest.**
+  - The skills total about 350 KB of markdown, roughly 85k tokens.
+  - Each skill loads only when it's used. The always-on cost is the startup text (about 3.2 KB) plus the skill descriptions.
+  - Part of the size is support for other agent tools (Gemini, Antigravity, Hermes, Codex and others) that Saad doesn't use.
+- **Bloat in process: real.**
+  - Mandatory TDD is its most complained-about cost (#743, #2017).
+  - In one single-task benchmark (n=1), the same work took about 20 minutes in plain Claude Code and about 60 minutes in Superpowers.
+  - People uninstall it because it runs subagents and plans on tiny changes.
+- **"Skills need training": the mechanism is different, but the conclusion holds.**
+  - Skills are prompts and aren't trained. The models change underneath them.
+  - Wording written to push older models, such as shouting MUST at a model that under-followed, becomes harmful on newer models that over-follow.
+  - So skills must be **re-tested and re-tuned** with each model generation.
+
+**What follows for Anvil [proposal]:**
+- **Ship an eval suite** (`claude plugin eval`), and rerun it when the default model changes. `ticket-update` already has evals to build on.
+- **Use plain wording** throughout.
+- **Track progress in a file Anvil owns**, not in harness todo tools.
+- **Keep the upstream watch** from §10.
