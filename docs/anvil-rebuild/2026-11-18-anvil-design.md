@@ -475,5 +475,5 @@ Each phase is verified before the next starts.
 8. Default file location is `docs/<topic>/`. Old `docs/superpowers/` paths are read but not used for new work.
 9. Upstream watch is triggered manually.
 10. Parallel is opted into at stop 2 (default 3 lanes), not on by default.
-12. Commit points sit only at wave boundaries. After each squash, the work branch is reset to the synced branch's tip, and progress markers record commit points, not local commit IDs.
 11. A cheap check runs after each merged wave. The full suite runs per wave only when it takes under about 2 minutes.
+12. Commit points sit only at wave boundaries. After each squash, the work branch is reset to the synced branch's tip, and progress markers record commit points, not local commit IDs.
