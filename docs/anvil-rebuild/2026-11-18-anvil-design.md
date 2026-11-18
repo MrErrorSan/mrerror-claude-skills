@@ -250,14 +250,37 @@ The plan is for the model: how each spec line becomes code. It lives at `docs/<t
   - which tests are targeted per task;
   - the full-suite command and how long it takes.
 - **Verification commands.**
+- **Commit points (C1, C2, …).** Each one names:
+  - the tasks or waves it closes;
+  - its commit message;
+  - whether it pushes.
+
+  Commit points sit only at wave boundaries. A small plan has one, at the end.
+- **The synced branch,** chosen at the plan stop. It's one of:
+  - local only;
+  - a branch made from an existing remote branch;
+  - a new remote branch.
+
+  `main` and `master` need Saad's explicit consent. **Saad's decision.**
 - **Checkpoints,** only where Saad asked for them.
 
 ### 7.6 Build
 
 This stage starts from Superpowers 7.0.2 subagent-driven-development, which runs continuously and stops for only four named reasons.
 
-- **The progress file** `docs/<topic>/progress.md` is the single place for status, and it's committed.
-  - Task markers: `[ ]` → `[~]` → `[x] <sha>`.
+- **Two branches.** **Saad's decision:**
+  - **The synced branch** tracks origin (or stays local, if Saad chose that). It only ever receives **one squashed commit per commit point.**
+  - **The work branch** `anvil/<topic>/work` is local. It's branched from the synced branch, and holds every task commit, lane merge and fix. Lane worktrees branch from its HEAD.
+- **At each commit point:**
+  1. Reuse the recorded checks, rerunning only what changed.
+  2. Squash the work branch into the synced branch as one commit, with the plan's message.
+  3. Push, if the plan says so.
+  4. Reset the work branch to the synced branch's new tip, so the next squash doesn't re-apply commits that already landed.
+- **Pushes in AFK.** Approving the plan (or pre-approving it) authorises its pushes, so in AFK Anvil pushes at each commit point and Saad can follow along from another device.
+  - If a push fails, Anvil says so plainly, keeps working locally and retries at the next commit point.
+  - It never force-pushes the synced branch.
+- **The progress file** `docs/<topic>/progress.md` is the single place for status. It travels inside each squashed commit.
+  - Task markers: `[ ]` → `[~]` → `[x] C2`, naming the commit point that landed the task. Local commit IDs disappear when the work branch is reset, so they can't be the record. The commit point itself records the pushed commit ID.
   - It also holds: the current wave, blockers, the **decision log** (append-only, newest at top; each entry has choice, reason, confidence and "changes if"), and links to the spec's change log.
   - It replaces the todo tools.
 - **Waves.**
@@ -309,18 +332,16 @@ This stage starts from Superpowers 7.0.2 subagent-driven-development, which runs
 
 ### 7.8 Finish
 
-**Git workflow (Saad's decision, builder check Q3):**
+**Git workflow (Saad's decision, builder check Q3, refined 2026-11-18):**
 
-- **Anvil always works on its own local branch,** `anvil/<topic>`, created at build start.
-  - It always commits locally there, in AFK too. Lane commits, wave merges and the progress markers all depend on that.
-  - These commits **stay local.**
-- **At the end of the work,** finish presents the options in one message. Saad can also settle them ahead of time in the plan.
-  - **How to land the work.** Anvil **squashes** the local commits into one commit, or a few logical ones when a plan needed more than about 3. That keeps the git history clean. This is why the old "no commit" rule existed.
-  - **Which branch.** If Saad names a remote branch, Anvil makes a branch from it and pushes there.
-  - **How to merge** into Saad's branches.
-  - **Where a project rule exists, it wins.** This repo's CLAUDE.md, for example, says to commit and push after every unit of work.
+- The two-branch flow and the plan's commit points (§7.5, §7.6) do the committing and pushing while the build runs.
+- **Finish handles only what's left:**
+  - the last commit point, if the build hasn't landed it yet;
+  - offering to make a local-only synced branch live, by pushing it to a new or existing remote branch;
+  - how to merge the synced branch into Saad's other branches.
+- **Where a project rule exists, it wins.** This repo's CLAUDE.md, for example, says to commit and push after every unit of work; commit points are those units.
 - **Cleanup:**
-  - After a push is confirmed on the remote, Anvil deletes its own local branch and worktrees.
+  - After the last push is confirmed on the remote, Anvil deletes its own local work branch and worktrees.
   - It also lists other stale local `anvil/*` branches, and remote ones whose work is already merged, then deletes them **after Saad confirms.**
   - Remote deletion always needs confirmation. **Claude's call.**
 - **Commit messages** follow Saad's global rule: no Claude co-author trailer.
@@ -330,7 +351,7 @@ This stage starts from Superpowers 7.0.2 subagent-driven-development, which runs
 - **Scaffold tests** are deleted, and their deletion is listed in the report.
 - **The spec and plan are marked done.** The progress file is kept as the record, not deleted (unlike Superpowers' logs).
 - **Tickets.** `ticket-update` posts a completion comment with evidence and the stand-up line, if the repo has a tracker.
-- **Branch safety.** No work on main or master without consent. No force-push, except on Anvil's own local branch while squashing.
+- **Branch safety.** No work on main or master without consent. Never force-push the synced branch. Resetting Anvil's own local work branch is allowed.
 - **The report** covers: what shipped, the verification evidence (real output), the decision log (most review-worthy first), the weakest part, and what wasn't done.
 
 ### 7.9 `bin/anvil`, the one script
@@ -454,4 +475,5 @@ Each phase is verified before the next starts.
 8. Default file location is `docs/<topic>/`. Old `docs/superpowers/` paths are read but not used for new work.
 9. Upstream watch is triggered manually.
 10. Parallel is opted into at stop 2 (default 3 lanes), not on by default.
+12. Commit points sit only at wave boundaries. After each squash, the work branch is reset to the synced branch's tip, and progress markers record commit points, not local commit IDs.
 11. A cheap check runs after each merged wave. The full suite runs per wave only when it takes under about 2 minutes.
