@@ -147,7 +147,25 @@ These still need to be covered before the design can be written:
 1. **Finishing:** what "done" means after the build: review, commit and push, PR, ticket update. This repo's rule is commit and push after every unit of work, but `afk` says never commit unless asked. That conflict needs a decision.
 2. **Ecosystem wiring:** when each sibling skill runs, and how tickets are created and updated from the spec and plan.
 3. **Non-code work:** how the same flow fits research, architecture, demos and mocks.
-4. **Coexistence with Superpowers:** whether it is uninstalled everywhere, or must still be present on some machines or team projects. Superpowers starts itself with a session-start hook, so a self-contained Anvil needs its own reliable way to start.
-5. **Research phase:** current community practice (GitHub, Reddit, developer forums), Anthropic's own skills and guidance on development workflows, and how current Claude models respond to skill instructions.
+4. ~~Coexistence with Superpowers~~ **Decided (Claude's call, delegated by Saad):** see §7.
+5. **Research phase (running 2026-11-18, output in [research/](research/)):** current community practice (GitHub, Reddit, developer forums), Anthropic's own skills and guidance on development workflows, and how current Claude models respond to skill instructions.
 6. **The approaches:** ways to build the new Anvil, compared, with a pick.
 7. **Sizing,** and then the full written design, with a builder check before review.
+
+## 7. Coexistence with Superpowers (decided)
+
+Saad will keep both installed. He'll use Anvil alone once he trusts it, and alongside Superpowers until then. He delegated the design to Claude. **[user]**
+
+The decision is one self-contained Anvil, plus a single rule for when Superpowers is also present. There's no two-faced skill and no separate "classic" Anvil.
+
+| Setup | What happens |
+|---|---|
+| **Anvil only** (target) | Anvil's own startup hook starts the workflow. |
+| **Both installed** (building trust) | Anvil leads. Its startup hook states once that Anvil's workflow replaces Superpowers' brainstorming, planning, executing, review and finishing skills. Superpowers skills that Anvil doesn't replace (for example `writing-skills`) stay usable. |
+| **Superpowers only** (escape hatch) | `/plugin disable anvil` returns to plain Superpowers. |
+
+Why:
+- Today's confusion comes from about 6 rule-by-rule overrides that the model weighs every session. A single statement settles it.
+- `using-superpowers` itself says the user's instructions outrank its skills. Anvil's startup hook is installed by the user, so it counts as one of those instructions.
+- Anvil's skills get distinct names and descriptions, so they don't compete with Superpowers' skills for the same trigger.
+- To verify during the build: how a plugin's startup hook is declared in the current version of Claude Code, and whether its output arrives with the authority this design assumes.
