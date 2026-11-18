@@ -1,7 +1,7 @@
 # Anvil 1.0: design
 
 - **Date:** 2026-11-18
-- **Status:** draft. A builder check is pending, then Saad reviews and approves.
+- **Status:** draft for Saad's review. The builder check is done (2026-11-18); its questions are answered here.
 - **Branch:** `anvil-rebuild`
 - **Inputs:**
   - [brainstorm notes](2026-11-18-brainstorm-notes.md): the conversation record. Labels there mark what Saad said or decided and what Claude proposed.
@@ -153,6 +153,15 @@ request
 Brainstorm ─► Spec ─[STOP 1: approve spec]─► Plan ─[STOP 2: approve plan]─► Build ─► Verify ─► Finish
 ```
 
+- **The size is decided on the fly,** from how Saad describes the work. Anvil states the size it picked in its first line, so Saad can correct it. **Saad's decision** (builder check Q2).
+
+  | Size | When | Documents and stops |
+  |---|---|---|
+  | **Trivial** | a single-file change with no new behavior, or "just do it" | none: do it, one check, report |
+  | **Direct** | a concrete instruction about the code ("go and do this in the code"), a bug fix, or a small change, with no open questions and about 5 tasks or fewer | **one merged spec-and-plan document, one stop.** This is a plan-level requirement, not a spec requirement. A bug-fix spec part is a few lines: the bug, the expected behavior as S-lines, and the reproduction, which becomes a keep test. |
+  | **Full** | a new feature, a high-level change to an already-built feature, or anything with open questions | separate spec and plan, **two stops** |
+
+  If the work grows mid-way, Anvil says so and steps up a size.
 - **The trivial path** applies to a single-file change with no new behavior, or when Saad says "just do it".
   - Anvil states the path it's taking in its first line, so it's visible and can be corrected. The model doesn't silently pick its own effort level. ([sentiment](research/2026-11-18-practitioner-sentiment.md) §3)
 - **Stops are recorded on disk, and only Saad can pass them.**
@@ -176,6 +185,7 @@ Brainstorm ─► Spec ─[STOP 1: approve spec]─► Plan ─[STOP 2: approve 
 This stage starts from Superpowers 7.0.2 brainstorming, plus Matt Pocock's grill-me mechanics. ([market scan](research/2026-11-18-market-scan.md) §3)
 
 - **Look first.** Read the repo, the docs and the earlier conversation before asking. Anything the repo can answer gets looked up, by a subagent if it's broad, never asked.
+- **Brainstorming ends when no question is left open.** **Saad's decision.**
 - **Ask only what changes what gets built,** in **one batched round**.
   - Each question carries a **recommended answer**, worded so "yes" accepts it.
   - Everything else becomes a decision in the spec, where Saad actually reviews. **Saad's decision.**
@@ -296,14 +306,28 @@ This stage starts from Superpowers 7.0.2 subagent-driven-development, which runs
 
 ### 7.8 Finish
 
-- **Commits follow the project's rule.**
-  - This repo says commit and push after every unit of work. Where a project has no rule, Anvil asks.
-  - This settles the conflict with `afk`'s "never commit": the project rule wins, and AFK never commits where the rule doesn't allow it.
-  - **Claude's call.** Saad didn't object.
+**Git workflow (Saad's decision, builder check Q3):**
+
+- **Anvil always works on its own local branch,** `anvil/<topic>`, created at build start.
+  - It always commits locally there, in AFK too. Lane commits, wave merges and the progress markers all depend on that.
+  - These commits **stay local.**
+- **At the end of the work,** finish presents the options in one message. Saad can also settle them ahead of time in the plan.
+  - **How to land the work.** Anvil **squashes** the local commits into one commit, or a few logical ones when a plan needed more than about 3. That keeps the git history clean. This is why the old "no commit" rule existed.
+  - **Which branch.** If Saad names a remote branch, Anvil makes a branch from it and pushes there.
+  - **How to merge** into Saad's branches.
+  - **Where a project rule exists, it wins.** This repo's CLAUDE.md, for example, says to commit and push after every unit of work.
+- **Cleanup:**
+  - After a push is confirmed on the remote, Anvil deletes its own local branch and worktrees.
+  - It also lists other stale local `anvil/*` branches, and remote ones whose work is already merged, then deletes them **after Saad confirms.**
+  - Remote deletion always needs confirmation. **Claude's call.**
+- **Commit messages** follow Saad's global rule: no Claude co-author trailer.
+
+**The rest of finish:**
+
 - **Scaffold tests** are deleted, and their deletion is listed in the report.
 - **The spec and plan are marked done.** The progress file is kept as the record, not deleted (unlike Superpowers' logs).
 - **Tickets.** `ticket-update` posts a completion comment with evidence and the stand-up line, if the repo has a tracker.
-- **Branch safety.** No work on main or master without consent. No force-push.
+- **Branch safety.** No work on main or master without consent. No force-push, except on Anvil's own local branch while squashing.
 - **The report** covers: what shipped, the verification evidence (real output), the decision log (most review-worthy first), the weakest part, and what wasn't done.
 
 ### 7.9 `bin/anvil`, the one script
@@ -422,7 +446,7 @@ Each phase is verified before the next starts.
 3. Only Saad can pass a stop or turn on AFK, enforced by the UserPromptSubmit hook. `finish` has `disable-model-invocation`; `afk` stays model-invocable so plain chat starts it.
 4. The test-edit guard starts as a warning, not a block.
 5. `cross-model` runs before done only on large or expensive-to-reverse changes.
-6. Commits follow the project rule; with no rule, Anvil asks.
+6. After a confirmed push, Anvil deletes its own local branch automatically. Remote branches and other stale branches are deleted only after Saad confirms.
 7. `bin/anvil` is in Python 3.
 8. Default file location is `docs/<topic>/`. Old `docs/superpowers/` paths are read but not used for new work.
 9. Upstream watch is triggered manually.
