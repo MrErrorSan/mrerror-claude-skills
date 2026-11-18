@@ -1,0 +1,17 @@
+schema_version: "1.1"
+name: afk-runs-through
+description: |
+  AFK runs to the end without asking. Run with --scaffold and --allow-tools Write Edit Bash; this
+  is the longest case (a whole direct-size topic), so it has a high turn and time cap. AFK turns
+  on only if the UserPromptSubmit hook logged the prompt, so a refusal from `anvil afk on` in
+  the transcript points at the hook, not the skill.
+expected_outcome: |
+  The afk skill runs and turns AFK on with a quote from the prompt ("I'm going to bed, AFK till
+  morning"). The router sizes the work (direct), starts the top-n topic, and the plan stop is
+  passed with `anvil approve plan --afk` (or `--pre` on "Approve the plan yourself"). Nothing is
+  asked: no AskUserQuestion, no question ending a turn. docs/top-n/progress.md is created and
+  its decision log holds dated entries in the pinned shape (choice, reason, Confidence, Changes
+  if). The build and verify run, and the final reply is the AFK report: what shipped,
+  verification output, decisions to review, what was left out.
+context:
+  scaffold_script: place-files.sh

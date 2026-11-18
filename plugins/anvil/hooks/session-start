@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# adapted from superpowers@7.0.2: hooks/session-start
 # Anvil SessionStart hook: runs `bin/anvil hook session-start` on the hook JSON from stdin.
 # It runs bin/anvil with this same bash ($BASH), not a PATH lookup, because a WSL
 # bash.exe can come first on PATH on Windows. Fails open: if the CLI is missing,

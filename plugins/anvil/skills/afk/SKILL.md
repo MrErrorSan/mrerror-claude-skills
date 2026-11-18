@@ -43,9 +43,10 @@ flip is the failure that makes AFK untrustworthy. Avoid both.
   sizes the work direct or full, start the topic first, then run `afk on` from
   the same message.
 
-`anvil afk status` says whether it's on. Run `anvil afk off` when the run
-ends, and as soon as Saad's messages show he's back, so a later stop isn't
-skipped by accident.
+`anvil afk status` says whether it's on. AFK turns off by itself at
+`anvil topic end` and when Saad sends a message with no AFK phrase. Parking
+another topic ends it too: run `anvil afk on` again with the same quote. Run
+`anvil afk off` when the run ends, so a later stop isn't skipped by accident.
 
 ## What changes
 
@@ -116,8 +117,9 @@ Stop *late*: finish every part of the work that doesn't depend on the unknown
 first. A stop that still delivers 80% of the task is a good outcome; a stop at
 the first doubt is what AFK exists to prevent.
 
-**How to stop.** While AFK is on and `progress.md` still has `[ ]` or `[~]`
-tasks, the Stop hook keeps the run going. It blocks once per stop unless the
+**How to stop.** While AFK is on and the stage is `build` or `verify`, the
+Stop hook keeps the run going, except while a task is `[~]` (lanes running in
+the background report back on their own). It blocks once per stop unless the
 `## Stop note` section has changed since AFK turned on or since the last stop.
 Any change counts; the convention is a new dated entry saying what's done,
 what's left, and why it stopped. If the hook fires right after you wrote a

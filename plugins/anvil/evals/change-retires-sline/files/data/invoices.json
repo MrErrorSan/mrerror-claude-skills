@@ -1,0 +1,5 @@
+[
+  {"id": "INV-1003", "customer": "Northwind Traders", "total_cents": 42000, "issued": "2026-10-14"},
+  {"id": "INV-1001", "customer": "Blue Harbor Cafe", "total_cents": 1999, "issued": "2026-09-30"},
+  {"id": "INV-1002", "customer": "Acme, Ltd.", "total_cents": 125050, "issued": "2026-10-02"}
+]

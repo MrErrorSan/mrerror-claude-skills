@@ -186,6 +186,34 @@ class GateTests(unittest.TestCase):
             gate.afk_on(self.repo, "I'm going to bed")
         self.assertFalse(gate.afk_status(self.repo)["on"])
 
+    def test_pre_approval_window_starts_at_topic_request(self):
+        d = self.topic()
+        topic = state.active_topic(self.repo)
+        state.save(self.repo, "active.json", {**topic, "started": 10.0})
+        self.prompt("Old topic: approve the spec yourself.", 1.0)          # last week
+        self.prompt("Build the export and approve the plan yourself.", 8.0)  # started the topic
+        self.prompt("Go straight to the build.", 12.0)
+        with self.assertRaises(gate.GateError):
+            gate.approve(self.repo, "spec", "approve the spec yourself", pre=True)
+        self.assertEqual(self.approved(d / "spec.md"), "no")
+        # The request that started the topic still counts, and so do later messages.
+        self.prompt("ok approve the spec now", 13.0)
+        gate.approve(self.repo, "spec", "approve the spec now", pre=True)
+        gate.approve(self.repo, "plan", "approve the plan yourself", pre=True)
+        gate.approve(self.repo, "plan", "go straight to the build", pre=True)
+
+    def test_afk_skip_needs_afk_from_this_topic(self):
+        self.topic()
+        topic = state.active_topic(self.repo)
+        state.save(self.repo, "active.json", {**topic, "started": 10.0})
+        state.save(self.repo, "afk.json", {"on": True, "ts": 5.0, "quote": "I'm AFK"})
+        self.assertFalse(gate.afk_status(self.repo)["on"])
+        with self.assertRaises(gate.GateError):
+            gate.approve(self.repo, "spec", "x", afk=True)
+        state.save(self.repo, "afk.json", {"on": True, "ts": 11.0, "quote": "I'm AFK"})
+        self.assertTrue(gate.afk_status(self.repo)["on"])
+        self.assertIn("skipped (AFK)", gate.approve(self.repo, "spec", "x", afk=True))
+
     def test_approve_keeps_crlf(self):
         d = self.topic()
         write(d / "spec.md", DOC.format(kind="Spec", size="full"), crlf=True)

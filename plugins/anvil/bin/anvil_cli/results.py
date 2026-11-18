@@ -139,7 +139,8 @@ def run(cwd, cmd, scope="targeted", external=False) -> int:
 
 
 def fresh(cwd, cmd, scope="targeted") -> dict | None:
-    """The newest record for this key, if it is a green run that ran tests and isn't external.
+    """The newest record for this key, if it is a green run that isn't external and, outside
+    scope "check" (type-check, lint, build: no test count), ran tests.
 
     The newest record decides: a failure after a green on the same tree means the
     green is not reused.
@@ -149,7 +150,8 @@ def fresh(cwd, cmd, scope="targeted") -> dict | None:
         return None
     for rec in reversed(state.read_jsonl(cwd, "results.jsonl")):
         if rec.get("key") == parts[0]:
-            ok = rec.get("exit") == 0 and rec.get("tests_ran", 0) > 0 and not rec.get("external")
+            ran = scope == "check" or rec.get("tests_ran", 0) > 0
+            ok = rec.get("exit") == 0 and ran and not rec.get("external")
             return rec if ok else None
     return None
 
@@ -188,8 +190,9 @@ def cmd_fresh(args) -> int:
     if args.json:
         print(json.dumps(rec, ensure_ascii=False))
     elif rec:
-        print(f"Fresh green result: {rec['tests_ran']} tests passed at {rec['ts']} "
-              f"(scope {rec['scope']}) on this code state.")
+        what = "passed" if rec["scope"] == "check" else f"{rec['tests_ran']} tests passed"
+        print(f"Fresh green result: {what} at {rec['ts']} (scope {rec['scope']}) "
+              "on this code state.")
         print(rec["summary"])
     if not rec:
         print(f"anvil fresh: no fresh green result for this code state (scope {args.scope}).",

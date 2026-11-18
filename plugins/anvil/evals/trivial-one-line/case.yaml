@@ -1,0 +1,12 @@
+schema_version: "1.1"
+name: trivial-one-line
+description: |
+  Anvil's trivial path. Run with --scaffold (place-files.sh copies files/ and makes a git repo)
+  and --allow-tools Write Edit Bash.
+expected_outcome: |
+  The anvil router fires and the first reply states "Size: trivial" with a reason. The typo in
+  shelf/messages.py is fixed with no topic documents written (no spec.md, plan.md or progress.md
+  under docs/). One check runs (the narrowest relevant test, ideally through
+  `anvil run --scope targeted`), and the reply reports it.
+context:
+  scaffold_script: place-files.sh

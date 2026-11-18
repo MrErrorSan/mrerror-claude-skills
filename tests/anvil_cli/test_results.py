@@ -7,7 +7,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from anvil_cli import results, state
+from anvil_cli import cli, results, state
 
 from .helpers import git, make_repo, write
 
@@ -137,6 +137,33 @@ class ResultsTests(unittest.TestCase):
                     "ok  \texample.com/a\t0.01s\nFAIL\texample.com/b\t0.02s\nFAIL\n",
                     "Ran 2 tests in 0.1s\n\nOK (skipped=2)"]:          # all skipped
             self.assertEqual(count(out), 0, out)
+
+    def test_check_scope_reused_without_tests(self):
+        write(self.repo / ".gitignore", "mode.txt\n")
+        mode = self.repo / "mode.txt"
+        lint = [sys.executable, "-I", "-c",
+                "import sys; m = open('mode.txt').read().strip()\n"
+                "print('Found 0 errors.')\nsys.exit(1 if m == 'fail' else 0)"]
+        write(mode, "pass")
+        self.assertEqual(quiet_run(self.repo, lint, scope="check"), 0)
+        rec = results.fresh(self.repo, lint, scope="check")
+        self.assertIsNotNone(rec)
+        self.assertEqual((rec["scope"], rec["tests_ran"]), ("check", 0))
+        # The tests_ran rule still holds for the test scopes.
+        self.assertEqual(quiet_run(self.repo, lint, scope="smoke"), 0)
+        self.assertIsNone(results.fresh(self.repo, lint, scope="smoke"))
+        # A failing or external check is not reused.
+        write(mode, "fail")
+        self.assertEqual(quiet_run(self.repo, lint, scope="check"), 1)
+        self.assertIsNone(results.fresh(self.repo, lint, scope="check"))
+        write(mode, "pass")
+        self.assertEqual(quiet_run(self.repo, lint, scope="check", external=True), 0)
+        self.assertIsNone(results.fresh(self.repo, lint, scope="check"))
+        # The CLI accepts the scope.
+        self.assertEqual(quiet_run(self.repo, lint, scope="check"), 0)
+        with contextlib.chdir(self.repo), contextlib.redirect_stdout(io.StringIO()) as out:
+            self.assertEqual(cli.main(["fresh", "--scope", "check", "--", *lint]), 0)
+        self.assertIn("scope check", out.getvalue())
 
     def test_external_never_reused(self):
         self.assertEqual(quiet_run(self.repo, PASS, external=True), 0)

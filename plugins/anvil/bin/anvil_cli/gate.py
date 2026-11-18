@@ -21,6 +21,24 @@ APPROVED_RE = re.compile(r'^(\d{4}-\d{2}-\d{2} by Saad|pre-approved by Saad \d{4
 _QUOTES = str.maketrans({"“": '"', "”": '"', "‘": "'", "’": "'"})
 
 
+# UserPromptSubmit also fires for turns Claude Code starts itself (a background subagent
+# reporting back, a scheduled /loop firing, a message from another session), and the event
+# carries no origin field. Those turns arrive wrapped in these markers; they are not
+# Saad's words, so they never count for a gate.
+INJECTED_RE = re.compile(r"<task-notification|\[SYSTEM NOTIFICATION|<agent-message|"
+                         r"<scheduled-task|<cross-session|<teammate-message|<local-command-")
+
+
+def is_injected(prompt: str) -> bool:
+    return INJECTED_RE.search(prompt) is not None
+
+
+def saad_prompts(cwd) -> list[dict]:
+    """Logged prompts that came from Saad, oldest first."""
+    return [r for r in state.read_jsonl(cwd, "prompts.jsonl")
+            if not is_injected(str(r.get("prompt", "")))]
+
+
 class GateError(Exception):
     pass
 
@@ -38,14 +56,28 @@ def _quote_in(prompt: str, quote: str) -> bool:
                       and re.search(r"(?<!\w)" + re.escape(q) + r"(?!\w)", p) is not None)
 
 
-def quote_in_prompts(cwd, quote: str, after_ts: float | None) -> bool:
-    """quote appears in a logged prompt (newer than after_ts, if given)."""
-    for rec in state.read_jsonl(cwd, "prompts.jsonl"):
-        if after_ts is not None and float(rec.get("ts", 0)) <= after_ts:
+def quote_in_prompts(cwd, quote: str, after_ts: float | None,
+                     since: float | None = None) -> bool:
+    """quote appears in a logged prompt newer than after_ts and logged at or after since
+    (each only if given)."""
+    for rec in saad_prompts(cwd):
+        ts = float(rec.get("ts", 0))
+        if (after_ts is not None and ts <= after_ts) or (since is not None and ts < since):
             continue
         if _quote_in(str(rec.get("prompt", "")), quote):
             return True
     return False
+
+
+def has_afk_phrase(text: str) -> bool:
+    q = _norm(text)
+    return any(re.search(r"(?<!\w)" + re.escape(p) + r"(?!\w)", q) for p in AFK_PHRASES)
+
+
+def _last_prompt_ts(cwd, at_or_before: float) -> float | None:
+    """ts of the last prompt logged at or before the given time."""
+    return max((float(r.get("ts", 0)) for r in saad_prompts(cwd)
+                if float(r.get("ts", 0)) <= at_or_before), default=None)
 
 
 def _doc(cwd, which: str) -> Path:
@@ -85,16 +117,20 @@ def approve(cwd, which, quote: str, pre: bool = False, afk: bool = False) -> str
     if afk:
         status = afk_status(cwd)
         if not status["on"]:
-            raise GateError("AFK mode is off, so this stop can't be skipped.")
+            raise GateError("AFK mode is off (or was turned on before this topic started), "
+                            "so this stop can't be skipped.")
         # The quote that turned AFK on authorises the skip, not the caller's.
         value = f'skipped (AFK) {today} ("{" ".join(status["quote"].split())}")'
     elif pre:
         if len(_norm(quote).split()) < 3:
             raise GateError(f'"{shown}" is too short for a pre-approval: it needs 3+ words '
                             "of Saad's exact message.")
-        if not quote_in_prompts(cwd, quote, None):
-            raise GateError(f'"{shown}" is not in any message from Saad. A pre-approval '
-                            "needs his exact words (3+ words).")
+        # The window opens at the request that started the topic: older prompts
+        # belong to earlier work.
+        started = state.active_topic(cwd).get("started", 0)
+        if not quote_in_prompts(cwd, quote, None, since=_last_prompt_ts(cwd, started)):
+            raise GateError(f'"{shown}" is not in a message from Saad since this topic started. '
+                            "A pre-approval needs his exact words (3+ words).")
         value = f'pre-approved by Saad {today} ("{shown}")'
     else:
         rec = state.load(cwd, "presented.json", {}).get(which)
@@ -139,12 +175,11 @@ def check(cwd, stage: str) -> tuple[bool, str]:
 
 def afk_on(cwd, quote) -> None:
     """Design §7.2: only the last recorded message can turn AFK on."""
-    prompts = state.read_jsonl(cwd, "prompts.jsonl")
+    prompts = saad_prompts(cwd)
     if not prompts or not _quote_in(str(prompts[-1].get("prompt", "")), quote):
         raise GateError(f'"{" ".join(quote.split())}" is not in the last message from Saad. '
                         "AFK turns on only from his latest message.")
-    q = _norm(quote)
-    if not any(re.search(r"(?<!\w)" + re.escape(p) + r"(?!\w)", q) for p in AFK_PHRASES):
+    if not has_afk_phrase(quote):
         raise GateError("The quote has no AFK phrase (for example \"AFK\", \"going to bed\", "
                         "\"don't ask\", \"just finish\").")
     state.save(cwd, "afk.json", {"on": True, "ts": time.time(), "quote": quote})
@@ -159,7 +194,28 @@ def afk_off(cwd) -> None:
 
 
 def afk_status(cwd) -> dict:
-    return state.load(cwd, "afk.json", {"on": False, "ts": None, "quote": None})
+    """afk.json, with "on" false when AFK was turned on before the active topic started."""
+    status = state.load(cwd, "afk.json", {"on": False, "ts": None, "quote": None})
+    topic = state.active_topic(cwd)
+    if status.get("on") and topic and (status.get("ts") or 0) < topic.get("started", 0):
+        status["on"] = False
+    return status
+
+
+def afk_at_topic_start(cwd, started: float) -> None:
+    """A fresh topic start keeps AFK only when it was turned on from the latest prompt
+    ("AFK, build X": afk on, then topic start, in one turn). It is then restamped, so it
+    isn't older than the topic, and so is the Stop note baseline `afk on` recorded."""
+    status = state.load(cwd, "afk.json", None)
+    if not status or not status.get("on"):
+        return
+    last = _last_prompt_ts(cwd, started)
+    if last is None or (status.get("ts") or 0) < last:
+        afk_off(cwd)
+        return
+    from . import progress
+    state.save(cwd, "afk.json", {**status, "ts": started})
+    state.save(cwd, "stop.json", {"hash": progress.stop_note_hash(cwd), "ts": started})
 
 
 def _report(args, ok: bool, message: str, **data) -> int:

@@ -1,64 +1,39 @@
 ---
 name: ux-audit
 description: >-
-  Post-implementation UX review-and-improve pass. Use this right AFTER a UI is
-  built or changed, and whenever MrError asks to "review the UX", "audit the UI",
-  "improve usability", "check the design", "make it feel better", or "polish
-  this screen". It reviews the implemented interface against concrete UX
-  heuristics, reports ranked findings, and then applies the improvements. Anvil
-  calls this automatically after any UI implementation, so trigger it as the
-  closing step of front-end work even if the user doesn't ask by name.
+  Use when `anvil:verify` checks a UI the topic changed, against the chosen
+  mock when there is one, or when Saad asks to review the UX, audit the UI,
+  check usability or the design, or polish a screen.
 ---
 
-# UX Audit — review the built UI, then improve it
+# UX Audit
 
-A mock gets the structure right; the audit catches what only shows up once the
-thing is real — missing states, weak hierarchy, accessibility gaps, awkward
-feedback. Do this as the closing step of UI work.
+A mock gets the structure right; the audit catches what only shows once the UI is real: missing states, weak hierarchy, accessibility gaps, awkward feedback. It reports findings to the caller and doesn't apply fixes: in verify, the findings go through the fix loop.
 
 ## How to run it
 
-1. **Look at the actual built UI**, not the code's intentions. If it's an
-   artifact or local page, render/inspect it (the `superpowers-chrome` skill can
-   open it and read the DOM/console). Check real behavior and real states.
-2. **Audit against these heuristics** — go through each, don't skim:
+1. **Look at the built UI,** not the code's intentions. Use chrome-devtools-mcp (navigate, act, take a snapshot or screenshot, read the console); playwright-core if the MCP isn't available. Check real behavior and real states. Save screenshots where the caller keeps its notes.
+2. **With a mock** (`<topic folder>/mocks/`), compare against it: layout, hierarchy, states, small widths. **Without one,** use the heuristics alone.
+3. **Go through each heuristic:**
+   - **Hierarchy:** the primary action is obvious within a second; the most important information is the most prominent.
+   - **States:** empty, loading and error are handled, not blank or broken.
+   - **Feedback:** interactive elements look interactive; click, submit, success and failure give feedback; no dead ends.
+   - **Accessibility:** keyboard reachable, visible focus, enough contrast, labels and alt text, hit targets big enough.
+   - **Small widths:** holds at phone width with no horizontal scroll or crushed content.
+   - **Consistency:** spacing, type scale, colors and component patterns match the rest of the app.
+   - **Content:** copy is clear; errors say what to do next.
+4. **Report** to the caller, in the shape below.
 
-   - **Hierarchy & clarity:** Is the primary action obvious within a second? Is
-     the most important information the most prominent?
-   - **States:** Are **empty**, **loading**, and **error** states all handled and
-     not ugly or blank? (Most UX failures live here.)
-   - **Feedback & affordance:** Do interactive elements look interactive? Is there
-     feedback on click, submit, success, failure? Any dead-ends?
-   - **Accessibility:** Keyboard reachable? Visible focus? Sufficient color
-     contrast? Labels/alt text? Hit targets big enough?
-   - **Responsiveness:** Does it hold up at phone width with no horizontal
-     scroll? Does anything overflow or crush?
-   - **Consistency:** Spacing, type scale, colors, and component patterns
-     consistent with the rest of the app / design system?
-   - **Content:** Is copy clear and concise? Are errors actionable ("what do I do
-     now") rather than codes?
+## Findings
 
-3. **Report findings ranked by impact** — severity first, each with the concrete
-   problem, where it is, and the fix. Separate "should fix now" from "nice to
-   have".
-4. **Apply the fixes.** This skill improves, it doesn't just critique. Make the
-   high-impact changes, then note anything deferred. Re-check the states you
-   touched.
-
-## Output shape
+Rank each finding **P0** (broken or blocks the main path), **P1** (a real problem users will hit) or **P2** (polish). Mark each **tested** (seen in the running UI) or **code-only** (read in the code, not exercised). Name where it is and the fix you'd suggest. A finding that is a design choice the mock and spec don't settle is flagged for Saad's call.
 
 ```markdown
-## UX Audit — <screen/component>
-
-### Fix now (high impact)
-1. <problem> — <where> — <fix>  → applied ✓ / proposed
-
-### Consider (lower impact)
-- <problem> — <fix>
-
-### States checked
-- empty ✓ / loading ✓ / error ✓  (note any still missing)
+## UX audit: <screen>
+- P0 tested: <problem>, <where>. Fix: <suggestion>.
+- P1 code-only: <problem>, <where>. Fix: <suggestion>.
+- Saad's call: <choice the mock and spec leave open>.
+States checked: empty, loading, error (note any missing).
 ```
 
-Keep the tone constructive and specific — "the submit button gives no feedback
-on click, so users double-submit" beats "improve the button".
+Be specific: "the submit button gives no feedback on click, so users double-submit" beats "improve the button".

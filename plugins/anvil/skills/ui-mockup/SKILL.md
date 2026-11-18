@@ -1,49 +1,39 @@
 ---
 name: ui-mockup
 description: >-
-  Mock-first UI policy. Use this BEFORE writing any front-end implementation —
-  the moment the task involves a screen, page, view, component, form, modal,
-  dashboard, layout, or any visual UI. Trigger on "build the UI", "add a page",
-  "create a component", "design the screen", "lay out the dashboard", or any
-  request that will end in rendered interface, even if the user says "just build
-  it". Produce a layout/mockup and get alignment on structure first, then
-  implement — never jump straight to production UI code.
+  Use when the look of a screen, page, component, form, modal, dashboard or
+  layout is an open question and Saad wants to see options before deciding:
+  when `anvil:brainstorm` hands over its mock exploration loop, or when Saad
+  asks for a mock, wireframe or layout options. Not for building the real UI.
 ---
 
-# UI Mockup — design the layout before you build it
+# UI Mockup
 
-Jumping straight into production UI code is where time gets wasted: you build
-real components, wire real state, then discover the layout or hierarchy was
-wrong and rework it. A fast mock surfaces those decisions before they cost
-anything to change.
+A fast mock is wrong on paper instead of wrong in code. This skill makes mocks; it never implements the UI. It ends by handing the chosen mock back to `anvil:brainstorm`, or to whoever called it.
 
-## The flow
+## Where mocks go
 
-1. **Clarify the intent** — what is this screen for, who uses it, what's the one
-   primary action, what data does it show.
-2. **Produce a mock FIRST.** Pick the lightest form that communicates structure:
-   - A **low-fi wireframe / layout mock** as an HTML artifact (use the
-     `artifact-design` skill for layout, type, spacing, and light/dark; use
-     `dataviz` if it contains charts, meters, or KPI tiles). This is the default
-     for anything non-trivial — it's visual and fast to react to.
-   - For something simple, an **ASCII/box layout sketch** inline is enough.
-   - Show real-ish content, not lorem where it matters, so hierarchy reads true.
-3. **Cover the states in the mock**, not just the happy path: default, **empty**,
-   **loading**, **error**, and a populated example. Show the responsive intent
-   (what stacks/reflows at phone width).
-4. **Align before implementing.** Present the mock and ask for a quick thumbs-up
-   or changes. In `afk` mode, treat layout choices as reversible — pick the
-   recommended layout, note it, and keep going, but still produce the mock so it
-   lands in the review doc.
-5. **Then implement** against the agreed mock, handing off to the normal build
-   workflow (Anvil). After implementation, the `ux-audit` skill reviews it.
+Mocks are local, self-contained HTML files (CSS and JS inlined, so they open straight from disk) in `<topic folder>/mocks/`. Later rounds add `-r2`, `-r3`, …. They are throwaway: never a hosted page, never production code.
 
-## What a good mock decides before any real code
+## The loop
+
+1. **Intent.** What the screen is for, who uses it, its one primary action, the data it shows.
+2. **Brief.** A shared `BRIEF.md` in the mocks folder: the intent, the real-ish content to show, the states to cover.
+3. **Variants.** 2 to 4 layouts, one HTML file each, built in parallel (one agent per file). Each covers the default, empty, loading and error states and a populated example, and shows what reflows at phone width. Use real-ish content where hierarchy depends on it.
+4. **Compare.** An `index.html` that links the variants side by side, plus a screenshot of each.
+5. **Saad's reaction.** Show him the folder path and the differences in a few lines. End the turn.
+6. **Next round,** if it misses: a short critique in `FLAWS.md`, then a round that changes only what he reacted to.
+
+In AFK, pick the variant you'd recommend, log the choice and why in the decision log, and hand back.
+
+## What a good mock settles
 
 - The layout grid and where the primary action sits.
-- Visual hierarchy: what's biggest/first, what's secondary.
-- The full set of states (empty/loading/error are where UIs usually fail).
-- Responsive behavior at small widths.
-- Component boundaries — what becomes a reusable piece.
+- The hierarchy: what comes first, what is secondary.
+- Every state, since empty, loading and error are where UIs usually fail.
+- What happens at small widths.
+- Which parts become reusable components.
 
-Keep the mock cheap. Its job is to be wrong on paper instead of wrong in code.
+## Hand-back
+
+Give the caller the chosen file's path and one line on what it decided. In brainstorm it becomes the spec's visual reference; the build implements against it later, and `anvil:ux-audit` checks the built UI against it in verify.

@@ -1,0 +1,320 @@
+diff --git a/superpowers/skills/finishing-a-development-branch/SKILL.md b/plugins/anvil/skills/finish/SKILL.md
+index fa8aeca..94f3854 100644
+--- a/superpowers/skills/finishing-a-development-branch/SKILL.md
++++ b/plugins/anvil/skills/finish/SKILL.md
+@@ -1,225 +1,136 @@
+ ---
+-name: finishing-a-development-branch
+-description: Use when implementation is complete, all tests pass, and you need to decide how to integrate the work
++name: finish
++description: Use when Saad runs `/anvil:finish` on an Anvil topic after `anvil:verify` has handed it over (stage `finish`), including after an AFK run where verify already landed the last commit point.
++disable-model-invocation: true
+ ---
++<!-- adapted from superpowers@7.0.2: skills/finishing-a-development-branch/SKILL.md -->
+ 
+-# Finishing a Development Branch
++# Finish
+ 
+-## Overview
++Finish handles what the build left: the last commit point, the scaffold tests, the done markers, the ticket, the clean-up, and the report. Most committing and pushing already happened at the build's commit points ([git-flow.md](../../references/git-flow.md)). Saad started this, so the questions here get asked; they're batched into one message so he answers once.
+ 
+-**Core principle:** Verify tests → Detect environment → Present options → Execute choice → Clean up.
++**Project rules win.** The project's `CLAUDE.md` and `.claude/rules/*` override these steps where they differ. A repo that says "commit and push after every unit of work" treats each commit point as that unit. Follow its sync rules too: if it asks to name untracked files before a push, name them.
+ 
+-**Announce at start:** "I'm using the finishing-a-development-branch skill to complete this work."
++**Branch safety, throughout:** no work on `main` or `master` without Saad's consent; never force-push the synced branch (a rejected push means the remote moved: look, and say so); no `Co-Authored-By` trailer or any Claude or Anthropic attribution in commit messages, and no "Generated with Claude Code" footer in PR bodies unless he asks. Resetting or deleting Anvil's own local work branch is fine.
+ 
+-## Step 1: Verify Tests
++## 1. Entry
+ 
+-Run the project's full test suite (`npm test` / `cargo test` / `pytest` / `go test ./...`).
++1. `anvil topic show`. If the stage isn't `finish`, say which stage it's at and offer `/anvil:verify` (or the build) first. Go on only if Saad says so, and note in the report that verify didn't run.
++2. `git fetch`, then `git status`. If the synced branch (the plan header's `- **Synced branch:**` line) is behind its remote, pull it; if it has diverged, stop and tell Saad.
++3. Read, once:
++   - `progress.md`: tasks with their indented notes (`  - tests: …`, deferred minors, parked findings), `## Commit points`, `## Decision log`, `## Stop note`;
++   - the plan's `## Test strategy` and `## Commit points` tables;
++   - verify's notes, `$(git rev-parse --path-format=absolute --git-common-dir)/anvil/build/<slug>/verify.md`: the converge table, the evidence, the leftovers.
++4. If `## Commit points` already lists every row of the plan's table, verify landed the last one in AFK (its line reads `(this commit)`). Skip sections 2 to 5: take its sha from `git log -1 --format=%h <synced>`, check the push as in section 5, and go on to section 6.
+ 
+-**If tests fail**, report the failures and stop — the menu comes after a green suite:
++## 2. Entry checks
+ 
+-```
+-Tests failing (<N> failures). Must fix before completing:
+-
+-[Show failures]
+-```
+-
+-**If tests pass:** continue to Step 2.
+-
+-## Step 2: Detect Environment
++Check now, before deleting or editing anything: the tree key covers every file except the topic's `progress.md`, so the scaffold deletions and Status edits below change it. These runs confirm that verify's results cover the tree it left.
+ 
+ ```bash
+-GIT_DIR=$(cd "$(git rev-parse --git-dir)" 2>/dev/null && pwd -P)
+-GIT_COMMON=$(cd "$(git rev-parse --git-common-dir)" 2>/dev/null && pwd -P)
+-# Capture now, while still inside the workspace — Step 5 changes directory
+-# before cleanup (Step 6) needs this value
+-WORKTREE_PATH=$(git rev-parse --show-toplevel)
+-```
+-
+-This determines which menu to show and how cleanup works:
+-
+-| State | Menu | Cleanup |
+-|-------|------|---------|
+-| `GIT_DIR == GIT_COMMON` (normal repo) | Standard 3 options | No worktree to clean up |
+-| `GIT_DIR != GIT_COMMON`, named branch | Standard 3 options | Provenance-based (see Step 6) |
+-| `GIT_DIR != GIT_COMMON`, detached HEAD | Reduced 2 options (no merge) | Externally managed — leave in place |
+-
+-## Step 3: Determine Base Branch
+-
+-The base branch is whatever this work forked from — usually named in the
+-plan, the conversation, or the branch's upstream. If it is not already
+-known, ask: "This branch split from <your best guess> - is that correct?"
+-Confirm before merging: merging into the wrong base is expensive to undo.
+-
+-## Step 4: Present Options
+-
+-**Normal repo and named-branch worktree — present exactly these 3 options:**
+-
+-```
+-Implementation complete. What would you like to do?
+-
+-1. Merge back to <base-branch> locally
+-2. Push and create a Pull Request
+-3. Keep the branch as-is (I'll handle it later)
+-
+-Which option?
+-```
+-
+-**Detached HEAD — present exactly these 2 options:**
+-
+-```
+-Implementation complete. You're on a detached HEAD (externally managed workspace).
+-
+-1. Push as new branch and create a Pull Request
+-2. Keep as-is (I'll handle it later)
+-
+-Which option?
++anvil fresh --scope full -- <full-suite cmd>
++anvil fresh --scope <its scope> -- <type-check cmd>   # the scope verify used, from verify.md
++anvil fresh --scope smoke -- <cmd>                    # each smoke command verify ran without --external
+ ```
+ 
+-Present the menu exactly as written — concise, with every option coming
+-from the list above. Discarding the work happens only in response to your
+-human partner explicitly asking for it (see "If your human partner asks to
+-discard the work" below). Wait for their answer; the integration decision
+-is theirs.
+-
+-## Step 5: Execute Choice
++Exit 1 means no passing result for this tree: rerun that one with `anvil run` and the same scope. `--external` paths are never reused; verify.md holds their result, so don't call the live service again.
+ 
+-### Option 1: Merge Locally
++A check that is red, or not fresh and failing on rerun, stops finish here, before the squash: report it with its output and ask Saad how to go on. The exception is a failure Saad already accepted as a verify leftover; name it in the report.
+ 
+-```bash
+-# Get main repo root for CWD safety
+-MAIN_ROOT=$(git -C "$(git rev-parse --git-common-dir)/.." rev-parse --show-toplevel)
+-cd "$MAIN_ROOT"
++These checks aren't rerun after sections 3 and 4. Deleting test-only files nothing references and editing header lines don't change what any test runs; the report says the deletion and the edits came after the runs.
+ 
+-# Merge first — verify success before removing anything
+-git checkout <base-branch>
+-git pull
+-git merge <feature-branch>
++## 3. Scaffold tests
+ 
+-# Verify tests on merged result
+-<test command>
+-```
++Every `scaffold` row in the plan's test list is deleted now, so the deletion travels in the last commit point.
+ 
+-If tests fail on the merged result: stop, leave the worktree and branch in
+-place, and investigate — nothing has been pushed, so the merge is local
+-and recoverable.
++- Before deleting one, search for references to it (imports, fixture paths, test config). A file a keep test or the product code still uses isn't scaffold any more: keep it, and log that in the decision log with the file that uses it.
++- Delete the rest, on the work branch, and list each file for the report.
++- If you had to change anything else to delete them, run the type-check and the affected targeted tests through `anvil run`.
+ 
+-Once the merged result is green: clean up the worktree (Step 6), then
+-delete the branch:
++## 4. Mark the documents done
+ 
+-```bash
+-git branch -d <feature-branch>
+-```
++- In `spec.md` and `plan.md` (direct size: `plan.md` only), set the `- **Status:**` header line to `- **Status:** done <YYYY-MM-DD>`. Brainstorm's template writes `draft`, so the line is usually there: update it. If it's missing, add it next to `- **Approved:**`. Leave the `Approved:` line exactly as it is.
++- In `progress.md`, set `- **Stage:** done`, mark every task the last commit point closes `[x] T<n> <title> C<k>`, and add its line under `## Commit points` before the squash: `- C<k> (this commit) <date>`. Its real sha and push result go in the report and the ticket comment, never in a later commit: the synced branch gets exactly one squashed commit per commit point.
++- The progress file stays as the record. Don't delete it.
+ 
+-### Option 2: Push and Create PR
++## 5. The last commit point
+ 
+ ```bash
+-git push -u origin <feature-branch>
+-# From a detached HEAD, name the new branch on the remote:
+-# git push origin HEAD:refs/heads/<new-branch>
++git status                                # nothing that belongs to the work left untracked
++git add <topic folder> <deleted scaffold files>
++git commit -m "docs(<slug>): done markers"  # on the work branch
++git switch <synced>
++git merge --squash anvil/<slug>/work
++git commit -m "<the plan's message>"      # no co-author trailer
++git push                                  # only if the row says yes; `git push -u <remote> <synced>` the first time
+ ```
+ 
+-Then create the pull/merge request against <base-branch> with the forge's
+-tooling — its CLI if one is available, or the creation URL most forges
+-print when you push — following the repo's PR template and conventions if
+-present, and report the URL to your human partner.
++**Confirm the push landed:** `git rev-parse <synced> <synced>@{u}` prints the same sha twice. If the push fails, say so plainly: it's not done, the work branch stays, and "retry the push" goes in the questions (section 8). A failed push is never reported as a success. A `Push: no` row is local by design; say so in the report.
+ 
+-Keep the worktree — your human partner iterates on PR feedback there.
++## 6. The ticket
+ 
+-### Option 3: Keep As-Is
++If the repo tracks its work in a ticket system, run `anvil:ticket-update` for the completion comment: the evidence (the full-suite summary line, the smoke results, the commit point shas and where they're pushed) and the stand-up line. No tracker, skip this.
+ 
+-Report: "Keeping branch <name>. Worktree preserved at <path>."
++## 7. Clean-up, before the report
+ 
+-### If your human partner asks to discard the work
++Run this from the main checkout, not from inside a worktree you're about to remove.
+ 
+-This path exists only as a response to an explicit request to throw the
+-work away. Confirm first:
++- **Lane worktrees** for this topic (`git worktree list`, branches `anvil/<slug>/T<n>`): `git worktree remove <path>`, then `git branch -d anvil/<slug>/T<n>`, then `git worktree prune`. These don't depend on the push.
++  - A worktree removal refused because it holds modified or untracked files: those files exist nowhere else. Don't force it. Show `git -C <path> status --porcelain -uall` and ask Saad: commit them, move them, or delete them.
++  - A `git branch -d` refusal means the branch holds work that isn't merged. Don't force it with `-D`: list the branch and its unmerged commits (`git log --oneline <synced>..anvil/<slug>/T<n>`) for Saad.
++- **The work branch**, only once the push is confirmed: `git switch <synced>`, then `git branch -D anvil/<slug>/work`. It was squashed into the synced branch, which is on the remote.
+ 
+-```
+-This will permanently delete:
+-- Branch <name>
+-- All commits: <commit-list>
+-- Worktree at <path>
++The build folder stays until section 9: the report cites `verify.md` and the screenshots in it.
+ 
+-Type 'discard' to confirm.
+-```
++**Only after Saad confirms** (they go in the questions below):
++- the work branch, when the synced branch is local-only or the push didn't land;
++- lane branches `git branch -d` refused;
++- other stale local `anvil/*` branches (`git branch --list "anvil/*"`);
++- remote `anvil/*` branches whose work is already merged (`git branch -r --merged <synced> --list "<remote>/anvil/*"`). Deleting a remote branch always needs his confirmation: `git push <remote> --delete <branch>`.
+ 
+-Wait for that exact confirmation. When it arrives:
++## 8. The report and the questions
+ 
+-```bash
+-MAIN_ROOT=$(git -C "$(git rev-parse --git-common-dir)/.." rev-parse --show-toplevel)
+-cd "$MAIN_ROOT"
+-```
++One message: the report first, then the questions. The report covers, in this order:
+ 
+-Then clean up the worktree (Step 6) and force-delete the branch:
++1. **What shipped.** The behavior, by S-line; the commit points with their shas; where they're pushed, or that the push failed.
++2. **Verification evidence.** Real output: the full-suite and type-check summary lines (and which tree they ran on, from the entry checks), each smoke path's result, and the converge table from `verify.md`. Say that the scaffold deletion and header edits came after those runs and change nothing a test runs.
++3. **The tests, by type.** Failures and weak spots come first: a failing or skipped test, an S-line met only by test evidence, a leftover from verify, a check that couldn't run here. Then:
++   - keep tests, each with the S-lines it guards (from the plan's test list);
++   - smoke paths run;
++   - bug repros added;
++   - scaffold tests deleted, one line per file (and any kept, with the reason);
++   - any test changed, and why: from the `  - tests:` lines under each task in `progress.md`, saying whether the test or the code changed and which S-line allowed it.
++4. **The decision log,** most review-worthy first: low confidence before high, and anything that replaced one of Saad's decisions at the top.
++5. **The weakest part.** The one place most likely to break or to need rework, and why.
++6. **What wasn't done.** Leftovers from verify, deferred minors, parked findings, anything cut.
+ 
+-```bash
+-git branch -D <feature-branch>
+-```
++Then the questions, numbered, only the ones that apply:
+ 
+-## Step 6: Cleanup Workspace
++- **Retry the push** (it failed): retry now, or keep it local for now.
++- **Make it live** (the synced branch is local-only): push it to a new remote branch, or to an existing one (name it), or keep it local.
++- **Merge** the synced branch into another branch:
++  1. merge it into `<branch>` locally;
++  2. push and open a pull request into `<branch>`;
++  3. keep it as it is.
++- **Delete** the branches listed in section 7 that need his confirmation, by name.
+ 
+-**Runs for Option 1 and confirmed discards.** Options 2 and 3 always
+-preserve the worktree. Both callers have already changed directory to the
+-main repo root — worktree removal must run from outside the worktree —
+-and use the `GIT_DIR`/`GIT_COMMON`/`WORKTREE_PATH` values captured in
+-Step 2, from before that directory change.
++Wait for his answer.
+ 
+-**If `GIT_DIR == GIT_COMMON`:** Normal repo, no worktree to clean up. Done.
++## 9. On his answer
+ 
+-**If `WORKTREE_PATH` is under `.worktrees/` or `worktrees/`:** Superpowers
+-created this worktree — we own cleanup:
++- **Retry the push:** push, confirm with `git rev-parse <synced> <synced>@{u}`, then delete the work branch as in section 7. A second failure is reported the same way.
++- **Merge locally:** confirm the target branch first, since a wrong base is costly to undo. `git switch <target>`, `git pull`, `git merge <synced>`. A fast-forward leaves the tree already checked: nothing to run. A real merge gets `anvil run --scope full -- <full-suite cmd>` on the merged result; if it fails, stop, leave the branches as they are and say so. Merging into `main` or `master` needs his choice to name it. Push the target only if he says to.
++- **Pull request:** push the synced branch if it isn't on the remote, then open the PR with the forge's CLI, following the repo's PR template, with no Claude footer. Give him the URL.
++- **Keep:** nothing to do.
++- **Discard:** only if he asks to throw the work away. List what would be lost (branches, commits, worktrees) and ask him to type `discard` to confirm.
++- **Deletions:** delete exactly the branches he confirmed.
+ 
+-```bash
+-git worktree remove "$WORKTREE_PATH"
+-git worktree prune  # Self-healing: clean up any stale registrations
+-```
+-
+-**If removal is refused** (`contains modified or untracked files`): the
+-worktree holds files that exist nowhere else — uncommitted plans, notes,
+-or scratch work. Never `--force` on your own initiative. Show your human
+-partner what is at stake and ask:
++Then remove the build folder and close the topic:
+ 
+ ```bash
+-git -C "$WORKTREE_PATH" status --porcelain -uall
+-```
+-
+-```
+-Worktree removal refused — these files were never committed:
+-
+-<file list>
+-
+-1. Commit them to <branch> before cleanup
+-2. Move them into <main repo root>
+-3. Delete them (unrecoverable)
+-
+-Which?
++rm -rf "$(git rev-parse --path-format=absolute --git-common-dir)/anvil/build/<slug>"   # check the path ends in anvil/build/<slug> first
++anvil topic stage done
++anvil topic end
+ ```
+ 
+-Carry out the choice, then remove the worktree.
+-
+-**Otherwise:** The host environment owns this workspace — leave it in
+-place. If your platform provides a workspace-exit tool, use it.
+-
+-## Quick Reference
+-
+-| Option | Merge | Push | Keep Worktree | Cleanup Branch |
+-|--------|-------|------|---------------|----------------|
+-| 1. Merge locally | yes | - | - | yes |
+-| 2. Create PR | - | yes | yes | - |
+-| 3. Keep as-is | - | - | yes | - |
+-| Discard (explicit request only) | - | - | - | yes (force) |
+-
+-## Common Rationalizations
+-
+-| Excuse | Reality |
+-|--------|---------|
+-| "Tests passed earlier this session" | Run the suite on the tree you are about to integrate. A green run only proves the tree it ran on. |
+-| "They obviously want it merged" | Integration is your human partner's decision. Present the menu and wait. |
+-| "They seem done with this feature — I'll offer to discard it" | The menu is complete as written. Discard happens only when your human partner asks for it in so many words. |
+-| "'Yeah, get rid of it' counts as confirmation" | Only the typed word `discard` authorizes deletion. |
+-| "The PR is up, so the worktree is clutter now" | PR feedback gets fixed in that worktree. It stays until the work lands. |
+-| "This other worktree looks stale — I'll clean it too" | Clean up only worktrees under `.worktrees/` or `worktrees/`. Everything else belongs to the host. |
+-| "Removal refused — `--force` is just finishing the cleanup" | The refusal means files exist only in that worktree. `--force` destroys them permanently. Show your human partner and ask. |
+-| "The merged-result failure is probably flaky" | A failing merged result stops everything. Branch and worktree stay put while you investigate. |
+-| "The base branch is obviously main" | Confirm the fork point or ask. Merging into the wrong base is expensive to undo. |
+-| "The push was rejected — force-push will fix it" | A rejected push means the remote moved. Investigate; force-push only on your human partner's explicit request. |
++End with one line per thing done: merged, pushed, the PR URL, branches deleted, topic closed.

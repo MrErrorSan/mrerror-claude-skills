@@ -28,9 +28,9 @@ The plan also records the full-suite command and how long it takes.
 
 ## Running tests
 
-- An implementer runs only its task's targeted tests (`anvil run --scope targeted -- <cmd>`), plus the type-check. It never runs the full suite.
+- An implementer runs only its task's targeted tests (`anvil run --scope targeted -- <cmd>`), plus the type-check (`anvil run --scope check -- <cmd>`). It never runs the full suite.
 - A reviewer never reruns tests.
-- Before rerunning anything, check `anvil fresh -- <cmd>`: a passing result on the same tree is reused. Runs that used live services or the network (`--external`), and runs that ran no tests, are never reused.
+- Before rerunning anything, check `anvil fresh --scope <the scope it ran with> -- <cmd>`: a passing result on the same tree is reused. Runs that used live services or the network (`--external`), and test runs that ran no tests, are never reused. A `check` run (type-check, lint, build) is reused on exit 0.
 - The full suite runs once, on the final merged state. It also runs after each wave only when it takes under about 2 minutes.
 
 ## Test changed or code changed

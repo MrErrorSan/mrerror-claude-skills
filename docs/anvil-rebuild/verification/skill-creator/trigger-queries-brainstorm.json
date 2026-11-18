@@ -1,0 +1,22 @@
+[
+  {"query": "before we build anything: I want users to be able to share a saved search with a teammate. help me think through what that actually means for permissions and links", "should_trigger": true},
+  {"query": "/anvil:brainstorm the offline mode for the mobile field app", "should_trigger": true},
+  {"query": "I only have a rough idea - something like 'smart reminders' for overdue invoices. figure out with me what it should do and write the spec", "should_trigger": true},
+  {"query": "we're replacing the old reports module. scope it: what goes, what stays, and what the new one has to do. don't start coding", "should_trigger": true},
+  {"query": "weigh the options for multi-tenant support in our postgres schema (schema per tenant vs tenant_id column) and write it up as a spec I can approve", "should_trigger": true},
+  {"query": "the import wizard keeps confusing people. I don't know what the fix looks like yet, can we work out the requirements first", "should_trigger": true},
+  {"query": "think through how the retry logic for failed webhooks should work before anyone touches webhooks/dispatcher.py", "should_trigger": true},
+  {"query": "here's the feature: bulk-archive projects older than a year. what are the open questions before we can plan it?", "should_trigger": true},
+  {"query": "the spec for csv-export is approved, now write the implementation plan with the task table", "should_trigger": false},
+  {"query": "build the plan in docs/notif-prefs/plan.md, it's approved", "should_trigger": false},
+  {"query": "brainstorm 10 names for our new internal CLI tool, something short", "should_trigger": false},
+  {"query": "fix the typo 'Recieved' in src/emails/receipt.html", "should_trigger": false},
+  {"query": "explain the tradeoffs of event sourcing vs CRUD in general, I'm reading about it for a talk", "should_trigger": false},
+  {"query": "the login test started failing after yesterday's merge with 'token expired' - find out why", "should_trigger": false},
+  {"query": "verify the export feature matches the spec and run the full suite once", "should_trigger": false},
+  {"query": "mock up three layouts for the new dashboard home page so I can pick one", "should_trigger": false},
+  {"query": "write a one-page proposal for leadership on why we should adopt feature flags", "should_trigger": false},
+  {"query": "review my spec in docs/search/spec.md and tell me what's unclear", "should_trigger": false},
+  {"query": "brainstorm with me how to structure my week, I have three deadlines and a conference", "should_trigger": false},
+  {"query": "add an index on orders.created_at, queries on the admin page are slow", "should_trigger": false}
+]

@@ -66,8 +66,10 @@ def append_jsonl(cwd: Path, name: str, record: dict, keep: int | None = None) ->
         f.write(json.dumps(record, ensure_ascii=False) + "\n")
     if keep is not None:
         lines = path.read_text(encoding="utf-8").splitlines()
-        if len(lines) > keep:
-            path.write_text("\n".join(lines[-keep:]) + "\n", encoding="utf-8")
+        if len(lines) > keep:  # a temp file and a rename, so a crash can't truncate the log
+            tmp = path.with_name(path.name + ".tmp")
+            tmp.write_text("\n".join(lines[-keep:]) + "\n", encoding="utf-8")
+            os.replace(tmp, path)
 
 
 def read_jsonl(cwd: Path, name: str) -> list[dict]:

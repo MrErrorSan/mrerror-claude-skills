@@ -1,0 +1,663 @@
+diff --git a/superpowers/skills/dispatching-parallel-agents/SKILL.md b/plugins/anvil/skills/build/references/waves.md
+index 3fa091b..8b5c2f0 100644
+--- a/superpowers/skills/dispatching-parallel-agents/SKILL.md
++++ b/plugins/anvil/skills/build/references/waves.md
+@@ -1,167 +1,105 @@
+----
+-name: dispatching-parallel-agents
+-description: Use when facing 2+ independent tasks that can be worked on without shared state or sequential dependencies
+----
++<!-- adapted from superpowers@7.0.2: skills/dispatching-parallel-agents/SKILL.md -->
++<!-- adapted from superpowers@7.0.2: skills/subagent-driven-development/SKILL.md -->
+ 
+-# Dispatching Parallel Agents
++# Waves
+ 
+-## Overview
++How a parallel build runs. Each lane is the task loop from SKILL.md, in its own worktree. What this file adds: how lanes start, how they merge, and the check after each merged wave.
+ 
+-You delegate tasks to specialized agents with isolated context. By precisely crafting their instructions and context, you ensure they stay focused and succeed at their task. They should never inherit your session's context or history — you construct exactly what they need. This also preserves your own context for coordination work.
++Parallel is safe here only because the plan did the work first: a foundations task that ran alone, write sets that don't overlap (`anvil plan-check` passed), and contracts pinned before dispatch. If any of those is missing for a wave, run that wave in sequence and log why.
+ 
+-When you have multiple unrelated failures (different test files, different subsystems, different bugs), investigating them sequentially wastes time. Each investigation is independent and can happen in parallel.
++## Contents
++- Before a wave
++- Creating the lanes
++- Dispatching
++- While lanes run
++- As each lane reports
++- Merging
++- The wave check
++- Batched fixes
++- Closing the wave
+ 
+-**Core principle:** Dispatch one agent per independent problem domain. Let them work concurrently.
++## Before a wave
+ 
+-## When to Use
++- The previous wave is closed: every task `[x]`, the wave check clean, its fixes merged. A task starts only when its dependencies have merged and come back clean from review.
++- `- **Wave:** <n> of <m>` is set in `progress.md`.
++- **Pin shared contracts.** Every contract this wave's lanes share (a field name, a record shape, a function signature, a route, a file path) is written into the lane brief before dispatch, with its exact spelling and its producer and consumers. Lanes see each other's contracts, never each other's code; an unpinned field name is how two lanes end up with `payment_status` and `status`. If this wave needs a contract an earlier wave changed, update the brief first. A contract you can't pin yet means those tasks aren't parallel-safe: run them in sequence and log why.
++- **Commit the topic docs.** Any change to the spec, plan or progress file since the last commit is committed on the work branch before you create this wave's lanes, so the lanes and `anvil lane-check` read the current plan.
+ 
+-```dot
+-digraph when_to_use {
+-    "Multiple failures?" [shape=diamond];
+-    "Are they independent?" [shape=diamond];
+-    "Single agent investigates all" [shape=box];
+-    "One agent per problem domain" [shape=box];
+-    "Can they work in parallel?" [shape=diamond];
+-    "Sequential agents" [shape=box];
+-    "Parallel dispatch" [shape=box];
++## Creating the lanes
+ 
+-    "Multiple failures?" -> "Are they independent?" [label="yes"];
+-    "Are they independent?" -> "Single agent investigates all" [label="no - related"];
+-    "Are they independent?" -> "Can they work in parallel?" [label="yes"];
+-    "Can they work in parallel?" -> "Parallel dispatch" [label="yes"];
+-    "Can they work in parallel?" -> "Sequential agents" [label="no - shared state"];
+-}
+-```
+-
+-**Use when:**
+-- 3+ test files failing with different root causes
+-- Multiple subsystems broken independently
+-- Each problem can be understood without context from others
+-- No shared state between investigations
+-
+-**Don't use when:**
+-- Failures are related (fix one might fix others)
+-- Need to understand full system state
+-- Agents would interfere with each other
+-
+-## The Pattern
+-
+-### 1. Identify Independent Domains
+-
+-Group failures by what's broken:
+-- File A tests: Tool approval flow
+-- File B tests: Batch completion behavior
+-- File C tests: Abort functionality
+-
+-Each domain is independent - fixing tool approval doesn't affect abort tests.
+-
+-### 2. Create Focused Agent Tasks
+-
+-Each agent gets:
+-- **Specific scope:** One test file or subsystem
+-- **Clear goal:** Make these tests pass
+-- **Constraints:** Don't change other code
+-- **Expected output:** Summary of what you found and fixed
+-
+-### 3. Dispatch in Parallel
++You create each lane's worktree yourself, from the work branch, and brief the agent with its absolute path:
+ 
+-Issue all three subagent dispatches in the same response — they run in parallel:
+-
+-```text
+-Subagent (general-purpose): "Fix agent-tool-abort.test.ts failures"
+-Subagent (general-purpose): "Fix batch-completion-behavior.test.ts failures"
+-Subagent (general-purpose): "Fix tool-approval-race-conditions.test.ts failures"
+-# All three run concurrently.
++```bash
++git worktree add ../<repo>-lane-T3 -b anvil/<topic>/T3 anvil/<topic>/work
+ ```
+ 
+-Multiple dispatch calls in one response = parallel execution. One per response = sequential.
++- Don't rely on the Agent tool's `isolation: "worktree"`: its base defaults to the repo's default branch, not the work branch, and lanes built on the wrong base miss the foundations and the previous wave ("stale base").
++- Confirm the base: `git -C ../<repo>-lane-T3 rev-parse HEAD` equals `git rev-parse anvil/<topic>/work`.
++- A short root next to the repo keeps Windows paths under the length limit. If `git worktree remove` later fails with `Filename too long`, set `git config core.longpaths true` and retry.
++- If the project forbids extra folders or worktrees, run the build sequentially and log why. Lanes sharing one checkout race on the index and sweep up each other's half-done edits.
++- If lanes need installed dependencies, the lane brief says how to install them (or reuse a shared store). Lanes never commit lockfiles or generated files.
+ 
+-### 4. Review and Integrate
++## Dispatching
+ 
+-When agents return:
+-- Read each summary
+-- Verify fixes don't conflict
+-- Run full test suite
+-- Integrate all changes
++- Send up to the plan's lane count (4 at most) implementer dispatches **in one message**: several dispatches in one message run at the same time; one per message runs them one after another. Run them in the background.
++- Each dispatch is the short per-task message from [../prompts/implementer.md](../prompts/implementer.md): its task, its absolute lane path, the lane brief path, its report file. Shared rules live in the brief file, not pasted into every dispatch.
++- Mark each task `[~] T3 <title> (lane anvil/<topic>/T3)` in `progress.md` in the same step.
++- Lanes run focused tests only. If the test runner spreads across cores, the brief caps workers per lane; one full suite at a time, never one per lane. No dev server in a lane unless the brief gives that lane its own port and database.
+ 
+-## Agent Prompt Structure
++## While lanes run
+ 
+-Good agent prompts are:
+-1. **Focused** - One clear problem domain
+-2. **Self-contained** - All context needed to understand the problem
+-3. **Specific about output** - What should the agent return?
++- Keep working on local things: review packages, progress entries, the next wave's brief. Results arrive on their own; don't poll.
++- Per-task reviews of lanes that have reported can run while you dispatch the next independent lanes. A reviewer reads the lane's worktree and its review package, so merging that lane meanwhile doesn't disturb it.
++- When you are idle, wait in bounded stretches. Between them, list your live agents and chase any that finished without reporting.
+ 
+-```markdown
+-Fix the 3 failing tests in src/agents/agent-tool-abort.test.ts:
++## As each lane reports
+ 
+-1. "should abort tool with partial output capture" - expects 'interrupted at' in message
+-2. "should handle mixed completed and aborted tools" - fast tool aborted instead of completed
+-3. "should properly track pendingToolCount" - expects 3 results but gets 0
++In the order the reports arrive:
+ 
+-These are timing/race condition issues. Your task:
++1. Handle the report (SKILL.md, step 2).
++2. `anvil lane-check T3 --base anvil/<topic>/work`, run in the lane. Files outside the write set go back to the implementer.
++3. Write the review package from the lane, before merging it: `BASE` is the work branch tip the lane was created from.
++4. Dispatch the task reviewer, unless the row says `skip (fully specified)`: that task goes straight to `[x]` after a clean lane-check.
+ 
+-1. Read the test file and understand what each test verifies
+-2. Identify root cause - timing issues or actual bugs?
+-3. Fix by:
+-   - Replacing arbitrary timeouts with event-based waiting
+-   - Fixing bugs in abort implementation if found
+-   - Adjusting test expectations if testing changed behavior
++## Merging
+ 
+-Do NOT just increase timeouts - find the real issue.
++Merge lanes one at a time, **in task order**, into the work branch in the main checkout:
+ 
+-Return: Summary of what you found and what you fixed.
++```bash
++git merge --no-ff anvil/<topic>/T3 -m "merge T3: <task name>"
+ ```
+ 
+-## Common Mistakes
+-
+-**❌ Too broad:** "Fix all the tests" - agent gets lost
+-**✅ Specific:** "Fix agent-tool-abort.test.ts" - focused scope
+-
+-**❌ No context:** "Fix the race condition" - agent doesn't know where
+-**✅ Context:** Paste the error messages and test names
+-
+-**❌ No constraints:** Agent might refactor everything
+-**✅ Constraints:** "Do NOT change production code" or "Fix tests only"
+-
+-**❌ Vague output:** "Fix it" - you don't know what changed
+-**✅ Specific:** "Return summary of root cause and changes"
++- A textual conflict means the plan was wrong about independence. Resolve it by ruling which side the spec supports, log the ruling, and check that the losing lane's S-lines are still met.
++- Lockfiles and generated files are regenerated by you after the merges, never merged from lanes.
++- A lane merged before its review returned is still under review: its task isn't `[x]`, and nothing that depends on it starts.
++- Fix commits made later in a lane worktree are merged the same way, again in task order.
++- A lane cut **before** a commit point landed (a wave started early) shares no recent history with the reset work branch, so `git merge` conflicts on every file the squash carried. Cherry-pick the lane's own commits instead (`git cherry-pick <lane base>..anvil/<topic>/T<n>`), and delete the lane branch only after they're on the work branch.
+ 
+-## When NOT to Use
++## The wave check
+ 
+-**Related failures:** Fixing one might fix others - investigate together first
+-**Need full context:** Understanding requires seeing entire system
+-**Exploratory debugging:** You don't know what's broken yet
+-**Shared state:** Agents would interfere (editing same files, using same resources)
++After every lane of the wave has merged (and lockfiles and generated files are regenerated), on the merged tree:
+ 
+-## Real Example from Session
++1. **Type-check**, with the plan's command.
++2. **The targeted tests of every task in the wave**: `anvil fresh --scope targeted -- <cmd>` first, then `anvil run --scope targeted -- <cmd>` for whatever isn't fresh.
++3. **The wave's smoke paths**, if it has any: `anvil run --scope smoke [--external] -- <cmd>`.
++4. **The full suite**, only if the plan records it at under about 2 minutes: `anvil fresh --scope full -- <cmd>`, else `anvil run --scope full -- <cmd>`. Otherwise it waits for verify.
++5. **The wave review**: a package of the merged diff (work branch tip before the wave's first merge, to HEAD), and [../prompts/wave-review.md](../prompts/wave-review.md), looking for clean merges that are wrong together. A wave with a single lane skips it (nothing to conflict with); log the skip in the decision log.
+ 
+-**Scenario:** 6 test failures across 3 files after major refactoring
++A failure whose cause isn't obvious goes to `anvil:debug`. Findings go to the batched fixes below.
+ 
+-**Failures:**
+-- agent-tool-abort.test.ts: 3 failures (timing issues)
+-- batch-completion-behavior.test.ts: 2 failures (tools not executing)
+-- tool-approval-race-conditions.test.ts: 1 failure (execution count = 0)
+-
+-**Decision:** Independent domains - abort logic separate from batch completion separate from race conditions
+-
+-**Dispatch:**
+-```
+-Agent 1 → Fix agent-tool-abort.test.ts
+-Agent 2 → Fix batch-completion-behavior.test.ts
+-Agent 3 → Fix tool-approval-race-conditions.test.ts
+-```
++## Batched fixes
+ 
+-**Results:**
+-- Agent 1: Replaced timeouts with event-based waiting
+-- Agent 2: Fixed event structure bug (threadId in wrong place)
+-- Agent 3: Added wait for async tool execution to complete
++After a wave's reviews (the per-task reviews and the wave review) are in, fix in batches rather than one agent per finding: per-finding fixers each rebuild context and rerun tests.
+ 
+-**Integration:** All fixes independent, no conflicts, full suite green
++1. Triage every finding first, per [receiving-review.md](receiving-review.md).
++2. Group the open findings by the files they touch. Findings whose files overlap join one group, so the groups are disjoint.
++3. One fixer per group, each with the **full findings list for its group**. A group that lies inside one lane's write set goes to that lane's own implementer (resumed, in its worktree; that's the fix round for each of its tasks). A group that spans lanes (usually a wave-review finding) gets one fixer in a fresh worktree from the work branch, with the union of those write sets.
++4. Disjoint groups run at the same time, dispatched in one message.
++5. Each group gets one scoped re-review, then its commits merge in task order. Each round counts toward the 5-round cap of every task it touches.
+ 
+-## Verification
++## Closing the wave
+ 
+-After agents return:
+-1. **Review each summary** - Understand what changed
+-2. **Check for conflicts** - Did agents edit same code?
+-3. **Run full suite** - Verify all fixes work together
+-4. **Spot check** - Agents can make systematic errors
++1. Every task in the wave is clean, or its residual findings are parked with rulings. Mark them `[x]` (plus ` C<k>` if a commit point closes here).
++2. Remove the lane worktrees and branches: `git worktree remove ../<repo>-lane-T3`, then `git branch -d anvil/<topic>/T3`.
++3. If a commit point closes here, land it (SKILL.md, "Commit points"): `anvil fresh --scope <the scope it ran with> -- <same cmd>` finds the wave check's results. The commit point that closes the last wave is the exception: it is left for `finish`.
++4. Then the next wave.
+diff --git a/superpowers/skills/subagent-driven-development/SKILL.md b/plugins/anvil/skills/build/references/waves.md
+index 4519578..8b5c2f0 100644
+--- a/superpowers/skills/subagent-driven-development/SKILL.md
++++ b/plugins/anvil/skills/build/references/waves.md
+@@ -1,339 +1,105 @@
+----
+-name: subagent-driven-development
+-description: Use when executing implementation plans with independent tasks in the current session
+----
++<!-- adapted from superpowers@7.0.2: skills/dispatching-parallel-agents/SKILL.md -->
++<!-- adapted from superpowers@7.0.2: skills/subagent-driven-development/SKILL.md -->
+ 
+-# Subagent-Driven Development
++# Waves
+ 
+-Execute plan by dispatching a fresh implementer subagent per task, a task review (spec compliance + code quality) after each, and a broad whole-branch review at the end.
++How a parallel build runs. Each lane is the task loop from SKILL.md, in its own worktree. What this file adds: how lanes start, how they merge, and the check after each merged wave.
+ 
+-**Why subagents:** You delegate tasks to specialized agents with isolated context. By precisely crafting their instructions and context, you ensure they stay focused and succeed at their task. They should never inherit your session's context or history — you construct exactly what they need. This also preserves your own context for coordination work.
++Parallel is safe here only because the plan did the work first: a foundations task that ran alone, write sets that don't overlap (`anvil plan-check` passed), and contracts pinned before dispatch. If any of those is missing for a wave, run that wave in sequence and log why.
+ 
+-**Core principle:** Fresh subagent per task + task review (spec + quality) + broad final review = high quality, fast iteration
++## Contents
++- Before a wave
++- Creating the lanes
++- Dispatching
++- While lanes run
++- As each lane reports
++- Merging
++- The wave check
++- Batched fixes
++- Closing the wave
+ 
+-**Narration:** between tool calls, narrate at most one short line — the
+-ledger and the tool results carry the record.
++## Before a wave
+ 
+-**Continuous execution:** Do not pause to check in with your human partner between tasks. Execute all tasks from the plan without stopping. The only reasons to stop are the four named below, or all tasks complete. "Should I continue?" prompts and progress summaries waste their time — they asked you to execute the plan, so execute it.
++- The previous wave is closed: every task `[x]`, the wave check clean, its fixes merged. A task starts only when its dependencies have merged and come back clean from review.
++- `- **Wave:** <n> of <m>` is set in `progress.md`.
++- **Pin shared contracts.** Every contract this wave's lanes share (a field name, a record shape, a function signature, a route, a file path) is written into the lane brief before dispatch, with its exact spelling and its producer and consumers. Lanes see each other's contracts, never each other's code; an unpinned field name is how two lanes end up with `payment_status` and `status`. If this wave needs a contract an earlier wave changed, update the brief first. A contract you can't pin yet means those tasks aren't parallel-safe: run them in sequence and log why.
++- **Commit the topic docs.** Any change to the spec, plan or progress file since the last commit is committed on the work branch before you create this wave's lanes, so the lanes and `anvil lane-check` read the current plan.
+ 
+-**Rulings, not stalls.** A running plan does not wait on a human. Conflicts,
+-ambiguities, plan defects, a cap you would have asked to exceed — decide
+-them. The spec is the binding authority, the plan is its argument, and your
+-judgment settles what neither answers. Record every decision in the ledger as
+-`Ruling: <what you decided> — <why> — <what it costs if wrong>`, and keep
+-going. A wrong ruling costs rework your human partner can see and undo; a
+-session parked on a question costs their whole day and buys nothing.
++## Creating the lanes
+ 
+-Four things stop you, and only these: an irreversible or destructive
+-operation; a security-sensitive action; a side effect outside this worktree
+-that norms say you ask about first (a merge, a push to a shared branch, a
+-publish); and a plan so broken that every path forward is a guess. For those,
+-stop and ask.
++You create each lane's worktree yourself, from the work branch, and brief the agent with its absolute path:
+ 
+-## When to Use
+-
+-```dot
+-digraph when_to_use {
+-    "Have implementation plan?" [shape=diamond];
+-    "Tasks mostly independent?" [shape=diamond];
+-    "Partner chose inline, or no subagent tool?" [shape=diamond];
+-    "subagent-driven-development" [shape=box];
+-    "executing-plans" [shape=box];
+-    "Manual execution or brainstorm first" [shape=box];
+-
+-    "Have implementation plan?" -> "Tasks mostly independent?" [label="yes"];
+-    "Have implementation plan?" -> "Manual execution or brainstorm first" [label="no"];
+-    "Tasks mostly independent?" -> "Partner chose inline, or no subagent tool?" [label="yes"];
+-    "Tasks mostly independent?" -> "Manual execution or brainstorm first" [label="no - tightly coupled"];
+-    "Partner chose inline, or no subagent tool?" -> "executing-plans" [label="yes"];
+-    "Partner chose inline, or no subagent tool?" -> "subagent-driven-development" [label="no"];
+-}
+-```
+-
+-**vs. Executing Plans (inline):**
+-- Fresh subagent per task (no context pollution) instead of one context doing every task
+-- Review after each task (spec compliance + code quality) instead of only at the end
+-- Costs a fresh context per task and per review; inline costs one context plus one final reviewer
+-- Both run in this session, share the same plan workspace and ledger, and never pause between tasks
+-
+-## The Process
+-
+-```dot
+-digraph process {
+-    rankdir=TB;
+-
+-    subgraph cluster_per_task {
+-        label="Per Task";
+-        "Dispatch implementer subagent (./implementer-prompt.md)" [shape=box];
+-        "Implementer asks questions?" [shape=diamond];
+-        "Answer questions, provide context" [shape=box];
+-        "Implementer implements, tests, commits, self-reviews" [shape=box];
+-        "Generate review package, dispatch task reviewer (./task-reviewer-prompt.md)" [shape=box];
+-        "Spec ✅ and quality approved?" [shape=diamond];
+-        "Fix loop: read references/fix-loop.md before every round" [shape=box];
+-        "Append completion to ledger, mark todo complete" [shape=box];
+-    }
+-
+-    "Setup: worktree, ledger check, read plan, pre-flight review" [shape=box];
+-    "More tasks remain?" [shape=diamond];
+-    "Final review and finish: read references/final-review.md" [shape=box];
+-    "Final review clean: delete this plan's workspace" [shape=box];
+-    "Use superpowers:finishing-a-development-branch" [shape=box style=filled fillcolor=lightgreen];
+-
+-    "Setup: worktree, ledger check, read plan, pre-flight review" -> "Dispatch implementer subagent (./implementer-prompt.md)";
+-    "Dispatch implementer subagent (./implementer-prompt.md)" -> "Implementer asks questions?";
+-    "Implementer asks questions?" -> "Answer questions, provide context" [label="yes"];
+-    "Answer questions, provide context" -> "Implementer implements, tests, commits, self-reviews";
+-    "Implementer asks questions?" -> "Implementer implements, tests, commits, self-reviews" [label="no"];
+-    "Implementer implements, tests, commits, self-reviews" -> "Generate review package, dispatch task reviewer (./task-reviewer-prompt.md)";
+-    "Generate review package, dispatch task reviewer (./task-reviewer-prompt.md)" -> "Spec ✅ and quality approved?";
+-    "Spec ✅ and quality approved?" -> "Append completion to ledger, mark todo complete" [label="yes"];
+-    "Spec ✅ and quality approved?" -> "Fix loop: read references/fix-loop.md before every round" [label="no"];
+-    "Fix loop: read references/fix-loop.md before every round" -> "Append completion to ledger, mark todo complete" [label="addressed, or parked at the cap"];
+-    "Append completion to ledger, mark todo complete" -> "More tasks remain?";
+-    "More tasks remain?" -> "Dispatch implementer subagent (./implementer-prompt.md)" [label="yes"];
+-    "More tasks remain?" -> "Final review and finish: read references/final-review.md" [label="no"];
+-    "Final review and finish: read references/final-review.md" -> "Final review clean: delete this plan's workspace";
+-    "Final review clean: delete this plan's workspace" -> "Use superpowers:finishing-a-development-branch";
+-}
++```bash
++git worktree add ../<repo>-lane-T3 -b anvil/<topic>/T3 anvil/<topic>/work
+ ```
+ 
+-## Setup
+-
+-Ensure the work happens in an isolated workspace: use
+-superpowers:using-git-worktrees to create one or verify the existing one.
+-Never start implementation on a main/master branch without your human
+-partner's explicit consent.
+-
+-Conversation memory does not survive compaction. In real sessions,
+-controllers that lost their place have re-dispatched entire completed task
+-sequences — the single most expensive failure observed. Track progress in
+-a ledger file, not only in todos.
+-
+-- Each plan owns a workspace: at skill start, run this skill's
+-  `bash scripts/sdd-workspace PLAN_FILE` by its absolute path, from the
+-  working tree you're executing in — it prints the plan's git-ignored
+-  directory (under `<repo-root>/.superpowers/sdd/`), home to
+-  every artifact for THIS plan: ledger, briefs, reports, review packages.
+-  Another plan's directory is never yours to read or write.
+-- Check for this plan's ledger at `<workspace>/progress.md`. If one exists,
+-  read [references/resuming.md](references/resuming.md) before anything
+-  else: it says whose ledger it is and where to resume.
+-- Create the ledger with its identity as the first line:
+-  `# SDD ledger — plan: <plan file path>`.
+-- The ledger is your recovery map: the commits it names exist in git even
+-  when your context no longer remembers creating them. After compaction,
+-  trust the ledger and `git log` over your own recollection.
+-- `git clean -fdx` will destroy the workspace (it's git-ignored scratch); if
+-  that happens, recover from `git log`.
+-
+-Read the plan once, note its context and Global Constraints, and create a
+-todo per task. If the plan names a Spec, read that too: the spec is the
+-authority the plan argues from, and conflicts inside the plan resolve
+-against it. A plan with no reachable spec gets a ledger note saying so —
+-rulings made without one are provisional.
+-
+-Before dispatching Task 1, read [references/preflight.md](references/preflight.md)
+-and run the conflict scan it describes. Its table and rulings go in the
+-ledger.
+-
+-## Model Selection
+-
+-Use the least powerful model that can handle each role to conserve cost and increase speed.
+-
+-**Mechanical implementation tasks** (isolated functions, clear specs, 1-2 files): use a fast, cheap model. Most implementation tasks are mechanical when the plan is well-specified.
++- Don't rely on the Agent tool's `isolation: "worktree"`: its base defaults to the repo's default branch, not the work branch, and lanes built on the wrong base miss the foundations and the previous wave ("stale base").
++- Confirm the base: `git -C ../<repo>-lane-T3 rev-parse HEAD` equals `git rev-parse anvil/<topic>/work`.
++- A short root next to the repo keeps Windows paths under the length limit. If `git worktree remove` later fails with `Filename too long`, set `git config core.longpaths true` and retry.
++- If the project forbids extra folders or worktrees, run the build sequentially and log why. Lanes sharing one checkout race on the index and sweep up each other's half-done edits.
++- If lanes need installed dependencies, the lane brief says how to install them (or reuse a shared store). Lanes never commit lockfiles or generated files.
+ 
+-**Integration and judgment tasks** (multi-file coordination, pattern matching, debugging): use a standard model.
++## Dispatching
+ 
+-**Architecture and design tasks**: use the most capable available model.
+-The final whole-branch review is one of these — dispatch it on the most
+-capable available model, not the session default.
++- Send up to the plan's lane count (4 at most) implementer dispatches **in one message**: several dispatches in one message run at the same time; one per message runs them one after another. Run them in the background.
++- Each dispatch is the short per-task message from [../prompts/implementer.md](../prompts/implementer.md): its task, its absolute lane path, the lane brief path, its report file. Shared rules live in the brief file, not pasted into every dispatch.
++- Mark each task `[~] T3 <title> (lane anvil/<topic>/T3)` in `progress.md` in the same step.
++- Lanes run focused tests only. If the test runner spreads across cores, the brief caps workers per lane; one full suite at a time, never one per lane. No dev server in a lane unless the brief gives that lane its own port and database.
+ 
+-**Review tasks**: choose the model with the same judgment, scaled to the
+-diff's size, complexity, and risk. A small mechanical diff does not need the
+-most capable model; a subtle concurrency change does. Scoped re-reviews of
+-small fix diffs take a cheap-to-mid tier.
++## While lanes run
+ 
+-**Fix-loop escalation (rounds 4-5)**: use a model at least one tier above
+-the implementer that got stuck.
++- Keep working on local things: review packages, progress entries, the next wave's brief. Results arrive on their own; don't poll.
++- Per-task reviews of lanes that have reported can run while you dispatch the next independent lanes. A reviewer reads the lane's worktree and its review package, so merging that lane meanwhile doesn't disturb it.
++- When you are idle, wait in bounded stretches. Between them, list your live agents and chase any that finished without reporting.
+ 
+-**Always specify the model explicitly when dispatching a subagent.** An
+-omitted model inherits your session's model — often the most capable and
+-most expensive — which silently defeats this section.
++## As each lane reports
+ 
+-**Turn count beats token price.** Wall-clock and context cost scale with how
+-many turns a subagent takes, and the cheapest models routinely take 2-3× the
+-turns on multi-step work — costing more overall. Use a mid-tier model as the
+-floor for reviewers and for implementers working from prose descriptions.
+-When the task's plan text contains the complete code to write, the
+-implementation is transcription plus testing: use the cheapest tier for
+-that implementer. Single-file mechanical fixes also take the cheapest tier.
++In the order the reports arrive:
+ 
+-**Task complexity signals (implementation tasks):**
+-- Touches 1-2 files with a complete spec → cheap model
+-- Touches multiple files with integration concerns → standard model
+-- Requires design judgment or broad codebase understanding → most capable model
++1. Handle the report (SKILL.md, step 2).
++2. `anvil lane-check T3 --base anvil/<topic>/work`, run in the lane. Files outside the write set go back to the implementer.
++3. Write the review package from the lane, before merging it: `BASE` is the work branch tip the lane was created from.
++4. Dispatch the task reviewer, unless the row says `skip (fully specified)`: that task goes straight to `[x]` after a clean lane-check.
+ 
+-## The Task Loop
++## Merging
+ 
+-**Small same-shape work:** when the plan lists several small edits of the
+-same kind across files, read [references/batching.md](references/batching.md)
+-before dispatching them.
++Merge lanes one at a time, **in task order**, into the work branch in the main checkout:
+ 
+-Everything you paste into a dispatch prompt — and everything a subagent
+-prints back — stays resident in your context for the rest of the session
+-and is re-read on every later turn. Hand artifacts over as files.
+-
+-**Waiting on dispatched subagents:** never poll a wait interface with
+-short timeouts, and never sit in one silent, open-ended wait either.
+-While you have local work — ledger updates, packaging the next review,
+-reading reports — keep working; child results arrive on their own.
+-When you are genuinely idle, wait in bounded stretches (five to ten
+-minutes, where your platform allows), and between stretches post one
+-line of status and reconcile your live children: list them, and chase
+-any that finished without reporting. A bounded stretch keeps nearly
+-all of a long wait's efficiency while guaranteeing a stuck or lost
+-child is noticed within minutes, not at the end of the session.
+-
+-### 1. Dispatch the implementer
+-
+-Record BASE (`git rev-parse HEAD`) before dispatching — the review package
+-and fix-round diffs need it.
+-
+-- **Task brief:** before dispatching an implementer, run this skill's
+-  `bash scripts/task-brief PLAN_FILE N` by its absolute path, from the
+-  working tree you're executing in — it extracts the task's full text to a
+-  uniquely named file and prints the path. Compose the dispatch so the
+-  brief stays the single source of
+-  requirements. Your dispatch should contain: (1) one line on where this
+-  task fits in the project; (2) the brief path, introduced as "read this
+-  first — it is your requirements, with the exact values to use verbatim";
+-  (3) interfaces and decisions from earlier tasks that the brief cannot
+-  know; (4) your resolution of any ambiguity you noticed in the brief;
+-  (5) the report-file path and report contract. Exact values (numbers,
+-  magic strings, signatures, test cases) appear only in the brief. Never
+-  make a subagent read the whole plan file.
+-- **Report file:** name the implementer's report file after the brief
+-  (brief `…/task-N-brief.md` → report `…/task-N-report.md`) and put it in
+-  the dispatch prompt. The implementer writes the full report there and
+-  returns only status, commits, a one-line test summary, and concerns.
+-- A dispatch prompt describes one task, not the session's history. Do not
+-  paste accumulated prior-task summaries ("state after Tasks 1-3") into
+-  later dispatches — a real session's dispatch hit 42k chars of which 99%
+-  was pasted history. A fresh subagent needs its task, the interfaces it
+-  touches, and the global constraints. Nothing else.
+-- The dispatch carries the no-subagents contract (it is in the
+-  implementer template): the implementer never dispatches subagents —
+-  not helpers, and never a reviewer. Review arrives from you, after the
+-  report. In real sessions, every reviewer a worker spawned duplicated
+-  the task review the controller dispatched anyway — a full extra
+-  review seat per task.
+-- If an earlier task parked a finding in the area this task touches, carry
+-  a pointer to that ledger entry in the dispatch.
+-- Record the implementer's agent identity from the dispatch result —
+-  fix-loop rounds 1-3 resume this agent.
+-- Never dispatch multiple implementation subagents in parallel (conflicts).
+-
+-Template: [implementer-prompt.md](implementer-prompt.md)
+-
+-### 2. Handle the report
+-
+-Implementer subagents report one of four statuses. Handle each appropriately:
+-
+-**DONE:** Generate the review package (`bash scripts/review-package PLAN_FILE BASE HEAD` by its absolute path, from the working tree you're executing in — it prints the unique file path it wrote; BASE is the commit you recorded before dispatching the implementer — never `HEAD~1`, which silently drops all but the last commit of a multi-commit task), then dispatch the task reviewer with the printed path.
+-
+-**Any other status** (DONE_WITH_CONCERNS, NEEDS_CONTEXT, BLOCKED): read
+-[references/handling-reports.md](references/handling-reports.md) and follow
+-it, every time you get one.
+-
+-If the implementer asks questions — before starting or mid-task — answer
+-clearly and completely, provide additional context if needed, and don't
+-rush it into implementation.
+-
+-### 3. Review the task
+-
+-Per-task reviews are task-scoped gates. The broad review happens once, at the
+-final whole-branch review. Never skip the task review, and never accept a
+-report missing either verdict — spec compliance AND task quality are both
+-required. Implementer self-review never replaces the task review; both are
+-needed.
+-
+-- Hand the reviewer its diff as a file: run this skill's
+-  `bash scripts/review-package PLAN_FILE BASE HEAD` by its absolute path, from
+-  the working tree you're executing in, and pass the reviewer the file path
+-  it prints (or, without bash: `git log --oneline`, `git diff --stat`,
+-  and `git diff -U10` for the range, redirected to one uniquely named
+-  file). The output never enters your own context, and the reviewer sees
+-  the commit list, stat summary, and full diff with context in one Read
+-  call. Use the BASE you recorded before dispatching the implementer —
+-  never `HEAD~1`, which silently truncates multi-commit tasks. Never
+-  dispatch a task reviewer without a diff file.
+-- **Reviewer inputs:** the task reviewer gets three paths — the same brief
+-  file, the report file, and the review package — plus the global
+-  constraints that bind the task.
+-- The global-constraints block you hand the reviewer is its attention
+-  lens. Copy the binding requirements verbatim from the plan's Global
+-  Constraints section or the spec: exact values, exact formats, and the
+-  stated relationships between components ("same layout as X", "matches
+-  Y"). The reviewer's template already carries the process rules (YAGNI,
+-  test hygiene, review method) — the constraints block is for what THIS
+-  project's spec demands.
+-- Do not add open-ended directives like "check all uses" or "run race tests
+-  if useful" without a concrete, task-specific reason
+-- Do not ask a reviewer to re-run tests the implementer already ran on the
+-  same code — the implementer's report carries the test evidence
+-- Do not pre-judge findings for the reviewer — never instruct a reviewer to
+-  ignore or not flag a specific issue. If you believe a finding would be a
+-  false positive, let the reviewer raise it and adjudicate it in the review
+-  loop. If the prompt you are writing contains "do not flag," "don't treat X
+-  as a defect," "at most Minor," or "the plan chose" — stop: you are
+-  pre-judging, usually to spare yourself a review loop.
+-If the reviewer reports "⚠️ Cannot verify from diff" items, read
+-[references/cannot-verify.md](references/cannot-verify.md) before you mark
+-the task complete.
+-
+-Template: [task-reviewer-prompt.md](task-reviewer-prompt.md)
+-
+-### 4. The fix loop
++```bash
++git merge --no-ff anvil/<topic>/T3 -m "merge T3: <task name>"
++```
+ 
+-The loop triggers when the review reports spec ❌, any Critical or Important
+-finding, or a ⚠️ item you confirmed as a real gap.
++- A textual conflict means the plan was wrong about independence. Resolve it by ruling which side the spec supports, log the ruling, and check that the losing lane's S-lines are still met.
++- Lockfiles and generated files are regenerated by you after the merges, never merged from lanes.
++- A lane merged before its review returned is still under review: its task isn't `[x]`, and nothing that depends on it starts.
++- Fix commits made later in a lane worktree are merged the same way, again in task order.
++- A lane cut **before** a commit point landed (a wave started early) shares no recent history with the reset work branch, so `git merge` conflicts on every file the squash carried. Cherry-pick the lane's own commits instead (`git cherry-pick <lane base>..anvil/<topic>/T<n>`), and delete the lane branch only after they're on the work branch.
+ 
+-When it triggers, read [references/fix-loop.md](references/fix-loop.md) and
+-follow it. Read it again before every round, even if you read it earlier in
+-this session: it holds the round cap, the breaker, and the ledger line each
+-round writes, and your memory of it does not survive compaction.
++## The wave check
+ 
+-### 5. Complete the task
++After every lane of the wave has merged (and lockfiles and generated files are regenerated), on the merged tree:
+ 
+-When the review comes back clean — or every open finding is parked with a
+-ruling at the cap — append the completion line to the ledger in the same
+-message as your other bookkeeping:
++1. **Type-check**, with the plan's command.
++2. **The targeted tests of every task in the wave**: `anvil fresh --scope targeted -- <cmd>` first, then `anvil run --scope targeted -- <cmd>` for whatever isn't fresh.
++3. **The wave's smoke paths**, if it has any: `anvil run --scope smoke [--external] -- <cmd>`.
++4. **The full suite**, only if the plan records it at under about 2 minutes: `anvil fresh --scope full -- <cmd>`, else `anvil run --scope full -- <cmd>`. Otherwise it waits for verify.
++5. **The wave review**: a package of the merged diff (work branch tip before the wave's first merge, to HEAD), and [../prompts/wave-review.md](../prompts/wave-review.md), looking for clean merges that are wrong together. A wave with a single lane skips it (nothing to conflict with); log the skip in the decision log.
+ 
+-- `Task <N>: complete (commits <base7>..<head7>, review clean)`
+-- `Task <N>: complete (commits <base7>..<head7>, <K> parked)` after a
+-  tripped breaker
++A failure whose cause isn't obvious goes to `anvil:debug`. Findings go to the batched fixes below.
+ 
+-Then mark the todo complete and move on. Never move to the next task while
+-the review has open Critical/Important issues that are neither fixed nor
+-parked-with-ruling at the cap.
++## Batched fixes
+ 
+-## Final Review
++After a wave's reviews (the per-task reviews and the wave review) are in, fix in batches rather than one agent per finding: per-finding fixers each rebuild context and rerun tests.
+ 
+-When every task is complete, read
+-[references/final-review.md](references/final-review.md) and follow it. It
+-covers the whole-branch review, its single fix wave, and how you finish.
++1. Triage every finding first, per [receiving-review.md](receiving-review.md).
++2. Group the open findings by the files they touch. Findings whose files overlap join one group, so the groups are disjoint.
++3. One fixer per group, each with the **full findings list for its group**. A group that lies inside one lane's write set goes to that lane's own implementer (resumed, in its worktree; that's the fix round for each of its tasks). A group that spans lanes (usually a wave-review finding) gets one fixer in a fresh worktree from the work branch, with the union of those write sets.
++4. Disjoint groups run at the same time, dispatched in one message.
++5. Each group gets one scoped re-review, then its commits merge in task order. Each round counts toward the 5-round cap of every task it touches.
+ 
+-## Common Rationalizations
++## Closing the wave
+ 
+-| Excuse | Reality |
+-|--------|---------|
+-| "Close enough on spec compliance" | Reviewer found spec gaps = not done. Fix or hit the cap and adjudicate — those are the only exits. |
+-| "I'll fix it myself, dispatching is overhead" | Controller fixes pollute your context and skip review. Resume the implementer. |
+-| "One more round will converge" | Past the cap, rounds don't converge — the failure is structural. Adjudicate and route. |
+-| "The reviewer will just find something new anyway" | Scoped re-reviews verify fixes; they cannot wander. New findings on untouched code go to the ledger, not the loop. |
+-| "This finding is obviously wrong, I'll drop it" | You adjudicate only at the cap, and every ruling is a ledger entry. Silent discards are forbidden. |
+-| "The fix was small, skip the re-review" | Unreviewed fixes are how regressions land. Every round ends with a scoped re-review. |
+-| "Reviews slow the loop down" | The loop without reviews is just unverified churn. Reviews are the loop's brakes and steering. |
+-| "Ledger bookkeeping is overhead" | The ledger is what survives compaction. Controllers without one have re-dispatched entire completed task sequences. |
+-| "The implementer spawned its own reviewer — free extra assurance" | It's a duplicate seat reviewing the same diff; the task review is the gate. A worker-spawned reviewer is a defect to flag, not rigor. |
++1. Every task in the wave is clean, or its residual findings are parked with rulings. Mark them `[x]` (plus ` C<k>` if a commit point closes here).
++2. Remove the lane worktrees and branches: `git worktree remove ../<repo>-lane-T3`, then `git branch -d anvil/<topic>/T3`.
++3. If a commit point closes here, land it (SKILL.md, "Commit points"): `anvil fresh --scope <the scope it ran with> -- <same cmd>` finds the wave check's results. The commit point that closes the last wave is the exception: it is left for `finish`.
++4. Then the next wave.

@@ -1,0 +1,5 @@
+{
+  "plugins/anvil/NOTICE": ["LICENSE"],
+  "plugins/anvil/hooks/hooks.json": ["hooks/hooks.json"],
+  "plugins/anvil/skills/debug/scripts/find-polluter.sh": ["skills/systematic-debugging/find-polluter.sh"]
+}

@@ -1,0 +1,10 @@
+diff --git a/superpowers/LICENSE b/plugins/anvil/NOTICE
+index abf0390..ffb7605 100644
+--- a/superpowers/LICENSE
++++ b/plugins/anvil/NOTICE
+@@ -1,3 +1,5 @@
++Portions adapted from obra/superpowers 7.0.2 (https://github.com/obra/superpowers)
++
+ MIT License
+ 
+ Copyright (c) 2025 Jesse Vincent

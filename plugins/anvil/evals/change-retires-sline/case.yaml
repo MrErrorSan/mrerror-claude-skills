@@ -1,0 +1,14 @@
+schema_version: "1.1"
+name: change-retires-sline
+description: |
+  A mid-build change goes through the change flow-back. Run with --scaffold and --allow-tools
+  Write Edit Bash. The scaffold seeds the csv-export topic at the build stage (T1 and T2 done,
+  T3 open); S3 says comma-separated and is cited by T1 and by tests/test_export.py.
+expected_outcome: |
+  The change is classified as a change request against S3 (decided by Saad on 2026-11-16). S3 is
+  struck through and marked "RETIRED → S6 (<date>, CR: ...)", and a new S6 says semicolons. The
+  spec's change log gets an entry. `anvil stale` is run and its output is quoted: T1 and
+  tests/test_export.py name the retired S3. T1 goes back to "[ ]" in progress.md, the plan's
+  Spec cells and test list move to S6, and nothing is rebuilt.
+context:
+  scaffold_script: place-files.sh

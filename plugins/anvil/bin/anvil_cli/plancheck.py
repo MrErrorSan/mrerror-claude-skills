@@ -269,11 +269,12 @@ def cmd_lane_check(args) -> int:
     try:
         outside = set(lane_check(cwd, task, args.base)) \
             | set(_outside(_uncommitted(cwd), task.writes))
-        # The orchestrator owns the topic's progress.md; it isn't a lane write.
-        progress = (state.topic_dir(cwd) / "progress.md").resolve()
+        # The orchestrator owns the topic folder's documents; they aren't lane writes.
+        folder = state.topic_dir(cwd).resolve()
         root = state.repo_root(cwd).resolve()
-        if progress.is_relative_to(root):
-            outside.discard(progress.relative_to(root).as_posix())
+        if folder.is_relative_to(root):
+            prefix = folder.relative_to(root).as_posix().lower() + "/"
+            outside = {p for p in outside if not p.lower().startswith(prefix)}
         outside = sorted(outside)
     except subprocess.CalledProcessError as e:
         print(f"git failed: {e.stderr.strip()}", file=sys.stderr)

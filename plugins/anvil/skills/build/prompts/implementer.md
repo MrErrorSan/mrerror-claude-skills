@@ -43,8 +43,9 @@ earlier lane]
   generated files. The orchestrator owns them.
 - Run only your task's targeted tests, through `anvil run --scope targeted --
   <cmd>` (add `--external` if the test uses a live service or the network),
-  plus the type-check. Never run the full suite. If `anvil` isn't found, use
-  the absolute path the session-start note gives.
+  plus the type-check (`anvil run --scope check -- <cmd>`). Never run the
+  full suite. If `anvil` isn't found, use the absolute path the
+  session-start note gives.
 - Follow the plan's test steps. Where it names a repro test, write it first and
   watch it fail before the fix.
 - Editing a test so it passes needs a changed S-line. Without one, fix the code.

@@ -174,6 +174,8 @@ class PlanCheckTests(unittest.TestCase):
             git(lane, "mv", "lib/util.py", "src/a/util.py")      # staged rename
             write(lane / "src/a/generated/api.ts", "x\n")        # integrator-only, inside writes
             write(lane / "docs/demo/progress.md", "- [~] T2\n")  # orchestrator-owned, ignored
+            write(lane / "docs/demo/spec.md", "# Spec: demo\n")   # so is the rest of the folder
+            write(lane / "docs/demo/notes/review.md", "x\n")
             state.save(lane, "active.json",
                        {"slug": "demo", "dir": "docs/demo", "size": "full", "stage": "build"})
             out, old = io.StringIO(), os.getcwd()

@@ -29,8 +29,8 @@ Check now, before deleting or editing anything: the tree key covers every file e
 
 ```bash
 anvil fresh --scope full -- <full-suite cmd>
-anvil fresh --scope <its scope> -- <type-check cmd>   # the scope verify used, from verify.md
-anvil fresh --scope smoke -- <cmd>                    # each smoke command verify ran without --external
+anvil fresh --scope check -- <cmd>    # each of type-check, lint and build that isn't none
+anvil fresh --scope smoke -- <cmd>    # each smoke command verify ran without --external
 ```
 
 Exit 1 means no passing result for this tree: rerun that one with `anvil run` and the same scope. `--external` paths are never reused; verify.md holds their result, so don't call the live service again.
@@ -93,7 +93,7 @@ The build folder stays until section 9: the report cites `verify.md` and the scr
 One message: the report first, then the questions. The report covers, in this order:
 
 1. **What shipped.** The behavior, by S-line; the commit points with their shas; where they're pushed, or that the push failed.
-2. **Verification evidence.** Real output: the full-suite and type-check summary lines (and which tree they ran on, from the entry checks), each smoke path's result, and the converge table from `verify.md`. Say that the scaffold deletion and header edits came after those runs and change nothing a test runs.
+2. **Verification evidence.** Real output: the full-suite, type-check, lint and build summary lines (and which tree they ran on, from the entry checks), each smoke path's result, and the converge table from `verify.md`. Say that the scaffold deletion and header edits came after those runs and change nothing a test runs.
 3. **The tests, by type.** Failures and weak spots come first: a failing or skipped test, an S-line met only by test evidence, a leftover from verify, a check that couldn't run here. Then:
    - keep tests, each with the S-lines it guards (from the plan's test list);
    - smoke paths run;

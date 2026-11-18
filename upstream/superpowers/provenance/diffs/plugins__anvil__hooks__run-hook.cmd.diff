@@ -1,0 +1,46 @@
+diff --git a/superpowers/hooks/run-hook.cmd b/plugins/anvil/hooks/run-hook.cmd
+index 4501021..17462ca 100644
+--- a/superpowers/hooks/run-hook.cmd
++++ b/plugins/anvil/hooks/run-hook.cmd
+@@ -1,6 +1,7 @@
+ : << 'CMDBLOCK'
+ @echo off
+-REM Cross-platform polyglot wrapper for hook scripts.
++REM Cross-platform polyglot wrapper for Anvil's hook scripts.
++REM Adapted from superpowers@7.0.2: hooks/run-hook.cmd (comments changed only).
+ REM On Windows: cmd.exe runs the batch portion, which finds and calls bash.
+ REM On Unix: the shell interprets this as a script (: is a no-op in bash).
+ REM
+@@ -36,8 +37,8 @@ REM (System32, Sysnative, the Store alias in WindowsApps), which fail when no
+ REM Linux distro is installed.
+ if not defined BASH_EXE if defined SystemRoot for /f "delims=" %%B in ('"%SystemRoot%\System32\where.exe" $PATH:bash 2^>nul') do if not defined BASH_EXE if not "%%~xB"=="" if /i not "%%~dpB"=="%SystemRoot%\System32\" if /i not "%%~dpB"=="%SystemRoot%\Sysnative\" if /i not "%%~dpB"=="%LOCALAPPDATA%\Microsoft\WindowsApps\" set "BASH_EXE=%%B"
+ 
+-REM No bash found - exit silently rather than error
+-REM (plugin still works, just without SessionStart context injection)
++REM No bash found - exit silently rather than error. Empty output with exit 0
++REM is a no-op for every hook event, so Anvil's hooks fail open.
+ if not defined BASH_EXE exit /b 0
+ 
+ REM Run bash outside any parenthesized block: cmd expands %ERRORLEVEL%
+@@ -51,7 +52,7 @@ CMDBLOCK
+ # Splits $0 on its last / or \ (cmd passes Windows paths) instead of calling
+ # dirname, and uses $BASH (bash's own absolute path, always set once bash is
+ # running) instead of a PATH lookup for bash, so this keeps working when
+-# Claude Code spawns the SessionStart hook with a broken/empty PATH
++# Claude Code spawns a hook with a broken/empty PATH
+ # (anthropics/claude-code#43127).
+ # No $(cd ... && pwd) subshell: a fork costs tens of milliseconds under Git
+ # Bash on Windows, and a relative directory is enough for the exec below.
+@@ -63,9 +64,9 @@ SCRIPT_NAME="$1"
+ shift
+ 
+ # Without bash installed, the harness runs this file with zsh or sh and $BASH
+-# is unset (#2503). session-start runs unchanged under zsh, so fall back to
+-# it, and otherwise exit quietly like the Windows half: the plugin still
+-# works, just without SessionStart context injection.
++# is unset (#2503). Anvil's hook scripts parse under zsh, so fall back to it,
++# and otherwise exit quietly like the Windows half: empty output with exit 0
++# is a no-op, so the hooks fail open.
+ if [ -n "${BASH:-}" ]; then
+   shell="$BASH"
+ elif command -v bash >/dev/null 2>&1; then

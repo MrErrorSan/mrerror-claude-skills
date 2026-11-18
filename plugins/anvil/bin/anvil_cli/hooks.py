@@ -71,14 +71,20 @@ def session_start(event: dict) -> dict:
     if afk.get("on"):
         facts.append(f"AFK is on, from Saad's words \"{afk.get('quote')}\": decisions go to the "
                      "decision log instead of questions, and the Stop hook holds the run while "
-                     "tasks are open.")
+                     "tasks are open or the stage is build or verify, until a new Stop note "
+                     "says why it stopped.")
     return {"hookSpecificOutput": {"hookEventName": "SessionStart",
                                    "additionalContext": "\n".join(facts)}}
 
 
 def user_prompt_submit(event: dict) -> dict:
-    state.append_jsonl(_cwd(event), "prompts.jsonl",
-                       {"ts": time.time(), "prompt": event.get("prompt", "")}, keep=500)
+    cwd, prompt = _cwd(event), str(event.get("prompt", ""))
+    if gate.is_injected(prompt):
+        return {}  # a turn Claude Code started itself: not Saad's words, and he isn't back
+    state.append_jsonl(cwd, "prompts.jsonl", {"ts": time.time(), "prompt": prompt}, keep=500)
+    # A message without an AFK phrase means Saad is back.
+    if state.load(cwd, "afk.json", {}).get("on") and not gate.has_afk_phrase(prompt):
+        gate.afk_off(cwd)
     return {}
 
 
@@ -110,7 +116,9 @@ def pre_tool_use(event: dict) -> dict:
             return _deny(f"{reason} Until then, edits outside {topic['dir']} are held. The "
                          f"{which} gets approved by showing it to Saad and running "
                          f"`anvil present {which}`, then Saad's reply, recorded with "
-                         f"`anvil approve {which} --quote \"<his words>\"`.")
+                         f"`anvil approve {which} --quote \"<his words>\"`. If this edit is "
+                         f"unrelated to topic {topic['slug']}, park it with `anvil topic end` "
+                         "(its documents stay).")
     return _keep_test(folder, path) if path else {}
 
 
@@ -137,7 +145,7 @@ def _sets_approval(folder: Path, path: Path, tool: str, inp: dict) -> bool:
 
 def _keep_test(folder: Path, path: Path) -> dict:
     plan = folder / "plan.md"
-    if not plan.exists():
+    if not plan.exists() or not path.exists():  # a new file is being written, not changed
         return {}
     try:
         rel = path.resolve().relative_to(state.repo_root(folder).resolve()).as_posix()
@@ -205,8 +213,10 @@ def _fresh_result(cwd: Path, command: str) -> dict:
         rec = results.fresh(cwd, cmd, s)
         if rec:
             summary = "\n".join(str(rec.get("summary", "")).splitlines()[-20:])
-            return _deny(f"A fresh green result exists for this code state: {rec['tests_ran']} "
-                         f"tests passed at {rec['ts']} (scope {rec['scope']}). Recorded "
+            what = ("it passed" if rec["scope"] == "check"
+                    else f"{rec['tests_ran']} tests passed")
+            return _deny(f"A fresh green result exists for this code state: {what} at "
+                         f"{rec['ts']} (scope {rec['scope']}). Recorded "
                          f"summary:\n{summary}\nTo run it again anyway, prefix the command "
                          "with `ANVIL_RERUN=1 `.")
     return {}
@@ -214,32 +224,40 @@ def _fresh_result(cwd: Path, command: str) -> dict:
 
 def stop(event: dict) -> dict:
     cwd = _cwd(event)
-    if not state.active_topic(cwd) or not gate.afk_status(cwd).get("on"):
+    topic = state.active_topic(cwd)
+    afk = gate.afk_status(cwd)
+    if not topic or not afk.get("on"):
         return {}
     path = state.topic_dir(cwd) / "progress.md"
     if not path.exists():
         return {}
-    section, open_ids = None, []
+    section, open_ids, running = None, [], False
     for line in docs.read_text(path).splitlines():
         if line.startswith("## "):
             section = line[3:].strip().lower()
             continue
         m = TASK_RE.match(line)
         if section == "tasks" and m:
-            open_ids.append(m.group(2))
+            running = running or m.group(1) == "~"
+            if m.group(1) == " ":
+                open_ids.append(m.group(2))
+    if running:  # lanes run in the background and re-invoke the session when they end
+        return {}
     digest = progress.stop_note_hash(cwd)
     # `afk on` records the baseline; without one since AFK turned on, the note as it
     # stands now is the baseline.
     prev = state.load(cwd, "stop.json", None)
-    fresh = prev and prev.get("ts", 0) >= (gate.afk_status(cwd).get("ts") or 0)
+    fresh = prev and prev.get("ts", 0) >= (afk.get("ts") or 0)
     prev_hash = prev["hash"] if fresh else digest
     # Recorded on every AFK stop, so a note counts as new only once.
     state.save(cwd, "stop.json", {"hash": digest, "ts": time.time()})
-    if event.get("stop_hook_active") or not open_ids or digest != prev_hash:
+    todo = (f"open tasks {', '.join(open_ids)}" if open_ids
+            else f"stage {topic.get('stage')}" if topic.get("stage") in ("build", "verify")
+            else None)
+    if event.get("stop_hook_active") or not todo or digest != prev_hash:
         return {}
     return {"decision": "block",
-            "reason": f"AFK: open tasks {', '.join(open_ids)}. Continue, or write a Stop note "
-                      "in progress.md."}
+            "reason": f"AFK: {todo} still to do. Continue, or write a Stop note in progress.md."}
 
 
 HANDLERS = {"session-start": session_start, "user-prompt-submit": user_prompt_submit,

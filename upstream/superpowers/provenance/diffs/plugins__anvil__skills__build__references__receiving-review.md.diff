@@ -1,0 +1,468 @@
+diff --git a/superpowers/skills/receiving-code-review/SKILL.md b/plugins/anvil/skills/build/references/receiving-review.md
+index 950da7b..16eb7a0 100644
+--- a/superpowers/skills/receiving-code-review/SKILL.md
++++ b/plugins/anvil/skills/build/references/receiving-review.md
+@@ -1,205 +1,61 @@
+----
+-name: receiving-code-review
+-description: Use when receiving code review feedback, before implementing suggestions, especially if feedback seems unclear or technically questionable - requires technical rigor and verification, not performative agreement or blind implementation
+----
++<!-- adapted from superpowers@7.0.2: skills/receiving-code-review/SKILL.md -->
++<!-- adapted from superpowers@7.0.2: skills/subagent-driven-development/references/fix-loop.md -->
++<!-- adapted from superpowers@7.0.2: skills/subagent-driven-development/references/cannot-verify.md -->
+ 
+-# Code Review Reception
++# Receiving a review
+ 
+-## Overview
++Read this whenever a review comes back with anything other than two clean verdicts, and again before every fix round. It covers the per-task, wave and final reviews, and review comments from Saad.
+ 
+-Code review requires technical evaluation, not emotional performance.
++## Read it as claims
+ 
+-**Core principle:** Verify before implementing. Ask before assuming. Technical correctness over social comfort.
++A review is a set of claims about the code, from an agent that has seen less than you have. Before acting on a finding, read the lines it cites and check it against the code, the S-lines and the plan. Restate what it asks for in your own words; if you can't, it isn't clear enough to dispatch.
+ 
+-## The Response Pattern
++Agreeing out loud adds nothing. Don't write "good catch" or "you're right"; state the fix, or the evidence against the finding. Your verification decides which findings go into the loop; it doesn't let you drop them quietly.
+ 
+-```
+-WHEN receiving code review feedback:
++## Triage
+ 
+-1. READ: Complete feedback without reacting
+-2. UNDERSTAND: Restate requirement in own words (or ask)
+-3. VERIFY: Check against codebase reality
+-4. EVALUATE: Technically sound for THIS codebase?
+-5. RESPOND: Technical acknowledgment or reasoned pushback
+-6. IMPLEMENT: One item at a time, test each
+-```
++Sort every finding before any fix goes out.
+ 
+-## Forbidden Responses
++- **Spec gap, Critical, Important:** into the fix loop.
++- **Cannot verify from diff:** resolve it yourself before the task is `[x]`; you hold the plan and the cross-task context the reviewer lacked. A real gap goes into the loop as a failed spec item. Not a gap: one indented line under the task saying what you checked.
++- **Over-building items** (the simplicity checklist): remove each piece unless an S-line needs it. Removals go into the loop; each piece you keep gets a decision-log entry naming the S-line that needs it.
++- **Plan-mandated, or in conflict with the plan's text:** yours to rule on, with the spec as the binding authority. Log the ruling before acting on it. Don't dismiss a finding because the plan mandates it, and don't dispatch a fix that contradicts the plan without a logged ruling.
++- **In conflict with a decision Saad made** (a logged decision, an S-line he approved): don't fix it in the loop. Take it through [change-flow-back.md](change-flow-back.md).
++- **Minor:** never enters the loop. Record it as an indented line under the task in `progress.md` (`  - minor (deferred): <one-liner>`), and point the final review at these lines. A roll-up nobody reads is a silent discard.
++- **Out-of-scope observations** from a re-review: recorded the same way, as deferred minors. They never extend the loop.
+ 
+-**NEVER:**
+-- "You're absolutely right!" (explicit instruction-file violation)
+-- "Great point!" / "Excellent feedback!" (performative)
+-- "Let me implement that now" (before verification)
++Indented lines under a task aren't counted as tasks, so they're safe in `## Tasks`.
+ 
+-**INSTEAD:**
+-- Restate the technical requirement
+-- Ask clarifying questions
+-- Push back with technical reasoning if wrong
+-- Just start working (actions > words)
++## The fix loop
+ 
+-## Handling Unclear Feedback
++A fix round is one fix dispatch plus one scoped re-review. **Five rounds at most per task.**
+ 
+-```
+-IF any item is unclear:
+-  STOP - do not implement anything yet
+-  ASK for clarification on unclear items
++- **Rounds 1–3:** resume the original implementer with the open findings verbatim, using the fix message in [../prompts/implementer.md](../prompts/implementer.md). Its context is intact: it knows the task, the code and its own choices. If the agent can't be resumed, dispatch a fresh one with the lane brief, the report file and the findings; the report file is the memory either way.
++- **Rounds 4–5:** a fresh implementer on a model one tier up, with the same inputs and this framing: "A prior implementer attempted this task <N> times; you own it now. Read the report file for what was tried." A loop that survives three resumes usually means the implementer can't see its own problem.
++- **Every round:** the implementer checks each finding against the code (it may argue one is wrong, with evidence), fixes the rest, reruns the covering targeted tests through `anvil run --scope targeted`, appends a fix report and commits. Before the re-review, confirm the fix report has the covering tests, the command and the output. Name the covering test files in the fix message: a one-line fix doesn't need more.
++- **The re-review is scoped:** package `FIX_BASE..HEAD`, where FIX_BASE is the head the previous review saw, and dispatch [../prompts/re-review.md](../prompts/re-review.md) with the findings, the report and the package. New Critical or Important breakage in the fix diff joins the open findings.
++- **After each round,** add an indented line under the task:
++  `  - fix round <R>/5: <X> addressed, <Y> open (<one-liners>); <a7>..<b7>`
++- After a wave, fixes are batched by disjoint file groups ([waves.md](waves.md), "Batched fixes"). A batched round counts as one round for every task it touches.
+ 
+-WHY: Items may be related. Partial understanding = wrong implementation.
+-```
++Never fix findings yourself in the orchestrator session: your context stays for coordination, and an orchestrator fix skips review.
+ 
+-**Example:**
+-```
+-your human partner: "Fix 1-6"
+-You understand 1,2,3,6. Unclear on 4,5.
++## The breaker
+ 
+-❌ WRONG: Implement 1,2,3,6 now, ask about 4,5 later
+-✅ RIGHT: "I understand items 1,2,3,6. Need clarification on 4 and 5 before proceeding."
+-```
++When round 5's re-review still leaves findings open, stop dispatching and adjudicate each open finding yourself:
+ 
+-## Source-Specific Handling
++- **The reviewer is wrong, or the point is contestable:** park it. A decision-log entry: `- <date> **T<n> parked: <finding>** — <why the code stands>. Confidence: <level>. Changes if: <fact>.` The final review sees both sides.
++- **Real, but nothing downstream builds on it:** park it the same way, saying it's real and deferred.
++- **Real and load-bearing** (a later task builds on it, or it shows a plan defect): rule on the smallest change that unblocks the dependent work, log it, and carry it into the next dispatch that touches the area. Parking a structural failure lets every dependent task build on it. Stop only when the defect leaves every path forward a guess.
+ 
+-### From your human partner
+-- **Trusted** - implement after understanding
+-- **Still ask** if scope unclear
+-- **No performative agreement**
+-- **Skip to action** or technical acknowledgment
++Adjudicate only at the cap. Adjudicating earlier to end a loop is pre-judging under another name. Every adjudication is a decision-log entry; nothing is dropped silently.
+ 
+-### From External Reviewers
+-```
+-BEFORE implementing:
+-  1. Check: Technically correct for THIS codebase?
+-  2. Check: Breaks existing functionality?
+-  3. Check: Reason for current implementation?
+-  4. Check: Works on all platforms/versions?
+-  5. Check: Does reviewer understand full context?
++## Feedback from Saad
+ 
+-IF suggestion seems wrong:
+-  Push back with technical reasoning
++Saad's review comments are trusted: implement them once you understand them. Still:
+ 
+-IF can't easily verify:
+-  Say so: "I can't verify this without [X]. Should I [investigate/ask/proceed]?"
+-
+-IF conflicts with your human partner's prior decisions:
+-  Stop and discuss with your human partner first
+-```
+-
+-**your human partner's rule:** "External feedback - be skeptical, but check carefully"
+-
+-## YAGNI Check for "Professional" Features
+-
+-```
+-IF reviewer suggests "implementing properly":
+-  grep codebase for actual usage
+-
+-  IF unused: "This endpoint isn't called. Remove it (YAGNI)?"
+-  IF used: Then implement properly
+-```
+-
+-**your human partner's rule:** "You and reviewer both report to me. If we don't need this feature, don't add it."
+-
+-## Implementation Order
+-
+-```
+-FOR multi-item feedback:
+-  1. Clarify anything unclear FIRST
+-  2. Then implement in this order:
+-     - Blocking issues (breaks, security)
+-     - Simple fixes (typos, imports)
+-     - Complex fixes (refactoring, logic)
+-  3. Test each fix individually
+-  4. Verify no regressions
+-```
+-
+-## When To Push Back
+-
+-Push back when:
+-- Suggestion breaks existing functionality
+-- Reviewer lacks full context
+-- Violates YAGNI (unused feature)
+-- Technically incorrect for this stack
+-- Legacy/compatibility reasons exist
+-- Conflicts with your human partner's architectural decisions
+-
+-**How to push back:**
+-- Use technical reasoning, not defensiveness
+-- Ask specific questions
+-- Reference working tests/code
+-- Involve your human partner if architectural
+-
+-**If you're uncomfortable pushing back out loud:** Name that tension, then tell your partner about the issue you've seen. They'll appreciate your honesty.
+-
+-## Acknowledging Correct Feedback
+-
+-When feedback IS correct:
+-```
+-✅ "Fixed. [Brief description of what changed]"
+-✅ "Good catch - [specific issue]. Fixed in [location]."
+-✅ [Just fix it and show in the code]
+-
+-❌ "You're absolutely right!"
+-❌ "Great point!"
+-❌ "Thanks for catching that!"
+-❌ "Thanks for [anything]"
+-❌ ANY gratitude expression
+-```
+-
+-**Why no thanks:** Actions speak. Just fix it. The code itself shows you heard the feedback.
+-
+-**If you catch yourself about to write "Thanks":** DELETE IT. State the fix instead.
+-
+-## Gracefully Correcting Your Pushback
+-
+-If you pushed back and were wrong:
+-```
+-✅ "You were right - I checked [X] and it does [Y]. Implementing now."
+-✅ "Verified this and you're correct. My initial understanding was wrong because [reason]. Fixing."
+-
+-❌ Long apology
+-❌ Defending why you pushed back
+-❌ Over-explaining
+-```
+-
+-State the correction factually and move on.
+-
+-## Common Mistakes
+-
+-| Mistake | Fix |
+-|---------|-----|
+-| Performative agreement | State requirement or just act |
+-| Blind implementation | Verify against codebase first |
+-| Batch without testing | One at a time, test each |
+-| Assuming reviewer is right | Check if breaks things |
+-| Avoiding pushback | Technical correctness > comfort |
+-| Partial implementation | Clarify all items first |
+-| Can't verify, proceed anyway | State limitation, ask for direction |
+-
+-## Real Examples
+-
+-**Performative Agreement (Bad):**
+-```
+-Reviewer: "Remove legacy code"
+-❌ "You're absolutely right! Let me remove that..."
+-```
+-
+-**Technical Verification (Good):**
+-```
+-Reviewer: "Remove legacy code"
+-✅ "Checking... build target is 10.15+, this API needs 13+. Need legacy for backward compat. Current impl has wrong bundle ID - fix it or drop pre-13 support?"
+-```
+-
+-**YAGNI (Good):**
+-```
+-Reviewer: "Implement proper metrics tracking with database, date filters, CSV export"
+-✅ "Grepped codebase - nothing calls this endpoint. Remove it (YAGNI)? Or is there usage I'm missing?"
+-```
+-
+-**Unclear Item (Good):**
+-```
+-your human partner: "Fix items 1-6"
+-You understand 1,2,3,6. Unclear on 4,5.
+-✅ "Understand 1,2,3,6. Need clarification on 4 and 5 before implementing."
+-```
+-
+-## GitHub Thread Replies
+-
+-When replying to inline review comments on GitHub, reply in the comment thread (`gh api repos/{owner}/{repo}/pulls/{pr}/comments/{id}/replies`), not as a top-level PR comment.
++- If any item is unclear, ask about every unclear item before implementing any of them. Items are often related, and a partial reading builds the wrong thing.
++- If an item conflicts with an approved S-line or a logged decision, it's a change request: [change-flow-back.md](change-flow-back.md).
++- If an item would add something nothing uses, check for real usage first (search the code) and say what you found.
++- If you think an item is technically wrong for this codebase (it breaks existing behavior, a platform or version needs the current code, the context is missing), say so once, with the evidence, and let him decide. If you pushed back and were wrong, say what you checked and fix it; no long apology.
++- Implement in this order: blocking issues (breakage, security), then simple fixes, then complex ones. Each change goes through an implementer and the targeted tests, like any fix.
+diff --git a/superpowers/skills/subagent-driven-development/references/fix-loop.md b/plugins/anvil/skills/build/references/receiving-review.md
+index 34e4a48..16eb7a0 100644
+--- a/superpowers/skills/subagent-driven-development/references/fix-loop.md
++++ b/plugins/anvil/skills/build/references/receiving-review.md
+@@ -1,77 +1,61 @@
+-# The Fix Loop
+-
+-Part of superpowers:subagent-driven-development. The task review reported
+-spec ❌, a Critical or Important finding, or a ⚠️ item you confirmed as a real
+-gap.
+-
+-Before the loop starts, two routes leave it immediately:
+-
+-- Record Minor findings in the progress ledger as you go
+-  (`Task <N>: minor (deferred): <one-liner>`), and point the final
+-  whole-branch review at that list so it can triage which must be fixed
+-  before merge. A roll-up nobody reads is a silent discard. Minor findings
+-  never enter the loop.
+-- A finding labeled plan-mandated — or any finding that conflicts with
+-  what the plan's text requires — is yours to rule on: weigh the finding
+-  against the plan text, decide with the spec as the binding authority, and
+-  ledger the ruling before you act on it. Do not dismiss the finding because
+-  the plan mandates it, and do not dispatch a fix that contradicts the plan
+-  without a recorded ruling.
+-Everything else enters the loop. A fix round is one fix dispatch plus one
+-scoped re-review. Five rounds maximum per task:
+-
+-**Rounds 1-3 — resume the original implementer.** Send it the open findings
+-verbatim. Its context is intact: it knows the task, the code, and its own
+-choices. If your harness cannot send another message to a live subagent,
+-dispatch a fresh implementer carrying the brief path, the report-file path,
+-and the findings — the report file is the persistent memory either way.
+-
+-**Rounds 4-5 — dispatch a fresh implementer on a more capable model** (per
+-SKILL.md's Model Selection), with the brief path, the report-file path, the open
+-findings, and this framing: "A prior implementer attempted this task
+-[N] times; you own it now. Read the report file for what was tried." A loop
+-that survives three resumes usually means the implementer cannot see its
+-own problem — fresh eyes and a capability bump in one move.
+-
+-**Every round, either way:** the implementer fixes, re-runs the tests
+-covering the amended code, appends its fix report to the same report file,
+-and returns the short contract. Before re-dispatching the reviewer, confirm
+-the fix report contains the covering tests, the command run, and the
+-output; dispatch the re-review once all three are present. Name the
+-covering test files in the fix message — a one-line fix does not need the
+-whole suite.
+-
+-**The re-review is scoped.** Run `bash scripts/review-package PLAN_FILE FIX_BASE HEAD`
+-by its absolute path, from the working tree you're executing in, where FIX_BASE is the head the previous review saw, and dispatch
+-[re-review-prompt.md](../re-review-prompt.md) with the findings list, the
+-brief, the report file, and the printed diff path. The re-reviewer verdicts
+-each finding ADDRESSED or NOT ADDRESSED and flags new breakage in the fix
+-diff only. New Critical/Important breakage in the fix diff joins the open
+-findings list. Out-of-scope observations go to the ledger as deferred
+-minors — they never extend the loop.
+-
+-**After each round,** append to the ledger:
+-`Task <N>: fix round <R>/5 (<X> addressed, <Y> open — <finding one-liners>; commits <a7>..<b7>)`
+-
+-Never fix findings yourself in the controller session — your context stays
+-clean for coordination, and controller fixes skip review.
+-
+-**The breaker.** When round 5's re-review still leaves findings open, stop
+-dispatching. Adjudicate each open finding yourself — you hold the plan and
+-the cross-task context the reviewer lacks:
+-
+-- **The reviewer is wrong, or the point is contestable:** park it —
+-  `Task <N>: parked — <finding> — Ruling: <why the code stands>`. The final
+-  review sees both sides.
+-- **Real, but nothing downstream builds on it:** park it the same way, with
+-  a ruling that says it's real and deferred.
+-- **Real and load-bearing** — a later task builds on it, or it reveals a
+-  plan defect: rule on the smallest change that unblocks the dependent work,
+-  ledger it as `Task <N>: Ruling: <finding> — <what you decided and why>`,
+-  and carry it into the next task's dispatch. Parking a structural failure
+-  silently lets every dependent task build on it. Stop only when the defect
+-  leaves every path forward a guess.
+-
+-Adjudicate only at the cap. Adjudicating earlier to end a loop is
+-pre-judging with a different name. Every adjudication is a ledger entry —
+-a silent discard is forbidden.
++<!-- adapted from superpowers@7.0.2: skills/receiving-code-review/SKILL.md -->
++<!-- adapted from superpowers@7.0.2: skills/subagent-driven-development/references/fix-loop.md -->
++<!-- adapted from superpowers@7.0.2: skills/subagent-driven-development/references/cannot-verify.md -->
++
++# Receiving a review
++
++Read this whenever a review comes back with anything other than two clean verdicts, and again before every fix round. It covers the per-task, wave and final reviews, and review comments from Saad.
++
++## Read it as claims
++
++A review is a set of claims about the code, from an agent that has seen less than you have. Before acting on a finding, read the lines it cites and check it against the code, the S-lines and the plan. Restate what it asks for in your own words; if you can't, it isn't clear enough to dispatch.
++
++Agreeing out loud adds nothing. Don't write "good catch" or "you're right"; state the fix, or the evidence against the finding. Your verification decides which findings go into the loop; it doesn't let you drop them quietly.
++
++## Triage
++
++Sort every finding before any fix goes out.
++
++- **Spec gap, Critical, Important:** into the fix loop.
++- **Cannot verify from diff:** resolve it yourself before the task is `[x]`; you hold the plan and the cross-task context the reviewer lacked. A real gap goes into the loop as a failed spec item. Not a gap: one indented line under the task saying what you checked.
++- **Over-building items** (the simplicity checklist): remove each piece unless an S-line needs it. Removals go into the loop; each piece you keep gets a decision-log entry naming the S-line that needs it.
++- **Plan-mandated, or in conflict with the plan's text:** yours to rule on, with the spec as the binding authority. Log the ruling before acting on it. Don't dismiss a finding because the plan mandates it, and don't dispatch a fix that contradicts the plan without a logged ruling.
++- **In conflict with a decision Saad made** (a logged decision, an S-line he approved): don't fix it in the loop. Take it through [change-flow-back.md](change-flow-back.md).
++- **Minor:** never enters the loop. Record it as an indented line under the task in `progress.md` (`  - minor (deferred): <one-liner>`), and point the final review at these lines. A roll-up nobody reads is a silent discard.
++- **Out-of-scope observations** from a re-review: recorded the same way, as deferred minors. They never extend the loop.
++
++Indented lines under a task aren't counted as tasks, so they're safe in `## Tasks`.
++
++## The fix loop
++
++A fix round is one fix dispatch plus one scoped re-review. **Five rounds at most per task.**
++
++- **Rounds 1–3:** resume the original implementer with the open findings verbatim, using the fix message in [../prompts/implementer.md](../prompts/implementer.md). Its context is intact: it knows the task, the code and its own choices. If the agent can't be resumed, dispatch a fresh one with the lane brief, the report file and the findings; the report file is the memory either way.
++- **Rounds 4–5:** a fresh implementer on a model one tier up, with the same inputs and this framing: "A prior implementer attempted this task <N> times; you own it now. Read the report file for what was tried." A loop that survives three resumes usually means the implementer can't see its own problem.
++- **Every round:** the implementer checks each finding against the code (it may argue one is wrong, with evidence), fixes the rest, reruns the covering targeted tests through `anvil run --scope targeted`, appends a fix report and commits. Before the re-review, confirm the fix report has the covering tests, the command and the output. Name the covering test files in the fix message: a one-line fix doesn't need more.
++- **The re-review is scoped:** package `FIX_BASE..HEAD`, where FIX_BASE is the head the previous review saw, and dispatch [../prompts/re-review.md](../prompts/re-review.md) with the findings, the report and the package. New Critical or Important breakage in the fix diff joins the open findings.
++- **After each round,** add an indented line under the task:
++  `  - fix round <R>/5: <X> addressed, <Y> open (<one-liners>); <a7>..<b7>`
++- After a wave, fixes are batched by disjoint file groups ([waves.md](waves.md), "Batched fixes"). A batched round counts as one round for every task it touches.
++
++Never fix findings yourself in the orchestrator session: your context stays for coordination, and an orchestrator fix skips review.
++
++## The breaker
++
++When round 5's re-review still leaves findings open, stop dispatching and adjudicate each open finding yourself:
++
++- **The reviewer is wrong, or the point is contestable:** park it. A decision-log entry: `- <date> **T<n> parked: <finding>** — <why the code stands>. Confidence: <level>. Changes if: <fact>.` The final review sees both sides.
++- **Real, but nothing downstream builds on it:** park it the same way, saying it's real and deferred.
++- **Real and load-bearing** (a later task builds on it, or it shows a plan defect): rule on the smallest change that unblocks the dependent work, log it, and carry it into the next dispatch that touches the area. Parking a structural failure lets every dependent task build on it. Stop only when the defect leaves every path forward a guess.
++
++Adjudicate only at the cap. Adjudicating earlier to end a loop is pre-judging under another name. Every adjudication is a decision-log entry; nothing is dropped silently.
++
++## Feedback from Saad
++
++Saad's review comments are trusted: implement them once you understand them. Still:
++
++- If any item is unclear, ask about every unclear item before implementing any of them. Items are often related, and a partial reading builds the wrong thing.
++- If an item conflicts with an approved S-line or a logged decision, it's a change request: [change-flow-back.md](change-flow-back.md).
++- If an item would add something nothing uses, check for real usage first (search the code) and say what you found.
++- If you think an item is technically wrong for this codebase (it breaks existing behavior, a platform or version needs the current code, the context is missing), say so once, with the evidence, and let him decide. If you pushed back and were wrong, say what you checked and fix it; no long apology.
++- Implement in this order: blocking issues (breakage, security), then simple fixes, then complex ones. Each change goes through an implementer and the targeted tests, like any fix.
+diff --git a/superpowers/skills/subagent-driven-development/references/cannot-verify.md b/plugins/anvil/skills/build/references/receiving-review.md
+index e952f2d..16eb7a0 100644
+--- a/superpowers/skills/subagent-driven-development/references/cannot-verify.md
++++ b/plugins/anvil/skills/build/references/receiving-review.md
+@@ -1,10 +1,61 @@
+-# "Cannot Verify From Diff" Items
++<!-- adapted from superpowers@7.0.2: skills/receiving-code-review/SKILL.md -->
++<!-- adapted from superpowers@7.0.2: skills/subagent-driven-development/references/fix-loop.md -->
++<!-- adapted from superpowers@7.0.2: skills/subagent-driven-development/references/cannot-verify.md -->
+ 
+-Part of superpowers:subagent-driven-development.
++# Receiving a review
+ 
+-The task reviewer may report "⚠️ Cannot verify from diff" items — requirements
+-that live in unchanged code or span tasks. These do not block the rest of the
+-review, but you must resolve each one yourself before marking the task
+-complete: you hold the plan and cross-task context the reviewer
+-lacks. If you confirm an item is a real gap, treat it as a failed spec
+-review — it enters the fix loop with the other findings.
++Read this whenever a review comes back with anything other than two clean verdicts, and again before every fix round. It covers the per-task, wave and final reviews, and review comments from Saad.
++
++## Read it as claims
++
++A review is a set of claims about the code, from an agent that has seen less than you have. Before acting on a finding, read the lines it cites and check it against the code, the S-lines and the plan. Restate what it asks for in your own words; if you can't, it isn't clear enough to dispatch.
++
++Agreeing out loud adds nothing. Don't write "good catch" or "you're right"; state the fix, or the evidence against the finding. Your verification decides which findings go into the loop; it doesn't let you drop them quietly.
++
++## Triage
++
++Sort every finding before any fix goes out.
++
++- **Spec gap, Critical, Important:** into the fix loop.
++- **Cannot verify from diff:** resolve it yourself before the task is `[x]`; you hold the plan and the cross-task context the reviewer lacked. A real gap goes into the loop as a failed spec item. Not a gap: one indented line under the task saying what you checked.
++- **Over-building items** (the simplicity checklist): remove each piece unless an S-line needs it. Removals go into the loop; each piece you keep gets a decision-log entry naming the S-line that needs it.
++- **Plan-mandated, or in conflict with the plan's text:** yours to rule on, with the spec as the binding authority. Log the ruling before acting on it. Don't dismiss a finding because the plan mandates it, and don't dispatch a fix that contradicts the plan without a logged ruling.
++- **In conflict with a decision Saad made** (a logged decision, an S-line he approved): don't fix it in the loop. Take it through [change-flow-back.md](change-flow-back.md).
++- **Minor:** never enters the loop. Record it as an indented line under the task in `progress.md` (`  - minor (deferred): <one-liner>`), and point the final review at these lines. A roll-up nobody reads is a silent discard.
++- **Out-of-scope observations** from a re-review: recorded the same way, as deferred minors. They never extend the loop.
++
++Indented lines under a task aren't counted as tasks, so they're safe in `## Tasks`.
++
++## The fix loop
++
++A fix round is one fix dispatch plus one scoped re-review. **Five rounds at most per task.**
++
++- **Rounds 1–3:** resume the original implementer with the open findings verbatim, using the fix message in [../prompts/implementer.md](../prompts/implementer.md). Its context is intact: it knows the task, the code and its own choices. If the agent can't be resumed, dispatch a fresh one with the lane brief, the report file and the findings; the report file is the memory either way.
++- **Rounds 4–5:** a fresh implementer on a model one tier up, with the same inputs and this framing: "A prior implementer attempted this task <N> times; you own it now. Read the report file for what was tried." A loop that survives three resumes usually means the implementer can't see its own problem.
++- **Every round:** the implementer checks each finding against the code (it may argue one is wrong, with evidence), fixes the rest, reruns the covering targeted tests through `anvil run --scope targeted`, appends a fix report and commits. Before the re-review, confirm the fix report has the covering tests, the command and the output. Name the covering test files in the fix message: a one-line fix doesn't need more.
++- **The re-review is scoped:** package `FIX_BASE..HEAD`, where FIX_BASE is the head the previous review saw, and dispatch [../prompts/re-review.md](../prompts/re-review.md) with the findings, the report and the package. New Critical or Important breakage in the fix diff joins the open findings.
++- **After each round,** add an indented line under the task:
++  `  - fix round <R>/5: <X> addressed, <Y> open (<one-liners>); <a7>..<b7>`
++- After a wave, fixes are batched by disjoint file groups ([waves.md](waves.md), "Batched fixes"). A batched round counts as one round for every task it touches.
++
++Never fix findings yourself in the orchestrator session: your context stays for coordination, and an orchestrator fix skips review.
++
++## The breaker
++
++When round 5's re-review still leaves findings open, stop dispatching and adjudicate each open finding yourself:
++
++- **The reviewer is wrong, or the point is contestable:** park it. A decision-log entry: `- <date> **T<n> parked: <finding>** — <why the code stands>. Confidence: <level>. Changes if: <fact>.` The final review sees both sides.
++- **Real, but nothing downstream builds on it:** park it the same way, saying it's real and deferred.
++- **Real and load-bearing** (a later task builds on it, or it shows a plan defect): rule on the smallest change that unblocks the dependent work, log it, and carry it into the next dispatch that touches the area. Parking a structural failure lets every dependent task build on it. Stop only when the defect leaves every path forward a guess.
++
++Adjudicate only at the cap. Adjudicating earlier to end a loop is pre-judging under another name. Every adjudication is a decision-log entry; nothing is dropped silently.
++
++## Feedback from Saad
++
++Saad's review comments are trusted: implement them once you understand them. Still:
++
++- If any item is unclear, ask about every unclear item before implementing any of them. Items are often related, and a partial reading builds the wrong thing.
++- If an item conflicts with an approved S-line or a logged decision, it's a change request: [change-flow-back.md](change-flow-back.md).
++- If an item would add something nothing uses, check for real usage first (search the code) and say what you found.
++- If you think an item is technically wrong for this codebase (it breaks existing behavior, a platform or version needs the current code, the context is missing), say so once, with the evidence, and let him decide. If you pushed back and were wrong, say what you checked and fix it; no long apology.
++- Implement in this order: blocking issues (breakage, security), then simple fixes, then complex ones. Each change goes through an implementer and the targeted tests, like any fix.

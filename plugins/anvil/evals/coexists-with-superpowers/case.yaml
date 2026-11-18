@@ -1,0 +1,19 @@
+schema_version: "1.1"
+name: coexists-with-superpowers
+description: |
+  With a Superpowers-like plugin loaded too, Anvil leads. Run with --scaffold and --allow-tools
+  Write Edit Bash. Project skills in a fixture's .claude/skills/ are not loaded by
+  `claude plugin eval` (runs read no project configuration), so the competitor ships as a second
+  plugin under test: superpowers-fixture/ (plugin name "superpowers", with brainstorming,
+  writing-plans, test-driven-development and using-superpowers skills whose descriptions match
+  Superpowers 7.0.2, and a SessionStart hook that pushes them). If the runner rejects a second
+  entry in `plugins`, run this case against an install where the real Superpowers plugin is
+  enabled next to Anvil instead (the graders still apply), and say so in the T15 notes.
+plugins: ["../..", "superpowers-fixture"]
+expected_outcome: |
+  The anvil router fires first and states the size (full: a new feature with open questions)
+  with a reason, starts the topic with `anvil topic start`, and hands to anvil:brainstorm.
+  None of the stand-in's skills (brainstorming, writing-plans, test-driven-development,
+  using-superpowers) is invoked, and no design doc goes to docs/designs/.
+context:
+  scaffold_script: place-files.sh

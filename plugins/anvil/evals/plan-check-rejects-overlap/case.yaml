@@ -1,0 +1,16 @@
+schema_version: "1.1"
+name: plan-check-rejects-overlap
+description: |
+  plan-check finds overlapping write sets and the plan answers it. Run with --scaffold and
+  --allow-tools Write Edit Bash. The scaffold commits an approved spec and a draft plan whose
+  wave 1 has T3, T4 and T5 all writing tally/registry.py, and seeds the active topic
+  (.git/anvil/active.json, stage plan).
+expected_outcome: |
+  The plan skill runs `anvil plan-check`, which reports write-overlap for T3/T4/T5 on
+  tally/registry.py. The plan's "## Execution" section answers it: either the plan is changed
+  (the registry entries move to the T1 foundations task, or the tasks are put in separate waves)
+  and plan-check is rerun clean, or the plan runs sequentially and names the overlap as the
+  reason. Parallel is never proposed over an open finding, even though Saad asked for parallel.
+  The plan stays "Approved: no" and the turn ends at stop 2.
+context:
+  scaffold_script: place-files.sh

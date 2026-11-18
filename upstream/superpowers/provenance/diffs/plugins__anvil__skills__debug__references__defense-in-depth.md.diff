@@ -1,0 +1,149 @@
+diff --git a/superpowers/skills/systematic-debugging/defense-in-depth.md b/plugins/anvil/skills/debug/references/defense-in-depth.md
+index e248335..26867bd 100644
+--- a/superpowers/skills/systematic-debugging/defense-in-depth.md
++++ b/plugins/anvil/skills/debug/references/defense-in-depth.md
+@@ -1,26 +1,27 @@
+-# Defense-in-Depth Validation
++<!-- adapted from superpowers@7.0.2: skills/systematic-debugging/defense-in-depth.md -->
+ 
+-## Overview
++# Defense in depth
+ 
+-When you fix a bug caused by invalid data, adding validation at one place feels sufficient. But that single check can be bypassed by different code paths, refactoring, or mocks.
++When you fix a bug caused by invalid data, one validation check feels like enough. But another code path, a later refactor or a mock can go around that one check.
+ 
+-**Core principle:** Validate at EVERY layer data passes through. Make the bug structurally impossible.
++So validate at each layer the data passes through, and make the bug structurally impossible rather than fixed once.
+ 
+-## Why Multiple Layers
++## Why several layers
+ 
+-Single validation: "We fixed the bug"
+-Multiple layers: "We made the bug impossible"
++One check says "we fixed the bug". Several say "this bug can't happen". Different layers catch different cases:
+ 
+-Different layers catch different cases:
+-- Entry validation catches most bugs
+-- Business logic catches edge cases
+-- Environment guards prevent context-specific dangers
+-- Debug logging helps when other layers fail
++- entry validation catches most bugs;
++- business-logic checks catch edge cases;
++- environment guards stop dangers specific to a context (tests, CI);
++- debug logging helps when the other layers fail.
+ 
+-## The Four Layers
++Match the depth to the bug. A wrong path that ran `git init` in the source tree earns four layers; an off-by-one in a formatter earns its fix and its repro test.
+ 
+-### Layer 1: Entry Point Validation
+-**Purpose:** Reject obviously invalid input at API boundary
++## The four layers
++
++### Layer 1: entry point validation
++
++Reject obviously invalid input at the API boundary.
+ 
+ ```typescript
+ function createProject(name: string, workingDirectory: string) {
+@@ -37,8 +38,9 @@ function createProject(name: string, workingDirectory: string) {
+ }
+ ```
+ 
+-### Layer 2: Business Logic Validation
+-**Purpose:** Ensure data makes sense for this operation
++### Layer 2: business logic validation
++
++Check that the data makes sense for this operation.
+ 
+ ```typescript
+ function initializeWorkspace(projectDir: string, sessionId: string) {
+@@ -49,8 +51,9 @@ function initializeWorkspace(projectDir: string, sessionId: string) {
+ }
+ ```
+ 
+-### Layer 3: Environment Guards
+-**Purpose:** Prevent dangerous operations in specific contexts
++### Layer 3: environment guards
++
++Refuse dangerous operations in specific contexts.
+ 
+ ```typescript
+ async function gitInit(directory: string) {
+@@ -69,8 +72,9 @@ async function gitInit(directory: string) {
+ }
+ ```
+ 
+-### Layer 4: Debug Instrumentation
+-**Purpose:** Capture context for forensics
++### Layer 4: debug instrumentation
++
++Capture context for later investigation.
+ 
+ ```typescript
+ async function gitInit(directory: string) {
+@@ -84,39 +88,40 @@ async function gitInit(directory: string) {
+ }
+ ```
+ 
+-## Applying the Pattern
++## Applying the pattern
+ 
+-When you find a bug:
++1. **Trace the data flow:** where does the bad value start, and where is it used?
++2. **Map the checkpoints:** list each point the data passes through.
++3. **Add validation at each layer:** entry, business logic, environment, debug.
++4. **Test each layer:** get past layer 1 on purpose and check that layer 2 catches it.
+ 
+-1. **Trace the data flow** - Where does bad value originate? Where used?
+-2. **Map all checkpoints** - List every point data passes through
+-3. **Add validation at each layer** - Entry, business, environment, debug
+-4. **Test each layer** - Try to bypass layer 1, verify layer 2 catches it
++## Example
+ 
+-## Example from Session
+-
+-Bug: Empty `projectDir` caused `git init` in source code
++Bug: an empty `projectDir` caused `git init` in the source code.
+ 
+ **Data flow:**
+-1. Test setup → empty string
+-2. `Project.create(name, '')`
+-3. `WorkspaceManager.createWorkspace('')`
+-4. `git init` runs in `process.cwd()`
++
++1. Test setup → empty string.
++2. `Project.create(name, '')`.
++3. `WorkspaceManager.createWorkspace('')`.
++4. `git init` runs in `process.cwd()`.
+ 
+ **Four layers added:**
+-- Layer 1: `Project.create()` validates not empty/exists/writable
+-- Layer 2: `WorkspaceManager` validates projectDir not empty
+-- Layer 3: `WorktreeManager` refuses git init outside tmpdir in tests
+-- Layer 4: Stack trace logging before git init
+ 
+-**Result:** All 1847 tests passed, bug impossible to reproduce
++- Layer 1: `Project.create()` checks the directory is not empty, exists and is writable.
++- Layer 2: `WorkspaceManager` checks projectDir is not empty.
++- Layer 3: `WorktreeManager` refuses `git init` outside the temp dir in tests.
++- Layer 4: a stack trace is logged before `git init`.
++
++**Result:** all 1847 tests passed, and the bug could no longer be reproduced.
++
++## What that session showed
+ 
+-## Key Insight
++Each of the four layers caught something the others missed:
+ 
+-All four layers were necessary. During testing, each layer caught bugs the others missed:
+-- Different code paths bypassed entry validation
+-- Mocks bypassed business logic checks
+-- Edge cases on different platforms needed environment guards
+-- Debug logging identified structural misuse
++- other code paths went around the entry validation;
++- mocks went around the business-logic checks;
++- edge cases on other platforms needed the environment guard;
++- the debug logging exposed structural misuse.
+ 
+-**Don't stop at one validation point.** Add checks at every layer.
++One validation point is rarely enough for a bug like this.

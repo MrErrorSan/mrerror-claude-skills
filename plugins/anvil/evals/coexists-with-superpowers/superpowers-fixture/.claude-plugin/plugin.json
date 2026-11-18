@@ -1,0 +1,5 @@
+{
+  "name": "superpowers",
+  "version": "0.0.0-fixture",
+  "description": "Eval fixture for Anvil: a small stand-in for the Superpowers plugin, with competing process skills and a session-start nudge. Not the real plugin."
+}

@@ -1,0 +1,306 @@
+diff --git a/superpowers/skills/writing-plans/SKILL.md b/plugins/anvil/skills/plan/SKILL.md
+index 4cf0275..283eebe 100644
+--- a/superpowers/skills/writing-plans/SKILL.md
++++ b/plugins/anvil/skills/plan/SKILL.md
+@@ -1,204 +1,145 @@
+ ---
+-name: writing-plans
+-description: Use when you have a spec or requirements for a multi-step task, before touching code
++name: plan
++description: Use when an Anvil topic reaches the plan stage - right after Saad approves the spec at stop 1, or after brainstorm has written the spec part of a direct-size plan.md - and when Saad asks to write, redo or revise the implementation plan before the build starts.
+ ---
++<!-- adapted from superpowers@7.0.2: skills/writing-plans/SKILL.md -->
+ 
+-# Writing Plans
++# Plan
+ 
+-## Overview
++The plan turns spec lines into tasks an implementer can build without guessing. Write it for an engineer who has not seen this codebase or this spec. Assume they write idiomatic code in the project's language once they know the exact interface and the exact test, and that they make a reasonable choice wherever the plan leaves one open. What they cannot know is what you decided: which files, which names and signatures, which values from the spec, which tests prove each task. The plan records those decisions and nothing else.
+ 
+-Write implementation plans for an engineer who has not seen this codebase or this spec. Assume they write idiomatic code in the project's language once they know the exact interface and the exact test, and that they will make a reasonable choice wherever the plan leaves one open. What they cannot know is what you decided: which files, which names and signatures, which values from the spec, which tests prove each task. Document those. Give them the whole plan as bite-sized tasks. DRY. YAGNI. TDD. Frequent commits.
++Each implementer sees only its own task section, the global constraints and its S-lines, so anything a task needs from a neighbour goes in its Interfaces block.
+ 
+-**Announce at start:** "I'm using the writing-plans skill to create the implementation plan."
++## Entry
+ 
+-**Context:** If working in an isolated worktree, it should have been created via the `superpowers:using-git-worktrees` skill at execution time.
++1. `anvil check plan`, then `anvil topic stage plan`. If either is refused, report the reason it prints in one line (the spec isn't approved, no active topic, ...) and go back to the step it points at. Don't write a plan against an unapproved spec.
++2. Read the spec: `anvil spec-lines --live` for the S-lines, plus its shared surface, decisions and (in a redesign) its replaces/stays list. Then read the code the tasks will land in. Hand a broad lookup to a subagent and keep its conclusion.
++3. The plan goes in the topic folder, `docs/<slug>/plan.md` by default. The project's own doc rule wins.
++   - **Full size:** a new `plan.md` that points at `spec.md`.
++   - **Direct size:** `plan.md` already holds the spec part, written by brainstorm. Add the plan part underneath it in the same file. There is one stop, at the plan.
++4. Use [plan-template.md](references/plan-template.md) for the shape. The header lines and the three tables follow [formats.md](../../references/formats.md) exactly: `bin/anvil` parses them, and a renamed column or heading breaks the gates.
+ 
+-**Save plans to:** `docs/superpowers/plans/YYYY-MM-DD-<feature-name>.md`
+-- (User preferences for plan location override this default)
++If the work is bigger than its size (a direct topic needing more than about 5 tasks, or a question the spec doesn't answer), say so, step up with `anvil topic start <slug> --size full`, move the spec part of `plan.md` into a new `spec.md`, and go back to brainstorm rather than planning around the gap.
+ 
+-## Scope Check
++## File structure first
+ 
+-If the spec covers multiple independent subsystems, it should have been broken into sub-project specs during brainstorming. If it wasn't, suggest breaking this into separate plans — one per subsystem. Each plan should produce working, testable software on its own.
++If the spec covers several independent subsystems, suggest one plan per subsystem, each working and testable on its own.
+ 
+-## File Structure
++Before drawing tasks, map which files get created or changed and what each one is for. This is where decomposition gets locked in.
+ 
+-Before defining tasks, map out which files will be created or modified and what each one is responsible for. This is where decomposition decisions get locked in.
++- One clear responsibility per file, with a clear interface.
++- Files that change together live together. Split by responsibility, not by technical layer.
++- In an existing codebase, follow its patterns. Split a file only when one you're changing has grown unwieldy.
++- Every new file, abstraction or option names the S-line that needs it. A piece with no S-line is over-building ([simplicity](../../references/simplicity.md)).
+ 
+-- Design units with clear boundaries and well-defined interfaces. Each file should have one clear responsibility.
+-- You reason best about code you can hold in context at once, and your edits are more reliable when files are focused. Prefer smaller, focused files over large ones that do too much.
+-- Files that change together should live together. Split by responsibility, not by technical layer.
+-- In existing codebases, follow established patterns. If the codebase uses large files, don't unilaterally restructure - but if a file you're modifying has grown unwieldy, including a split in the plan is reasonable.
++## Tasks
+ 
+-This structure informs the task decomposition. Each task should produce self-contained changes that make sense independently.
++A task is the smallest unit that carries its own test cycle and is worth a fresh reviewer's gate. Fold setup, configuration, scaffolding and docs into the task whose deliverable needs them. Split only where a reviewer could reject one task while approving its neighbour. Each task ends with something testable on its own.
+ 
+-## Task Right-Sizing
++**The foundations task.** When the spec has a shared surface, T1 holds it: the shared types, routes, contracts, registry entries and module declarations that more than one task touches, written as code with their exact names. It is wave 0 and runs alone, so the lanes after it build against names that can't drift. A small sequential plan whose shared surface is empty has no foundations task; its tasks start at wave 1.
+ 
+-A task is the smallest unit that carries its own test cycle and is worth a
+-fresh reviewer's gate. When drawing task boundaries: fold setup,
+-configuration, scaffolding, and documentation steps into the task whose
+-deliverable needs them; split only where a reviewer could meaningfully
+-reject one task while approving its neighbor. Each task ends with an
+-independently testable deliverable.
++**The task table** is the plan's index. Per row:
++- **Spec:** the S-lines it implements. A row with none is either over-building or a fully specified mechanical change (config, rename) marked `skip (fully specified)` in Review.
++- **Writes:** exact repo-relative paths or globs, each in backticks. This is the lane's write set; `anvil lane-check` holds it to that.
++- **Shared:** `port:<n>`, `db`, `lockfile`, `generated`, `migrations`, `devserver`, or `-`.
++- **Depends** points only at earlier waves.
++- Lockfiles, generated files and migrations go in no lane's Writes. The integrator (the orchestrator) regenerates them after merging; list that under **Integrator-only**.
++- **Review** is `yes` for every task that changes behavior.
+ 
+-## Step Granularity
++**Per-task sections** replace the checkbox steps: Spec, Files, Interfaces (Consumes and Produces, exact signatures), Tests (name, type, S-line, targeted command) and a short numbered step list.
+ 
+-**Each step is one action with a checkable result:**
+-- "Write the failing test" - step
+-- "Run it to make sure it fails" - step
+-- "Implement the minimal code to make the test pass" - step
+-- "Run the tests and make sure they pass" - step
+-- "Commit" - step
++## What a step contains
+ 
+-## Plan Document Header
++A step is done when the implementer can write exactly one reasonable thing from it: unambiguous, not complete.
+ 
+-**Every plan MUST start with this header:**
++- **A code step:** the exact signature (name, parameters, return type), the file it lives in, and the values the spec pins. The implementer writes the body. A body appears only for an algorithm the signature and tests don't determine, or for exact copy the spec fixes.
++- **A test step:** the test's name and what it asserts, with the spec's exact values.
++- **A verification step:** the command, and the output that means it passed.
++- **A reference to another task:** point at that task's Interfaces block; don't repeat its code.
+ 
+-```markdown
+-# [Feature Name] Implementation Plan
++Signatures, not bodies. A plan longer than the code it describes has written the code instead. Lines that decide nothing ("to be decided", "handle edge cases", "add appropriate validation", "write tests for the above", a type no task defines) are the opposite failure. The self-review catches both.
+ 
+-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
++## Header, global constraints, review focus
+ 
+-**Goal:** [One sentence describing what this builds]
++- **Header lines:** as in the template, then goal, architecture and tech stack.
++- **Global constraints:** the spec's project-wide requirements (version floors, dependency limits, naming and copy rules, platform needs), one line each, values copied verbatim. Lanes don't share context, so anything every task obeys is stated here once. Include the spec's mode (normal or redesign).
++- **Review focus:** the inputs or failure modes the spec implies but no task's tests would exercise, most likely to bite first, at most five. Name the input and the behavior a reasonable person would expect. The spec's silence on an input isn't permission for it to break. Then add, for each line, the test that pins it to the task that owns the code. An empty section means you checked and found none.
+ 
+-**Architecture:** [2-3 sentences about approach]
++## Test strategy
+ 
+-**Tech Stack:** [Key technologies/libraries]
++The test strategy replaces "do TDD, commit often". The rules are in [test-policy](../../references/test-policy.md); the plan applies them.
+ 
+-**Spec:** [path to the spec/design doc this plan implements — the plan
+-argues from the spec, so the spec travels with it; executors read both]
++- **Name the tests that guard each task,** in the `## Test strategy` table: Test, Type (`smoke`, `keep`, `repro`, `scaffold`), Spec, what breaks if it fails, and the owning task. Naming the affected tests is what cuts regressions; a bare "do TDD" doesn't.
++- **Stay in budget:** scaffolding, config or types get 1–2 smoke tests; a feature gets 3–5 behavior tests plus its smoke path; a bug gets a repro plus a regression guard; an enhancement covers only the new or changed behavior. Going over needs one line of reason in the plan.
++- **Test-first only for repros.** A bug-fix task writes its repro before the fix. Elsewhere the steps implement, then test.
++- **Each task names its targeted command,** run as `anvil run --scope targeted -- <cmd>`, so no lane needs the full suite.
++- **Record the full-suite command, how long it takes, and the type-check command** (`Type-check: <command | none>`). Take the duration from a recorded run, CI timings or the project docs; don't run a long suite just to time it. If it's unknown, write "not measured", and the build treats it as over 2 minutes (full suite once, at the end).
+ 
+-## Global Constraints
++## Commit points and the synced branch
+ 
+-[The spec's project-wide requirements — version floors, dependency limits,
+-naming and copy rules, platform requirements — one line each, with exact
+-values copied verbatim from the spec. Every task's requirements implicitly
+-include this section.]
++Follow [git-flow](../../references/git-flow.md). The plan decides three things there:
+ 
+-## Review Focus
++- **The synced branch**, written in the header as `<branch> (local)` or `<branch> (remote <remote>/<branch>)`. It's one of: local only; a branch made from an existing remote branch; or a new remote branch. Propose one with a reason. `main` or `master` as the synced branch needs Saad's explicit consent in his own words; without it, propose a new branch and ask at the stop. A project rule about branches wins.
++- **Commit points** (`## Commit points`: Commit, Closes, Message, Push). They sit only at wave boundaries; a small plan has one, at the end. Each names the waves and tasks it closes, a conventional commit message with no Claude co-author trailer, and whether it pushes. A local-only synced branch doesn't push.
++- **The work branch** is `anvil/<slug>/work`, local, branched from the synced branch.
+ 
+-[The five input classes or failure modes the spec implies but no task's
+-tests exercise that are most likely to bite a person using this software
+-— one line each, naming the input or condition and the behavior a
+-reasonable person would expect, most likely first. The spec is a vision
+-document: it says what the software must do, not everything it will
+-meet, and its silence on an input is not permission for that input to
+-break the program. Write the list here, once, with the spec in front of
+-you. Then, for each line, add the test that pins it to the task that
+-owns the code, in that task's own step style.]
++## Execution mode
+ 
+----
+-```
+-
+-## Task Structure
+-
+-````markdown
+-### Task N: [Component Name]
+-
+-**Files:**
+-- Create: `exact/path/to/file.py`
+-- Modify: `exact/path/to/existing.py:123-145`
+-- Test: `tests/exact/path/to/test.py`
+-
+-**Interfaces:**
+-- Consumes: [what this task uses from earlier tasks — exact signatures]
+-- Produces: [what later tasks rely on — exact function names, parameter
+-  and return types. A task's implementer sees only their own task; this
+-  block is how they learn the names and types neighboring tasks use.]
+-
+-- [ ] **Step 1: Write the failing test**
+-
+-```python
+-def test_specific_behavior():
+-    result = function(input)
+-    assert result == expected
+-```
+-
+-- [ ] **Step 2: Run test to verify it fails**
+-
+-Run: `pytest tests/path/test.py::test_name -v`
+-Expected: FAIL with "function not defined"
+-
+-- [ ] **Step 3: Implement `function(input: InputType) -> ResultType` in `exact/path/to/file.py`**
+-
+-One line on the approach when the signature and the test leave a choice
+-(which library call, which data structure); a code block only for an
+-algorithm they do not determine.
+-
+-- [ ] **Step 4: Run test to verify it passes**
+-
+-Run: `pytest tests/path/test.py::test_name -v`
+-Expected: PASS
+-
+-- [ ] **Step 5: Commit**
+-
+-```bash
+-git add tests/path/test.py src/path/file.py
+-git commit -m "feat: add specific feature"
+-```
+-````
+-
+-## What a Step Contains
+-
+-A step is done when the implementer can write exactly one reasonable thing
+-from it. That is the whole requirement: unambiguous, not complete. Each kind
+-of step carries what makes it unambiguous and nothing more:
+-
+-- **A test step:** the test's name and its assertions, as code, with the
+-  spec's exact values in them.
+-- **A code step:** the exact signature (name, parameters, return type), the
+-  file it lives in, and the specific values the spec pins. The implementer
+-  writes the body. A body appears only for an algorithm the signature and
+-  tests do not determine, or for exact copy the spec fixes.
+-- **A verification step:** the command to run and the output that means it
+-  passed.
+-- **A reference to another task:** that task's Interfaces block says what
+-  to use; the plan does not repeat that task's code.
+-
+-A plan is the set of decisions the implementer cannot make alone. A plan
+-longer than the code it describes has written the code instead. Lines that
+-decide nothing ("TBD", "handle edge cases", "add appropriate validation",
+-"write tests for the above", a type or function no task defines) are the
+-opposite failure, and the self-review catches both.
+-
+-## Self-Review
++Run `anvil plan-check` once the task table is written, before presenting. It checks the table's mechanics (per-wave write-set and resource collisions, wave order, integrator-only paths, tasks with no S-line, dependencies, the lane cap, ids). It doesn't check that every live S-line has a task; self-review item 1 does.
+ 
+-After writing the complete plan, look at the spec with fresh eyes and check the plan against it. This is a checklist you run yourself — not a subagent dispatch.
++**When it reports findings,** do one of two things for each, and write it under `## Execution`:
++- fix the plan (split or narrow a write set, move a task to a later wave, add the missing dependency, hand the lockfile to the integrator) and run it again; or
++- run sequentially, naming the rule that failed and why the fix isn't worth it.
+ 
+-**1. Spec coverage:** Skim each section/requirement in the spec. Can you point to a task that implements it? List any gaps.
++A finding is never left unmentioned, and parallel is never proposed over one.
+ 
+-**2. Step scan:** Every step must let the implementer write exactly one reasonable thing, and no step may carry more than that: a line that decides nothing is a gap, a function body the signature and tests already determine is a transcript. Fix both.
++**Propose a mode, with numbers.** Parallel is opted into at stop 2; it runs 3 lanes by default, 4 at most.
++- **Parallel pays** when the graph is wide (around 6 or more tasks, at least 3 ready at once after the foundations), the shared surface is frozen in T1, tasks are similar in size, and implementation time dominates each task.
++- **Sequential is faster** for a chain of dependent steps, 4 tasks or fewer, tightly coupled UI, contracts still in flux, mostly shared files, heavy per-lane environments, a build that will hit the usage limit anyway, or a project that forbids extra worktrees.
++- **About 4 tasks or fewer:** one line under `## Execution` is enough: sequential, and why.
++- **Otherwise, give the numbers:** lanes per wave; the task count against the wave count; a rough time for each mode (sequential ≈ tasks × per-task time; parallel ≈ per wave, the slowest task plus the merge and wave check); and the saving. A well-split plan gets roughly 1.5–2.5x on the build stage, a chain about 1x. Parallel uses roughly 10–30% more tokens and drains the usage window as many times faster as it has lanes. If the build clearly won't fit one usage window, say so.
+ 
+-**3. Type consistency:** Do the types, method signatures, and property names you used in later tasks match what you defined in earlier tasks? A function called `clearLayers()` in Task 3 but `clearFullLayers()` in Task 7 is a bug.
++**Checkpoints** go in the plan only where Saad asked for one, at the point he named, with his words quoted. Otherwise write "Checkpoints: none". Don't add your own.
+ 
+-**4. Review Focus:** For each input class or failure mode the spec implies, is there a task whose tests exercise it? The five uncovered ones most likely to bite a person go in the Review Focus section, and each line there gets its test added to the owning task. An empty section means you checked and found none, not that you skipped the check.
++## Self-review
+ 
+-**5. Proportion:** Compare the plan's length to the spec's. A plan several times longer than the spec it implements is a transcript of the program, not a plan. If code blocks are most of the document, replace bodies with signatures, test names and assertions, and check that each step is still unambiguous.
++When the plan is written, reread the spec with fresh eyes and check the plan against it yourself, not through a subagent. Fix what you find inline.
+ 
+-If you find issues, fix them inline. No need to re-review — just fix and move on. If you find a spec requirement with no task, add the task.
++1. **Spec coverage:** every live S-line has a task, and a test or a smoke path, or a stated reason why not. If an S-line has no task, add the task.
++2. **No piece without an S-line:** every row, new file and option traces to one.
++3. **Step scan:** each step lets the implementer write exactly one reasonable thing. A line that decides nothing is a gap; a body the signature and tests already determine is a transcript.
++4. **Interface consistency:** names, signatures and types used in later tasks match what earlier tasks produce. `clearLayers()` in T3 against `clearFullLayers()` in T7 is a bug.
++5. **Review focus:** for each failure mode the spec implies, some task's tests exercise it, or it's listed with its test added.
++6. **Tables parse:** headings and columns as in the template, Writes backticked, waves integers.
++7. **Proportion:** a plan several times longer than its spec, or mostly code blocks, is a transcript: replace bodies with signatures, test names and assertions, keeping each step unambiguous.
+ 
+-## Execution Handoff
++Then create `progress.md` in the topic folder, or bring its `## Tasks` list in line with the task table (format in formats.md): stage `plan`, the wave count, every task as `- [ ] T<n> <title>`. Redo this whenever the plan changes.
+ 
+-After saving and self-reviewing the plan, link it for your human partner
+-to read. If they have already explicitly supplied an execution method, ask
+-them to review the plan and confirm it captures what they want; wait for that
+-review before implementation, then use the preserved method. Otherwise, ask
+-them to review the plan and choose an execution method before implementation.
++## Stop 2
+ 
+-**When no execution method has already been supplied:**
++1. `anvil plan-check` is clean, or every finding is answered under `## Execution`.
++2. `anvil present plan`. It records the plan's hash; any later edit means presenting again.
++3. Show Saad, briefly:
++   - the plan's path;
++   - the tasks and waves, and the proposed mode with its numbers (or the reason for sequential);
++   - the test list by type, which he is approving too;
++   - the synced branch and the commit points, including which ones push;
++   - anything that needs his call: `main`/`master` consent, a checkpoint he mentioned, a decision the spec left waiting on him.
++4. End your turn and wait. Only Saad passes this stop.
+ 
+-**"Plan complete and saved to `docs/superpowers/plans/<filename>.md`. Please review the plan. Which execution approach would you prefer?**
++**On his reply:**
++- **He approves:** `anvil approve plan --quote "<his words>"`, quoting 3+ words of his message, or all of a shorter one. If his reply picks the mode, approve first, then write his choice under `## Execution`; otherwise the proposed mode stands.
++- **He asks for changes:** make them, run `anvil plan-check` again, present again, and stop again.
++- **The approve is refused:** say why in one line. Never retry with words he didn't type.
+ 
+-- **Subagent-driven** - A fresh subagent implements each task and a fresh reviewer checks it before the next one starts, then a whole-branch review at the end. Most thorough; costs a fresh context per task and per review.
+-- **Native** - I implement every task myself in this session, the way this harness runs work, then one fresh reviewer on the most capable model checks the whole branch. Cheapest and fastest; no independent review until the end. Runs well with a mid-tier session model, since the plan carries the design.
++**Pre-approval and AFK.** If Saad pre-approved the plan in his own words ("go straight to the build", "don't stop for the plan"), run `anvil approve plan --quote "<his words>" --pre` (3+ words of his message). If AFK is on, run `anvil approve plan --afk --quote "<his AFK words>"`. Either way, skip steps 2–4 of stop 2 (no present, no wait), and the plan stage runs with AFK decision-making: the calls he would have made at the stop (mode, synced branch, commit pushes) are made on his behalf, and each goes into the progress decision log in the formats.md entry shape (choice, reason, confidence, changes if). `main` or `master` still isn't chosen without his explicit consent; pick a new branch instead.
+ 
+-**For this plan I recommend <one of the two>, because <one sentence from the plan: how much the tasks depend on each other's interfaces, how many there are, what a shipped mistake would cost>. Does the plan capture what you want, and which approach should we use?"**
++**Revising before the build.** To redo an approved plan before the build starts, set `- **Approved:** no`, change it, rerun `anvil plan-check` and present again. Once the build runs, changes go through its change flow-back.
+ 
+-**When an execution method has already been supplied:**
++## After approval
+ 
+-**"Plan complete and saved to `docs/superpowers/plans/<filename>.md`. Please review the plan. Does it capture what you want?"**
++If Saad pre-approved the plan or AFK is on, go straight on to `anvil:build`: the build runs in subagents, which already have fresh context. Otherwise offer a fresh session, because old context pulls the build back toward old code, using the plan's actual path:
+ 
+-**If Subagent-driven chosen:**
+-- **REQUIRED SUB-SKILL:** Use superpowers:subagent-driven-development
++> Plan approved. To build in a fresh session: `/clear`, then `/anvil:build <plan path>`. Or I can continue with the build here.
+ 
+-**If Native chosen:**
+-- **REQUIRED SUB-SKILL:** Use superpowers:executing-plans
++If he chooses to continue, go on to `anvil:build`.

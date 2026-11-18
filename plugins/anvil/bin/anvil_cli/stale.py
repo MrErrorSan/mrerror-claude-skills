@@ -67,4 +67,5 @@ def cmd_stale(args) -> int:
             else:
                 by = f"S{e['replaced_by']}" if e["replaced_by"] else "nothing"
                 print(f"{e['kind']} {e['id']}: names {e['retired']}, retired (replaced by {by})")
-    return 1 if entries else 0
+    # A result entry is informational: it says what to rerun, not that the plan is wrong.
+    return 1 if any(e["kind"] != "result" for e in entries) else 0

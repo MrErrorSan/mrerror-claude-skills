@@ -1,0 +1,51 @@
+diff --git a/superpowers/hooks/hooks.json b/plugins/anvil/hooks/hooks.json
+index 8b33bbe..038daca 100644
+--- a/superpowers/hooks/hooks.json
++++ b/plugins/anvil/hooks/hooks.json
+@@ -13,6 +13,46 @@
+           }
+         ]
+       }
++    ],
++    "UserPromptSubmit": [
++      {
++        "hooks": [
++          {
++            "type": "command",
++            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.cmd\" user-prompt-submit",
++            "powershell": "& \"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.cmd\" user-prompt-submit",
++            "shell": "bash",
++            "async": false
++          }
++        ]
++      }
++    ],
++    "PreToolUse": [
++      {
++        "matcher": "Edit|Write|MultiEdit|NotebookEdit|Bash",
++        "hooks": [
++          {
++            "type": "command",
++            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.cmd\" pre-tool-use",
++            "powershell": "& \"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.cmd\" pre-tool-use",
++            "shell": "bash",
++            "async": false
++          }
++        ]
++      }
++    ],
++    "Stop": [
++      {
++        "hooks": [
++          {
++            "type": "command",
++            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.cmd\" stop",
++            "powershell": "& \"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.cmd\" stop",
++            "shell": "bash",
++            "async": false
++          }
++        ]
++      }
+     ]
+   }
+ }

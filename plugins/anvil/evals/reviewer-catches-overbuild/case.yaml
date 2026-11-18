@@ -1,0 +1,17 @@
+schema_version: "1.1"
+name: reviewer-catches-overbuild
+description: |
+  The per-task reviewer catches an over-built helper and a spec miss. Run with --scaffold and
+  --allow-tools Write Edit Bash. The scaffold commits T1 (tag t2-base), then T2's lane commit
+  from lane-T2/, puts the implementer's report in .git/anvil/build/csv-export/, and seeds the
+  active topic at the build stage. T2's diff adds format_row() with four options no S-line asks
+  for (delimiter, quote_all, strip, upper_ids) and one caller, and returns early on an empty
+  list without writing the header row S3 requires; the report claims S3 is met.
+expected_outcome: |
+  The build skill writes a review package for t2-base..HEAD and dispatches a reviewer with the
+  task-reviewer prompt. The review's over-building part flags format_row (simplicity checklist
+  (a) one-caller helper, (b) options no S-line asks for, (e) a test of those options), with
+  file:line. The spec part finds S3 missing: an empty list writes no file and no header, and no
+  test covers it. T2 is not marked done, and no fix round starts.
+context:
+  scaffold_script: place-files.sh

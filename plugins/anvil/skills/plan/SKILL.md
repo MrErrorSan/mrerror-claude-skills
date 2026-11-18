@@ -48,6 +48,8 @@ A task is the smallest unit that carries its own test cycle and is worth a fresh
 
 **Per-task sections** replace the checkbox steps: Spec, Files, Interfaces (Consumes and Produces, exact signatures), Tests (name, type, S-line, targeted command) and a short numbered step list.
 
+For services, API calls and data hooks, Interfaces pins the DTO shape, the cache keys and their invalidation, the fallback, and the error mapping. Anything invented rather than confirmed in the code or docs is marked as an assumption, in AFK or not.
+
 ## What a step contains
 
 A step is done when the implementer can write exactly one reasonable thing from it: unambiguous, not complete.
@@ -69,11 +71,11 @@ Signatures, not bodies. A plan longer than the code it describes has written the
 
 The test strategy replaces "do TDD, commit often". The rules are in [test-policy](../../references/test-policy.md); the plan applies them.
 
-- **Name the tests that guard each task,** in the `## Test strategy` table: Test, Type (`smoke`, `keep`, `repro`, `scaffold`), Spec, what breaks if it fails, and the owning task. Naming the affected tests is what cuts regressions; a bare "do TDD" doesn't.
-- **Stay in budget:** scaffolding, config or types get 1–2 smoke tests; a feature gets 3–5 behavior tests plus its smoke path; a bug gets a repro plus a regression guard; an enhancement covers only the new or changed behavior. Going over needs one line of reason in the plan.
+- **Name the tests that guard each task,** in the `## Test strategy` table: Test, Type (`smoke`, `keep`, `repro`, `scaffold`), Spec, what breaks if it fails, and the owning task.
+- **Stay in test-policy's budget** per kind of work. Going over needs one line of reason in the plan.
 - **Test-first only for repros.** A bug-fix task writes its repro before the fix. Elsewhere the steps implement, then test.
 - **Each task names its targeted command,** run as `anvil run --scope targeted -- <cmd>`, so no lane needs the full suite.
-- **Record the full-suite command, how long it takes, and the type-check command** (`Type-check: <command | none>`). Take the duration from a recorded run, CI timings or the project docs; don't run a long suite just to time it. If it's unknown, write "not measured", and the build treats it as over 2 minutes (full suite once, at the end).
+- **Record the full-suite command and how long it takes, and the check commands:** `Type-check:`, `Lint:` and `Build:`, each `<command | none>`. Take the duration from a recorded run, CI timings or the project docs; don't run a long suite just to time it. If it's unknown, write "not measured", and the build treats it as over 2 minutes (full suite once, at the end).
 
 ## Commit points and the synced branch
 
@@ -137,6 +139,8 @@ Then create `progress.md` in the topic folder, or bring its `## Tasks` list in l
 **Revising before the build.** To redo an approved plan before the build starts, set `- **Approved:** no`, change it, rerun `anvil plan-check` and present again. Once the build runs, changes go through its change flow-back.
 
 ## After approval
+
+If the repo has a tracker, run `anvil:ticket-update` to split the plan's tasks into tickets.
 
 If Saad pre-approved the plan or AFK is on, go straight on to `anvil:build`: the build runs in subagents, which already have fresh context. Otherwise offer a fresh session, because old context pulls the build back toward old code, using the plan's actual path:
 

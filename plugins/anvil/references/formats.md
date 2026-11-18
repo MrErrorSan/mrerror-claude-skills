@@ -80,11 +80,11 @@ Every skill and every CLI module uses exactly these.
 
 | File | Holds |
 |---|---|
-| `active.json` | `{slug, dir, size, stage}` |
+| `active.json` | `{slug, dir, size, stage, started}`; `started` is the epoch time of the first `topic start` (a same-slug restart keeps it; a record without it counts as 0) |
 | `presented.json` | `{"spec"\|"plan": {hash, ts}}` |
 | `prompts.jsonl` | `{ts, prompt}` per line, keeping the last 500 |
-| `afk.json` | `{on, ts, quote}` |
-| `results.jsonl` | `{key, tree, prefix, cmd, scope, exit, tests_ran, ts, summary}`, plus `external: true` when set |
+| `afk.json` | `{on, ts, quote}`; lifetime rules under "Calling the CLI" |
+| `results.jsonl` | `{key, tree, prefix, cmd, scope, exit, tests_ran, ts, summary}`, plus `external: true` when set. `fresh` reuses the newest record for the key when it exits 0 and isn't external; scopes `targeted`, `full` and `smoke` also need `tests_ran > 0`, scope `check` (type-check, lint, build) doesn't |
 | `stop.json` | `{hash, ts}`: sha256 of the `## Stop note` section text, saved by the stop hook; a Stop note counts as new only while its hash differs |
 
 `result_key` includes the cwd prefix (`prefix`, the cwd relative to the repo root, empty at the root), so the same command run from two folders gets two keys. The active topic's `progress.md` is left out of the tree key, so status edits don't make results stale. Submodule contents are not part of the key (unsupported).
@@ -93,16 +93,16 @@ Every skill and every CLI module uses exactly these.
 
 ```
 topic start <slug> [--size trivial|direct|full] [--dir <path>]   topic stage <spec|plan|build|verify|finish|done>   topic show   topic end
-(`topic stage plan` and `topic stage build` are refused unless `check plan` / `check build` passes. Re-running `topic start` with a bigger `--size` steps a topic up a size.)
+(`topic stage plan` and `topic stage build` are refused unless `check plan` / `check build` passes. Re-running `topic start` with a bigger `--size` steps a topic up a size. `topic start` with another slug while a topic is active is refused: `topic end` it first.)
 present spec|plan
 approve spec|plan --quote "<text>" [--pre] [--afk]
 check plan|build
 afk on --quote "<text>" | afk off | afk status
 spec-lines [--live|--retired]
-stale
+stale                                   (exit 1 only for a stale task or test; a result entry is informational)
 plan-check
-lane-check <task> --base <ref>
-run [--scope targeted|full|smoke] [--external] -- <cmd…>
+lane-check <task> --base <ref>          (paths inside the active topic folder are ignored: the orchestrator owns them)
+run [--scope targeted|full|smoke|check] [--external] -- <cmd…>
 fresh [--scope …] -- <cmd…>
 progress
 hook session-start|user-prompt-submit|pre-tool-use|stop        (reads hook JSON on stdin)
@@ -171,3 +171,10 @@ A cell that needs a literal `|` writes it as `\|`.
 Both wrappers find Python (`python`, then `py -3`, then `python3`, checking every hit on PATH and skipping any path containing `WindowsApps`) and run it with `-I`. Under Git Bash, `bin/anvil` turns off MSYS path conversion, so an argument such as `--quote "/clear the cache"` reaches the CLI unchanged; the CLI drops those settings again before it runs a test command.
 
 **Topic folder path.** `active.json` stores the topic `dir` repo-relative, with forward slashes (`topic start --dir` is resolved against the cwd first). Every command resolves it against the repo root (`git rev-parse --show-toplevel`; the cwd outside git), so the CLI finds the topic docs from any subdirectory.
+
+**Stops and AFK.**
+
+- `approve --pre` accepts a quote (3+ words) only from prompts logged at or after the last prompt logged at or before the topic's `started`: the request that started the topic counts, earlier work's prompts don't.
+- AFK ends with its run. `topic end` turns it off. A fresh `topic start` (no active topic) turns it off unless it was turned on from the latest prompt, which keeps `afk on` then `topic start` in one turn working (`ts` is then restamped to `started`). A logged prompt with no AFK phrase turns it off. AFK whose `ts` is older than the active topic's `started` counts as off: `afk status`, `approve --afk` and the session-start fact all read it that way.
+- In AFK the Stop hook never blocks while a task is `[~]` (lanes re-invoke the session). Otherwise it blocks while `[ ]` tasks are open or the topic stage is `build` or `verify`, until a new Stop note is written. `topic stage finish` releases it.
+- `prompts.jsonl` holds only Saad's messages. UserPromptSubmit also fires for turns Claude Code starts itself (a background subagent reporting back, a scheduled `/loop` firing, a message from another session) and carries no origin field, so the hook skips any prompt carrying the harness's injected-message markers (`<task-notification`, `[SYSTEM NOTIFICATION`, `<agent-message`, …; `gate.INJECTED_RE`), and every gate ignores such records. Those turns never pass a stop or end AFK. This is a content check: a new wrapper format would need adding to `INJECTED_RE`.

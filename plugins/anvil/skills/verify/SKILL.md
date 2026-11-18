@@ -35,12 +35,12 @@ Words like "should", "probably" and "seems to", or "Done!" before any output, me
 anvil fresh --scope <the scope it ran with> -- <the same command>
 ```
 
-Exit 0 means a passing result exists for this exact tree: quote its summary as the evidence and don't rerun. Exit 1 means run it. A result is never reused when it touched a live service (`--external`) or ran no tests. Test rules: [test-policy.md](../../references/test-policy.md).
+Exit 0 means a passing result exists for this exact tree: quote its summary as the evidence and don't rerun. Exit 1 means run it. A result is never reused when it touched a live service (`--external`), or when a test run ran no tests; a `check` run (type-check, lint, build) needs only exit 0. Test rules: [test-policy.md](../../references/test-policy.md).
 
 ## Entry
 
 1. `anvil topic show`. The stage should be `verify`, set by `anvil:build`. If the build is still open (tasks not `[x]` in `progress.md`), say so and go back to `anvil:build`. If every task is `[x]` but the stage wasn't moved, run `anvil topic stage verify`.
-2. Read the plan's `## Test strategy` (the smoke paths, keep tests and full-suite command), the type-check command, and the plan header's synced branch. Read `progress.md`: the per-task notes, deferred minors and parked findings.
+2. Read the plan's `## Test strategy` (the smoke paths, keep tests and full-suite command), the `Type-check:`, `Lint:` and `Build:` commands, and the plan header's synced branch. Read `progress.md`: the per-task notes, deferred minors and parked findings.
 3. The topic's whole diff runs from the synced branch before the first commit point (`<C1 sha>^`, from `## Commit points` in `progress.md`), or from the synced branch tip if none has landed, to the work branch's HEAD. Call this RANGE. The commit point closing the last wave hasn't landed: it's left for the exit (`finish`, or this skill in AFK), so fixes made here travel in it. Work on the work branch.
 4. Notes go in `$(git rev-parse --path-format=absolute --git-common-dir)/anvil/build/<slug>/verify.md` (create the folder if the build already removed it). `finish` reads that file for its report, so keep real output in it, trimmed to the lines that matter.
 
@@ -88,7 +88,7 @@ Declined to judge: ...
 
 ## 3. UI work
 
-When the work changed a UI and the topic has a chosen mock (`docs/<slug>/mocks/`), run `anvil:ux-audit` against the built UI and that mock. Its findings join the fix loop. Findings that need Saad's call (a design choice the mock and spec don't settle) are listed for him, not fixed.
+When the work changed a UI, run `anvil:ux-audit` on the built UI: against the chosen mock when the topic has one (`<topic folder>/mocks/`), against its heuristics otherwise. Its findings join the fix loop. Findings that need Saad's call (a design choice the mock and spec don't settle) are listed for him, not fixed.
 
 ## 4. A second model
 
@@ -109,7 +109,14 @@ anvil fresh --scope full -- <full-suite cmd>   # the build's last wave check may
 anvil run --scope full -- <full-suite cmd>     # only if fresh says no
 ```
 
-Do the same for the type-check. Put the summary lines in `verify.md`. A failure goes through the fix loop, and then the suite runs again on the new tree: a green result only proves the tree it ran on.
+Then run each of the type-check, lint and build commands that isn't `none`, once on this tree, with the `check` scope:
+
+```bash
+anvil fresh --scope check -- <cmd>
+anvil run --scope check -- <cmd>     # only if fresh says no
+```
+
+Resolve the warnings that matter; never hide one (no lint-disable comment or config change to mask the output). Put the summary lines in `verify.md`. A failure goes through the fix loop, and then the suite runs again on the new tree: a green result only proves the tree it ran on.
 
 ## Exit
 
@@ -125,9 +132,11 @@ Do the same for the type-check. Put the summary lines in `verify.md`. A failure 
    - then: "Run `/anvil:finish` to land the last commit point, clean up and get the report."
 
 **In AFK:**
-1. Land the last commit point yourself: follow sections 2 to 5 of [finish](../finish/SKILL.md) (entry checks, scaffold tests, done markers, the squash and push). Ask nothing; log each choice in the decision log before the squash. A red entry check stops the landing: no squash, and it goes in the stop note.
-2. `git switch anvil/<slug>/work`, then `git reset --hard <synced>`.
-3. `anvil topic stage finish`.
-4. Write the report under `## Stop note` in `progress.md` and commit it on the work branch, so the Stop hook lets the turn end. It holds the points above, plus the commit point's sha and push result (or why it didn't land), and: "The last commit point has landed. `/anvil:finish` is left for the clean-up and the merge choices."
+1. Follow sections 2 to 4 of [finish](../finish/SKILL.md) (entry checks, scaffold tests, done markers). Ask nothing; log each choice in the decision log. A red entry check stops the landing: no squash; write why under `## Stop note` in `progress.md`, commit it on the work branch, and stop.
+2. Before the squash, write the report under `## Stop note` in `progress.md`, so it travels in the last commit point and the Stop hook lets the turn end. It holds the points above and: "The last commit point lands with this note. `/anvil:finish` is left for the clean-up and the merge choices."
+3. The squash and push: section 5 of finish.
+4. `git switch anvil/<slug>/work`, then `git reset --hard <synced>`.
+5. `anvil topic stage finish`.
+6. Your closing message: the report, plus the commit point's sha and push result.
 
 Leftovers don't block the exit; Saad decides whether to finish with them or ask for more work.

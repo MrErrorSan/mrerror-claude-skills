@@ -1,0 +1,117 @@
+{
+  "plugins/anvil/NOTICE": [
+    "LICENSE"
+  ],
+  "plugins/anvil/bin/anvil": [
+    "hooks/run-hook.cmd"
+  ],
+  "plugins/anvil/evals/coexists-with-superpowers/superpowers-fixture/skills/brainstorming/SKILL.md": [
+    "skills/brainstorming/SKILL.md"
+  ],
+  "plugins/anvil/evals/coexists-with-superpowers/superpowers-fixture/skills/test-driven-development/SKILL.md": [
+    "skills/test-driven-development/SKILL.md"
+  ],
+  "plugins/anvil/evals/coexists-with-superpowers/superpowers-fixture/skills/using-superpowers/SKILL.md": [
+    "skills/using-superpowers/SKILL.md"
+  ],
+  "plugins/anvil/evals/coexists-with-superpowers/superpowers-fixture/skills/writing-plans/SKILL.md": [
+    "skills/writing-plans/SKILL.md"
+  ],
+  "plugins/anvil/hooks/hooks.json": [
+    "hooks/hooks.json"
+  ],
+  "plugins/anvil/hooks/pre-tool-use": [
+    "hooks/session-start"
+  ],
+  "plugins/anvil/hooks/run-hook.cmd": [
+    "hooks/run-hook.cmd"
+  ],
+  "plugins/anvil/hooks/session-start": [
+    "hooks/session-start"
+  ],
+  "plugins/anvil/hooks/stop": [
+    "hooks/session-start"
+  ],
+  "plugins/anvil/hooks/user-prompt-submit": [
+    "hooks/session-start"
+  ],
+  "plugins/anvil/skills/anvil/SKILL.md": [
+    "skills/using-superpowers/SKILL.md"
+  ],
+  "plugins/anvil/skills/brainstorm/SKILL.md": [
+    "skills/brainstorming/SKILL.md"
+  ],
+  "plugins/anvil/skills/brainstorm/prompts/builder-check.md": [
+    "skills/brainstorming/builder-check-prompt.md"
+  ],
+  "plugins/anvil/skills/brainstorm/references/spec-template.md": [
+    "skills/brainstorming/SKILL.md"
+  ],
+  "plugins/anvil/skills/build/SKILL.md": [
+    "skills/subagent-driven-development/SKILL.md",
+    "skills/subagent-driven-development/references/preflight.md",
+    "skills/subagent-driven-development/references/handling-reports.md",
+    "skills/subagent-driven-development/references/batching.md",
+    "skills/executing-plans/SKILL.md",
+    "skills/dispatching-parallel-agents/SKILL.md"
+  ],
+  "plugins/anvil/skills/build/prompts/final-review.md": [
+    "skills/subagent-driven-development/references/final-review.md",
+    "skills/requesting-code-review/code-reviewer.md"
+  ],
+  "plugins/anvil/skills/build/prompts/implementer.md": [
+    "skills/subagent-driven-development/implementer-prompt.md",
+    "skills/dispatching-parallel-agents/SKILL.md",
+    "skills/receiving-code-review/SKILL.md"
+  ],
+  "plugins/anvil/skills/build/prompts/re-review.md": [
+    "skills/subagent-driven-development/re-review-prompt.md"
+  ],
+  "plugins/anvil/skills/build/prompts/task-reviewer.md": [
+    "skills/subagent-driven-development/task-reviewer-prompt.md"
+  ],
+  "plugins/anvil/skills/build/prompts/wave-review.md": [
+    "skills/subagent-driven-development/task-reviewer-prompt.md"
+  ],
+  "plugins/anvil/skills/build/references/receiving-review.md": [
+    "skills/receiving-code-review/SKILL.md",
+    "skills/subagent-driven-development/references/fix-loop.md",
+    "skills/subagent-driven-development/references/cannot-verify.md"
+  ],
+  "plugins/anvil/skills/build/references/resuming.md": [
+    "skills/subagent-driven-development/references/resuming.md"
+  ],
+  "plugins/anvil/skills/build/references/waves.md": [
+    "skills/dispatching-parallel-agents/SKILL.md",
+    "skills/subagent-driven-development/SKILL.md"
+  ],
+  "plugins/anvil/skills/debug/SKILL.md": [
+    "skills/systematic-debugging/SKILL.md"
+  ],
+  "plugins/anvil/skills/debug/references/condition-based-waiting.md": [
+    "skills/systematic-debugging/condition-based-waiting.md",
+    "skills/systematic-debugging/condition-based-waiting-example.ts"
+  ],
+  "plugins/anvil/skills/debug/references/defense-in-depth.md": [
+    "skills/systematic-debugging/defense-in-depth.md"
+  ],
+  "plugins/anvil/skills/debug/references/root-cause-tracing.md": [
+    "skills/systematic-debugging/root-cause-tracing.md"
+  ],
+  "plugins/anvil/skills/debug/scripts/find-polluter.sh": [
+    "skills/systematic-debugging/find-polluter.sh"
+  ],
+  "plugins/anvil/skills/finish/SKILL.md": [
+    "skills/finishing-a-development-branch/SKILL.md"
+  ],
+  "plugins/anvil/skills/plan/SKILL.md": [
+    "skills/writing-plans/SKILL.md"
+  ],
+  "plugins/anvil/skills/plan/references/plan-template.md": [
+    "skills/writing-plans/SKILL.md"
+  ],
+  "plugins/anvil/skills/verify/SKILL.md": [
+    "skills/verification-before-completion/SKILL.md",
+    "skills/requesting-code-review/code-reviewer.md"
+  ]
+}

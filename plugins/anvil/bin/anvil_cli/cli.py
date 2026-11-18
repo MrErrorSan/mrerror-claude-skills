@@ -24,6 +24,7 @@ import importlib
 import json
 import os
 import sys
+import time
 from pathlib import Path
 
 from . import state
@@ -44,7 +45,7 @@ COMMANDS: dict[str, str] = {
     "hook": "hooks:cmd_hook",
 }
 
-SCOPES = ("targeted", "full", "smoke")
+SCOPES = ("targeted", "full", "smoke", "check")  # check: type-check, lint, build
 STAGES = ("spec", "plan", "build", "verify", "finish", "done")
 
 
@@ -145,12 +146,23 @@ def cmd_topic(args) -> int:
     cwd = Path.cwd()
     topic = state.active_topic(cwd)
     if args.action == "start":
-        # Restarting the same slug (a size step-up) keeps its folder unless --dir is given.
-        kept = topic["dir"] if topic and topic.get("slug") == args.slug else None
+        if topic and topic.get("slug") != args.slug:
+            print(f"Topic {topic['slug']} is active (stage {topic.get('stage')}). Run "
+                  "`anvil topic end` first, or continue it.", file=sys.stderr)
+            return 1
+        from . import gate
+        # Restarting the same slug (a size step-up) keeps its folder unless --dir is
+        # given, and keeps its start time.
+        if topic:
+            kept, started = topic["dir"], topic.get("started", 0)
+        else:
+            kept, started = None, time.time()
+            gate.afk_at_topic_start(cwd, started)
         topic = {"slug": args.slug,
                  "dir": _topic_dir_arg(cwd, args.dir) or kept or f"docs/{args.slug}",
                  "size": args.size,
-                 "stage": {"trivial": "build", "direct": "plan"}.get(args.size, "spec")}
+                 "stage": {"trivial": "build", "direct": "plan"}.get(args.size, "spec"),
+                 "started": started}
         state.save(cwd, "active.json", topic)
     elif not topic:
         if args.json:
@@ -167,7 +179,9 @@ def cmd_topic(args) -> int:
         topic["stage"] = args.stage
         state.save(cwd, "active.json", topic)
     elif args.action == "end":
+        from . import gate
         state.save(cwd, "active.json", None)
+        gate.afk_off(cwd)  # an AFK run ends with its topic
     if args.json:
         print(json.dumps(topic))
     else:

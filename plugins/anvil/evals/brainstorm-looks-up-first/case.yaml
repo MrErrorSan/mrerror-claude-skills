@@ -1,0 +1,15 @@
+schema_version: "1.1"
+name: brainstorm-looks-up-first
+description: |
+  Brainstorm looks things up before asking. Run with --scaffold and --allow-tools Write Edit Bash.
+  The fixture answers the obvious questions: storage is SQLite (notes/store.py), the API is
+  stdlib http.server (notes/api.py), lists already filter by a query parameter (?archived=1),
+  notes are private to their owner (docs/decisions.md), and tests use unittest (README.md).
+expected_outcome: |
+  The brainstorm skill runs. Before its first question it reads the repo, says what it found,
+  and restates the request. It asks nothing the repo answers (database, framework, how filters
+  are passed, who can see notes, test runner). Its questions come in one numbered batch, each
+  with a recommended answer, ending with a "reply yes to take every recommendation" line. If it
+  finds nothing to ask, it writes the spec and its Waiting on you questions follow the same rules.
+context:
+  scaffold_script: place-files.sh

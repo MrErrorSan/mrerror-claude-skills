@@ -1,8 +1,8 @@
 {
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "anvil",
-  "version": "0.2.0",
-  "description": "Anvil is a workflow governor over Superpowers: tiered decision procedure, parallel-agent plans instead of sequential, implement-then-test with one verification pass, lean contract plans. Bundles afk (unattended mode), ui-mockup, ux-audit, and cross-model (backend-agnostic second-model review/research), and ticket-update (keeps Linear/Jira/GitHub/GitLab/Azure tickets current with agent-buildable tickets and evidence comments).",
+  "version": "1.0.0",
+  "description": "Saad's development workflow: brainstorm, spec, plan, parallel build, verify, finish. Also bundles afk, debug, ui-mockup, ux-audit, cross-model and ticket-update.",
   "author": {
     "name": "MrError"
   },
@@ -19,10 +19,5 @@
     "linear",
     "jira",
     "issues"
-  ],
-  "dependencies": [
-    "superpowers@superpowers-marketplace",
-    "claude-session-driver@superpowers-marketplace",
-    "episodic-memory@superpowers-marketplace"
   ]
 }

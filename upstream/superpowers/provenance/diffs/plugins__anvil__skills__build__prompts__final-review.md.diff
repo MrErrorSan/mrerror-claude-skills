@@ -1,0 +1,436 @@
+diff --git a/superpowers/skills/subagent-driven-development/references/final-review.md b/plugins/anvil/skills/build/prompts/final-review.md
+index cf03546..af0fb69 100644
+--- a/superpowers/skills/subagent-driven-development/references/final-review.md
++++ b/plugins/anvil/skills/build/prompts/final-review.md
+@@ -1,49 +1,98 @@
+-# Final Review and Finish
+-
+-Part of superpowers:subagent-driven-development. Every task in the plan is
+-complete.
+-
+-The final whole-branch review gets a package too: run
+-`bash scripts/review-package PLAN_FILE MERGE_BASE HEAD` by its absolute path,
+-from the working tree you're executing in (MERGE_BASE = the commit the
+-branch started from, e.g. `git merge-base main HEAD`) and include the
+-printed path in the final review dispatch, so the final reviewer reads
+-one file instead of re-deriving the branch diff with git commands. Dispatch
+-on the most capable available model (see SKILL.md's Model Selection), using
+-superpowers:requesting-code-review's
+-[code-reviewer.md](../../requesting-code-review/code-reviewer.md). Point it at
+-the ledger's deferred-minor and parked lines so it can triage which must be
+-fixed before merge.
+-
+-If the final whole-branch review returns findings, dispatch ONE fix subagent
+-with the complete findings list — not one fixer per finding.
+-Per-finding fixers each rebuild context and re-run suites; a real
+-session's final-review fix wave cost more than all its tasks combined.
+-Then run exactly one scoped re-review of the fix wave
+-(`bash scripts/review-package PLAN_FILE FIX_BASE HEAD` by its absolute path,
+-from the working tree you're executing in, over the fix range,
+-[re-review-prompt.md](../re-review-prompt.md)).
+-Adjudicate any residual findings as in the fix loop's breaker
+-(references/fix-loop.md): park with rulings, or rule on the load-bearing
+-ones and ledger what you decided. Only the four things that stop a running
+-plan (top of SKILL.md) stop you here. There is no second fix wave —
+-residual load-bearing findings surface to your human partner when
+-finishing-a-development-branch presents the options.
+-
+-### Finish
+-
+-Before you delete anything, collect every ledger line containing `Ruling:` —
+-preflight rulings, parked findings, breaker adjudications, all of them — into
+-your final message under "Rulings I made", in the order you made them, each
+-with what it costs if wrong. The list is exhaustive: if the ledger holds a
+-ruling, the list holds it. That list is the only place the decisions you
+-took on your human partner's behalf reach them — they read it and rework
+-whatever you got wrong. A ruling that dies with the workspace was a decision
+-made in secret.
+-
+-When the final whole-branch review is clean and its fixes are merged,
+-delete this plan's workspace (`rm -rf <workspace>`) — the git history is
+-the record now. Sibling directories belong to other plans; leave them
+-alone.
+-
+-Use superpowers:finishing-a-development-branch.
++<!-- adapted from superpowers@7.0.2: skills/subagent-driven-development/references/final-review.md -->
++<!-- adapted from superpowers@7.0.2: skills/requesting-code-review/code-reviewer.md -->
++
++# Final review prompt
++
++One whole-branch review when every task is `[x]`, on the most capable model. It is the one fresh context that sees the build as a whole. Verify's converge check comes after it; this review is about the code.
++
++```
++Agent (general-purpose), model: [MOST_CAPABLE_MODEL], run in background
++  description: "Final review: <topic>"
++  prompt: |
++    You are reviewing a finished build, whole-branch, against its spec and
++    plan, to find problems before verification and merge.
++
++    ## Inputs
++    - Spec: [SPEC_PATH]. Its live S-lines are the requirements.
++    - Plan: [PLAN_PATH]. Its Review focus section, verbatim:
++      [REVIEW_FOCUS]
++      These are failure modes no planned test covers. Check each one
++      deliberately and say what you found.
++    - Decisions made during the build: the decision log in [PROGRESS_PATH].
++      Weigh those calls; say which ones you disagree with.
++    - Deferred minor findings and parked findings, from the same file (the
++      indented lines under each task). Say which of them must be fixed
++      before merge.
++    - The whole diff: [DIFF_FILE] (from [BASE_SHA] to [HEAD_SHA], in
++      [WORK_PATH]).
++
++    Read the diff file first. Inspect other code only to check a concrete
++    risk you can name.
++
++    ## The spec is a vision document
++    The spec says what the software must do. It doesn't list every input,
++    environment or condition the software will meet. Where it's silent,
++    judge by what a reasonable person using this software would expect: that
++    expectation is a requirement, and silence isn't permission. Grade such
++    findings by their effect on that person, not by whether the spec names
++    the trigger.
++
++    ## Read-only
++    Don't change the working tree, the index, HEAD or any branch. Use
++    `git show`, `git diff` and `git log`. If you need another revision checked
++    out, add a separate temporary worktree; never move HEAD here. You don't
++    dispatch subagents; if the diff is large, review it in passes and say so.
++
++    ## Tests: never rerun them
++    The recorded results are the test evidence; the full suite runs once, in
++    verification, after you. If a doubt needs a test, name the test and why.
++
++    ## What to check
++    - **Spec alignment:** every live S-line is built; behavior with no S-line
++      is listed (it will be justified or removed).
++    - **Plan alignment:** deviations from the plan are justified improvements
++      or problems. Flag significant ones so the orchestrator can confirm
++      whether they were intended. Problems in the plan itself: say so.
++    - **Code quality:** separation of concerns, error handling where errors
++      can occur, type safety, no duplicated logic, edge cases.
++    - **Over-building:** [ANVIL_REFS]/simplicity.md checklist (a) to (f),
++      across the whole build.
++    - **Architecture:** sound design, security, integration with the
++      surrounding code, performance where the spec cares.
++    - **Tests:** they check real behavior; every keep test names its S-line;
++      every test edit has a test-changed or code-changed statement with an
++      S-line behind it (see the progress entries and commit messages).
++    - **Production readiness:** migrations, backward compatibility, the docs
++      the plan asked for, obvious bugs.
++
++    ## Declined to judge
++    Before your verdict, list every behavior you considered and set aside as
++    outside the spec or plan, one line each, with the reason. The
++    orchestrator rules on each line. An empty list means you set nothing
++    aside.
++
++    ## Calibration
++    Grade by real severity; not everything is Critical. Say briefly what was
++    done well before the issues.
++
++    ## Output
++    ### Strengths
++    ### Issues
++    #### Critical (bugs, security, data loss, broken behavior)
++    #### Important (missing S-lines, design problems, poor error handling, test gaps)
++    #### Minor (style, polish)
++    Each: file:line, what's wrong, why it matters, how to fix if not obvious.
++    ### Review focus
++    One line per item: what you checked and found.
++    ### Deferred and parked items
++    Each: fix before merge | can wait, with the reason.
++    ### Declined to judge
++    ### Assessment
++    **Ready for verification?** Yes | No | With fixes
++    **Reasoning:** <one or two sentences>
++```
++
++**Placeholders**
++- `[DIFF_FILE]`: a package of the whole build (commit list, stat, `git diff -U10`), written into the build folder. `[BASE_SHA]` is the commit before the first commit point: the parent of the recorded `C1` sha, or `git merge-base <synced> HEAD` if no commit point has landed. `[HEAD_SHA]` is the work branch head.
++- `[REVIEW_FOCUS]`: the plan's Review focus section, copied verbatim.
++- `[PROGRESS_PATH]`, `[SPEC_PATH]`, `[PLAN_PATH]`: absolute paths.
+diff --git a/superpowers/skills/requesting-code-review/code-reviewer.md b/plugins/anvil/skills/build/prompts/final-review.md
+index 6d358b5..af0fb69 100644
+--- a/superpowers/skills/requesting-code-review/code-reviewer.md
++++ b/plugins/anvil/skills/build/prompts/final-review.md
+@@ -1,198 +1,98 @@
+-# Code Reviewer Prompt Template
++<!-- adapted from superpowers@7.0.2: skills/subagent-driven-development/references/final-review.md -->
++<!-- adapted from superpowers@7.0.2: skills/requesting-code-review/code-reviewer.md -->
+ 
+-Use this template when dispatching a code reviewer subagent.
++# Final review prompt
+ 
+-**Purpose:** Review completed work against requirements and code quality standards before it cascades into more work.
++One whole-branch review when every task is `[x]`, on the most capable model. It is the one fresh context that sees the build as a whole. Verify's converge check comes after it; this review is about the code.
+ 
+ ```
+-Subagent (general-purpose):
+-  description: "Review code changes"
++Agent (general-purpose), model: [MOST_CAPABLE_MODEL], run in background
++  description: "Final review: <topic>"
+   prompt: |
+-    You are a Senior Code Reviewer with expertise in software architecture,
+-    design patterns, and best practices. Your job is to review completed work
+-    against its plan or requirements and identify issues before they cascade.
+-
+-    ## What Was Implemented
+-
+-    [DESCRIPTION]
+-
+-    ## Requirements / Plan
+-
+-    [PLAN_OR_REQUIREMENTS]
+-
+-    ## Git Range to Review
+-
+-    **Base:** [BASE_SHA]
+-    **Head:** [HEAD_SHA]
+-
+-    ```bash
+-    git diff --stat [BASE_SHA]..[HEAD_SHA]
+-    git diff [BASE_SHA]..[HEAD_SHA]
+-    ```
++    You are reviewing a finished build, whole-branch, against its spec and
++    plan, to find problems before verification and merge.
++
++    ## Inputs
++    - Spec: [SPEC_PATH]. Its live S-lines are the requirements.
++    - Plan: [PLAN_PATH]. Its Review focus section, verbatim:
++      [REVIEW_FOCUS]
++      These are failure modes no planned test covers. Check each one
++      deliberately and say what you found.
++    - Decisions made during the build: the decision log in [PROGRESS_PATH].
++      Weigh those calls; say which ones you disagree with.
++    - Deferred minor findings and parked findings, from the same file (the
++      indented lines under each task). Say which of them must be fixed
++      before merge.
++    - The whole diff: [DIFF_FILE] (from [BASE_SHA] to [HEAD_SHA], in
++      [WORK_PATH]).
++
++    Read the diff file first. Inspect other code only to check a concrete
++    risk you can name.
+ 
+     ## The spec is a vision document
+-
+-    The spec says what the software must do. It does not enumerate every
+-    input, environment, or condition the software will meet. For behavior
+-    the spec is silent on, judge by what a reasonable person using this
+-    software would expect: a reasonable person's expectation is a
+-    requirement, and a spec's silence is not permission. Grade such
+-    findings by their effect on that person, not by whether the spec
+-    mentions the trigger.
++    The spec says what the software must do. It doesn't list every input,
++    environment or condition the software will meet. Where it's silent,
++    judge by what a reasonable person using this software would expect: that
++    expectation is a requirement, and silence isn't permission. Grade such
++    findings by their effect on that person, not by whether the spec names
++    the trigger.
++
++    ## Read-only
++    Don't change the working tree, the index, HEAD or any branch. Use
++    `git show`, `git diff` and `git log`. If you need another revision checked
++    out, add a separate temporary worktree; never move HEAD here. You don't
++    dispatch subagents; if the diff is large, review it in passes and say so.
++
++    ## Tests: never rerun them
++    The recorded results are the test evidence; the full suite runs once, in
++    verification, after you. If a doubt needs a test, name the test and why.
++
++    ## What to check
++    - **Spec alignment:** every live S-line is built; behavior with no S-line
++      is listed (it will be justified or removed).
++    - **Plan alignment:** deviations from the plan are justified improvements
++      or problems. Flag significant ones so the orchestrator can confirm
++      whether they were intended. Problems in the plan itself: say so.
++    - **Code quality:** separation of concerns, error handling where errors
++      can occur, type safety, no duplicated logic, edge cases.
++    - **Over-building:** [ANVIL_REFS]/simplicity.md checklist (a) to (f),
++      across the whole build.
++    - **Architecture:** sound design, security, integration with the
++      surrounding code, performance where the spec cares.
++    - **Tests:** they check real behavior; every keep test names its S-line;
++      every test edit has a test-changed or code-changed statement with an
++      S-line behind it (see the progress entries and commit messages).
++    - **Production readiness:** migrations, backward compatibility, the docs
++      the plan asked for, obvious bugs.
+ 
+     ## Declined to judge
+-
+-    Before your verdict, list every behavior you considered and set aside
+-    as outside the plan or spec, one line each, with the reason. The
+-    executor rules on each line; nothing you set aside is dropped
+-    silently. An empty list means you set nothing aside.
+-
+-    ## Read-Only Review
+-
+-    Your review is read-only on this checkout. Do not mutate the working tree, the index, HEAD, or branch state in any way. Use tools like `git show`, `git diff`, and `git log` to inspect history. If you need a working copy of a different revision, check it out into a separate temporary directory (e.g. `git worktree add /tmp/review-[SHA] [SHA]`) — never move HEAD on this checkout.
+-
+-    ## You Do Not Dispatch Subagents
+-
+-    Do all of this review yourself. Never spawn a subagent to review part
+-    of the diff, and never spawn another reviewer for a second opinion.
+-    This process already provides every review seat the work gets; a
+-    reviewer you spawn duplicates one of them at full cost, and its
+-    verdict counts for nothing. If the diff feels too large for one
+-    pass, review it in passes yourself and say so in your report.
+-
+-    ## What to Check
+-
+-    **Plan alignment:**
+-    - Does the implementation match the plan / requirements?
+-    - Are deviations justified improvements, or problematic departures?
+-    - Is all planned functionality present?
+-
+-    **Code quality:**
+-    - Clean separation of concerns?
+-    - Proper error handling?
+-    - Type safety where applicable?
+-    - DRY without premature abstraction?
+-    - Edge cases handled?
+-
+-    **Architecture:**
+-    - Sound design decisions?
+-    - Reasonable scalability and performance?
+-    - Security concerns?
+-    - Integrates cleanly with surrounding code?
+-
+-    **Testing:**
+-    - Tests verify real behavior, not mocks?
+-    - Edge cases covered?
+-    - Integration tests where they matter?
+-    - All tests passing?
+-
+-    **Production readiness:**
+-    - Migration strategy if schema changed?
+-    - Backward compatibility considered?
+-    - Documentation complete?
+-    - No obvious bugs?
++    Before your verdict, list every behavior you considered and set aside as
++    outside the spec or plan, one line each, with the reason. The
++    orchestrator rules on each line. An empty list means you set nothing
++    aside.
+ 
+     ## Calibration
++    Grade by real severity; not everything is Critical. Say briefly what was
++    done well before the issues.
+ 
+-    Categorize issues by actual severity. Not everything is Critical.
+-    Acknowledge what was done well before listing issues — accurate praise
+-    helps the implementer trust the rest of the feedback.
+-
+-    If you find significant deviations from the plan, flag them specifically
+-    so the implementer can confirm whether the deviation was intentional.
+-    If you find issues with the plan itself rather than the implementation,
+-    say so.
+-
+-    ## Output Format
+-
++    ## Output
+     ### Strengths
+-    [What's well done? Be specific.]
+-
+     ### Issues
+-
+-    #### Critical (Must Fix)
+-    [Bugs, security issues, data loss risks, broken functionality]
+-
+-    #### Important (Should Fix)
+-    [Architecture problems, missing features, poor error handling, test gaps]
+-
+-    #### Minor (Nice to Have)
+-    [Code style, optimization opportunities, documentation polish]
+-
+-    For each issue:
+-    - File:line reference
+-    - What's wrong
+-    - Why it matters
+-    - How to fix (if not obvious)
+-
+-    ### Recommendations
+-    [Improvements for code quality, architecture, or process]
+-
++    #### Critical (bugs, security, data loss, broken behavior)
++    #### Important (missing S-lines, design problems, poor error handling, test gaps)
++    #### Minor (style, polish)
++    Each: file:line, what's wrong, why it matters, how to fix if not obvious.
++    ### Review focus
++    One line per item: what you checked and found.
++    ### Deferred and parked items
++    Each: fix before merge | can wait, with the reason.
++    ### Declined to judge
+     ### Assessment
+-
+-    **Ready to merge?** [Yes | No | With fixes]
+-
+-    **Reasoning:** [1-2 sentence technical assessment]
+-
+-    ## Critical Rules
+-
+-    **DO:**
+-    - Categorize by actual severity
+-    - Be specific (file:line, not vague)
+-    - Explain WHY each issue matters
+-    - Acknowledge strengths
+-    - Give a clear verdict
+-
+-    **DON'T:**
+-    - Say "looks good" without checking
+-    - Mark nitpicks as Critical
+-    - Give feedback on code you didn't actually read
+-    - Be vague ("improve error handling")
+-    - Avoid giving a clear verdict
++    **Ready for verification?** Yes | No | With fixes
++    **Reasoning:** <one or two sentences>
+ ```
+ 
+-**Placeholders:**
+-- `[DESCRIPTION]` — brief summary of what was built
+-- `[PLAN_OR_REQUIREMENTS]` — what it should do (plan file path, task text, or requirements)
+-- `[BASE_SHA]` — starting commit
+-- `[HEAD_SHA]` — ending commit
+-
+-**Reviewer returns:** Strengths, Issues (Critical / Important / Minor), Recommendations, Assessment
+-
+-## Example Output
+-
+-```
+-### Strengths
+-- Clean database schema with proper migrations (db.ts:15-42)
+-- Comprehensive test coverage (18 tests, all edge cases)
+-- Good error handling with fallbacks (summarizer.ts:85-92)
+-
+-### Issues
+-
+-#### Important
+-1. **Missing help text in CLI wrapper**
+-   - File: index-conversations:1-31
+-   - Issue: No --help flag, users won't discover --concurrency
+-   - Fix: Add --help case with usage examples
+-
+-2. **Date validation missing**
+-   - File: search.ts:25-27
+-   - Issue: Invalid dates silently return no results
+-   - Fix: Validate ISO format, throw error with example
+-
+-#### Minor
+-1. **Progress indicators**
+-   - File: indexer.ts:130
+-   - Issue: No "X of Y" counter for long operations
+-   - Impact: Users don't know how long to wait
+-
+-### Recommendations
+-- Add progress reporting for user experience
+-- Consider config file for excluded projects (portability)
+-
+-### Assessment
+-
+-**Ready to merge: With fixes**
+-
+-**Reasoning:** Core implementation is solid with good architecture and tests. Important issues (help text, date validation) are easily fixed and don't affect core functionality.
+-```
++**Placeholders**
++- `[DIFF_FILE]`: a package of the whole build (commit list, stat, `git diff -U10`), written into the build folder. `[BASE_SHA]` is the commit before the first commit point: the parent of the recorded `C1` sha, or `git merge-base <synced> HEAD` if no commit point has landed. `[HEAD_SHA]` is the work branch head.
++- `[REVIEW_FOCUS]`: the plan's Review focus section, copied verbatim.
++- `[PROGRESS_PATH]`, `[SPEC_PATH]`, `[PLAN_PATH]`: absolute paths.

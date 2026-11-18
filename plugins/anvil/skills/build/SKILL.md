@@ -37,8 +37,8 @@ A build is **pre-approved** when the plan's `Approved:` line reads `pre-approved
 
 ## Preflight
 
-1. **Sync.** `git fetch`, then `git status`. The synced branch is the plan header's `- **Synced branch:**` line. If it doesn't exist locally, create it: from `<remote>/<branch>` when that exists (`git branch --track <branch> <remote>/<branch>`), otherwise as a new branch from the current base (the branch checked out after the sync). A `(remote …)` branch not yet on the remote is pushed once now with `git push -u <remote> <branch>`. If it is behind its remote, pull. If it has diverged, stop and tell Saad: that is stop 4, since any merge you pick is a guess.
-2. **Gate.** `anvil topic show` and `anvil afk status` (AFK is also stated at session start). If there's no active topic (the plan was approved on another machine, or after `topic end`), or its folder isn't this plan's folder, run `anvil topic start <slug> --size <the plan's Size> --dir <the plan's folder>` first. Then `anvil check build` and `anvil topic stage build`. Both refuse unless the plan is approved. Don't work around a refusal; report it.
+1. **Sync.** `git fetch`, then `git status`. The synced branch is the plan header's `- **Synced branch:**` line. If it doesn't exist locally, create it: from `<remote>/<branch>` when that exists (`git branch --track <branch> <remote>/<branch>`), otherwise as a new branch from the current base (the branch checked out after the sync). A `(remote …)` branch not yet on the remote is pushed once now with `git push -u <remote> <branch>`. If it is behind its remote, pull. If it has diverged, stop and tell Saad: that is stop 4, since any merge you pick is a guess. The tree is clean apart from the topic folder: anything else uncommitted may be Saad's own work, so stop and name the files.
+2. **Gate.** `anvil topic show` and `anvil afk status` (AFK is also stated at session start). If there's no active topic (the plan was approved on another machine, or after `topic end`), run `anvil topic start <slug> --size <the plan's Size> --dir <the plan's folder>` first. If a different topic is active, `topic start` is refused: tell Saad and offer to park it with `anvil topic end` (in AFK, park it and log that). Then `anvil check build` and `anvil topic stage build`. Both refuse unless the plan is approved. Don't work around a refusal; report it.
 3. **Resuming?** If `progress.md` already has `[~]` or `[x]` tasks, or `git worktree list` shows lanes for this topic, read [references/resuming.md](references/resuming.md) before anything else. Re-dispatching finished work is the costliest failure here.
 4. **Read once.** The plan's header, Global constraints, Review focus, Task table, Test strategy, Commit points and execution mode, and the spec's S-lines. Note the type-check and full-suite commands (`Type-check:`, `Full suite:`) and the suite's recorded duration.
 5. **Work branch.** `git switch -c anvil/<topic>/work <synced branch>`, or switch to it if it exists. No work on `main` or `master` without Saad's explicit consent. Branch rules: [../../references/git-flow.md](../../references/git-flow.md).
@@ -126,6 +126,7 @@ Land one when every task it closes is `[x]` and its check is clean, per the plan
 ```bash
 anvil fresh --scope <scope> -- <cmd>     # each recorded check; rerun only what isn't fresh
 git add <topic folder> && git commit -m "docs(<topic>): progress"   # on the work branch, if changed
+git status --porcelain                   # clean apart from the topic folder
 git switch <synced>
 git merge --squash anvil/<topic>/work
 git commit -m "<the plan's message>"     # no co-author trailer or Claude attribution
@@ -134,11 +135,11 @@ git switch anvil/<topic>/work
 git reset --hard <synced>
 ```
 
-Then record it under `## Commit points`: `- C<k> <sha> pushed <date>`, `- C<k> <sha> not pushed (push failed <date>)`, or `- C<k> <sha> local <date>` for a `no` row. The record travels in the next squash. The commit point that closes the last wave is left for `finish`, so the fixes verify makes travel in it.
+If `git status --porcelain` lists anything outside the topic folder, stop before the squash and say what's uncommitted: the squash leaves it out, and the reset after it can discard it. Then record the commit point under `## Commit points`: `- C<k> <sha> pushed <date>`, `- C<k> <sha> not pushed (push failed <date>)`, or `- C<k> <sha> local <date>` for a `no` row. The record travels in the next squash. The commit point that closes the last wave is left for `finish`, so the fixes verify makes travel in it.
 
 ## Final review
 
-When every task is `[x]`:
+A plan with one task skips this review, since its task review already covered the whole branch; log the skip in the decision log. Otherwise, when every task is `[x]`:
 
 1. Write a package of the whole build (its range is in the placeholder notes of [prompts/final-review.md](prompts/final-review.md)) and dispatch that prompt on the most capable model, with the inputs it lists.
 2. Triage per [references/receiving-review.md](references/receiving-review.md). Critical and Important findings get **one** fix wave, batched by disjoint file groups ([references/waves.md](references/waves.md), "Batched fixes"), then exactly one scoped re-review of the fix range ([prompts/re-review.md](prompts/re-review.md)). No second wave: residual findings become rulings, and the load-bearing ones are named at the end.

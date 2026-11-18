@@ -1,0 +1,16 @@
+schema_version: "1.1"
+name: no-rerun-unchanged
+description: |
+  A test command is not rerun on an unchanged tree. Run with --scaffold and --allow-tools Write
+  Edit Bash. The scaffold seeds the slugify topic at the verify stage, so the PreToolUse hook is
+  live. Reuse shows in the transcript in one of two ways: Claude runs `anvil fresh`, whose
+  output starts "Fresh green result: N tests passed", or Claude repeats the command and the hook
+  denies it with "A fresh green result exists for this code state". Either passes grader 03.
+expected_outcome: |
+  The first `anvil run --scope full -- python3 -m unittest discover -s tests` runs the suite
+  (4 tests, OK) and records it. The second confirmation comes from the record: Claude runs
+  `anvil fresh --scope full -- <same command>` and quotes it, or its repeated command is denied
+  by the fresh-result hook and it quotes the recorded summary. It never forces a rerun with
+  ANVIL_RERUN=1. The reply gives the summary line and says the second check was reused.
+context:
+  scaffold_script: place-files.sh

@@ -7,7 +7,7 @@ Read this when the spec has to change mid-build: Saad changes direction, a revie
 - **Change request:** it alters or replaces behavior an existing S-line describes.
 - **New feature:** it adds behavior no S-line covers.
 
-Name what it conflicts with: the S-line, the date it was decided, and any logged decision behind it. Then the cost: which tasks redo, which tests change. Get the list from step 4's `anvil stale` run if you need it, before asking.
+Name what it conflicts with: the S-line, the date it was decided, and any logged decision behind it. Then the cost: which tasks redo, which tests change. Get it before asking, by searching the plan's task table and test list for the S-line (`S3` in the Spec cells). Once the line is retired, `anvil stale` confirms the list (step 4).
 
 If the change makes the work clearly bigger (more than a few tasks, or open questions of its own), say so: it may be a step up in size, or a follow-up plan.
 
@@ -40,7 +40,7 @@ The new line takes the next unused number; numbers are never reused. A new featu
 
 ## 4. Find what pointed at the old line
 
-`anvil stale` lists every task and test whose Spec cell names a retired S-line, and flags recorded results that no longer match the tree. Reopen each one:
+`anvil stale` lists every task and test whose Spec cell names a retired S-line, and exits 1 only for those. Its `result:` line (for example `result: no recorded run…`) is informational: it reopens nothing. Reopen each listed task and test:
 
 - a task that was `[x]`: back to `[ ]`, or a new fix task if most of it stands;
 - a task in flight: stop it at its next report and re-brief it with the new S-line;

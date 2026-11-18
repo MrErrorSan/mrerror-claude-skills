@@ -1,10 +1,12 @@
+import contextlib
+import io
 import subprocess
 import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
 
-from anvil_cli import results, state, stale
+from anvil_cli import cli, results, state, stale
 
 from .helpers import make_repo, write
 
@@ -93,6 +95,28 @@ class StaleTests(unittest.TestCase):
             for err in (subprocess.CalledProcessError(128, ["git"]), FileNotFoundError("git")):
                 with mock.patch.object(results, "tree_key", side_effect=err):
                     self.assertEqual(stale.stale(repo), [])
+
+    def test_cmd_stale_fails_only_on_tasks_and_tests(self):
+        with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmp:
+            repo = make_repo(Path(tmp))
+            state.save(repo, "active.json",
+                       {"slug": "demo", "dir": "docs/demo", "size": "full", "stage": "build"})
+            state.append_jsonl(repo, "results.jsonl",
+                               {"key": "k1", "tree": "old-tree", "prefix": "", "exit": 0})
+
+            def run():
+                with contextlib.chdir(repo), contextlib.redirect_stdout(io.StringIO()) as out:
+                    code = cli.main(["stale"])
+                return code, out.getvalue()
+
+            code, out = run()  # a result entry alone is informational
+            self.assertEqual(code, 0)
+            self.assertIn("result: no recorded run for the current tree", out)
+            write(repo / "docs/demo/spec.md", SPEC)
+            write(repo / "docs/demo/plan.md", PLAN)
+            code, out = run()
+            self.assertEqual(code, 1)
+            self.assertIn("task T2: names S2", out)
 
 
 if __name__ == "__main__":

@@ -64,6 +64,8 @@ Failure modes the spec implies but no task's tests would otherwise exercise, mos
 Full suite: `<command>`, about <duration> (<measured from a recorded run | from CI | not measured>). <It runs once on the final state | It also runs after each wave, being under about 2 minutes.>
 
 Type-check: <command | none>
+Lint: <command | none>
+Build: <command | none>
 
 | Test | Type | Spec | Breaks if it fails | Task |
 |---|---|---|---|---|
@@ -168,6 +170,8 @@ None found.
 Full suite: `<command>`, about <duration>.
 
 Type-check: <command | none>
+Lint: <command | none>
+Build: <command | none>
 
 | Test | Type | Spec | Breaks if it fails | Task |
 |---|---|---|---|---|

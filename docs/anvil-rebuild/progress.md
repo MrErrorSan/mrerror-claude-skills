@@ -1,5 +1,5 @@
 # Progress: anvil-rebuild
-- **Stage:** build
+- **Stage:** verify
 - **Wave:** 4 of 4
 ## Tasks
 - [x] T1 Foundations (formats, CLI skeleton, parser, state) C1
@@ -14,16 +14,27 @@
 - [x] T10 verify and finish skills C3
 - [x] T11 debug skill C3
 - [x] T12 afk revision and ticket-update hook-in C3
-- [ ] T13 Packaging and skill lint
-- [ ] T14 Evals
-- [ ] T16 Upstream watch and provenance
-- [ ] T15 Integration and final verification (orchestrator)
+- [x] T13 Packaging and skill lint C4
+- [x] T14 Evals C4
+- [x] T16 Upstream watch and provenance C4
+- [~] T15 Integration and final verification (orchestrator): suite, smokes, lint, validators, local install, final review and fixes done; evals, skill-creator runs and consent actions wait on Saad
 ## Commit points
 - C1 04a8360 pushed 2026-11-18
 - C2 7f7d574 pushed 2026-11-18
+- C3 a1d03b0 pushed 2026-11-18
 ## Blockers
+- Evals need Claude Code in WSL; the plan says ask before installing it there.
+- skill-creator description optimization needs Saad's review of the trigger query sets first.
+- Cross-model review: `agy` here has no allowed Gemini model (only Flash, which the skill bans).
 ## Decision log
 <!-- newest first; each: - 2026-11-18 **<choice>** — <reason>. Confidence: high|medium|low. Changes if: <fact>. -->
+- 2026-11-18 **Injected turns are never Saad's words** — the hooks docs confirm UserPromptSubmit also fires for background subagent reports, scheduled `/loop` firings and cross-session messages, with no origin field. The prompt hook skips text with the harness's injected-message markers and every gate ignores such records (`gate.INJECTED_RE`); a failing-first test guards it. Content check, so a new wrapper format needs adding. Confidence: medium. Changes if: Claude Code adds an origin field.
+- 2026-11-18 **Reversed: `approve --pre` now accepts quotes only from the request that started the topic onward (not any of the last 500 prompts)** — the final review showed a pre-approval for last week's topic would pass today's plan. `active.json` gains `started`. Supersedes the earlier `--pre` entry below. Confidence: high.
+- 2026-11-18 **Final whole-branch review: "ready with fixes"; all critical and important findings taken** — C1 AFK never expiring (an old AFK quote could skip a later topic's stops), I1-I8 (sequential lane-check, Stop hook vs background lanes, topic overwrite, `--pre` window, old ui-mockup/ux-audit, lost lint/build checks, commit-point reset losing regenerated files, change-request costing). Fixed in two parallel fixers (CLI, skills) with pinned contracts: a `check` scope, `started`, topic-start refusal, stale exit, lane-check ignoring the topic folder. Confidence: high.
+- 2026-11-18 **Cross-model review not run** — `agy` here rejects `--effort` and no longer offers `gemini-3.1-pro-high`; only Gemini Flash variants remain, which the cross-model-review skill bans. This is the phase-4 work design §10.4 already schedules (fold in the machine tooling, fix model names). The final review ran on Anvil's own final-review prompt only. Confidence: high. Changes if: Saad approves a Flash or other model for this.
+- 2026-11-18 **Local install verified at local scope only** — `claude plugin validate` passes (plugin and marketplace; only warning: no listing icon); `plugin details` lists 12 skills and 4 hooks, ~1.9k tokens always-on. A user-scope install waits for Saad, because the old loose `~/.claude/skills/{anvil,afk}` copies would load alongside it. Confidence: high.
+- 2026-11-18 **Evals not run: Claude Code isn't installed in WSL** — the plan says stop and ask before installing it there. Two runner behaviours the docs don't settle (hook denials in the trace; UserPromptSubmit under `claude -p`) need that run. Confidence: high.
+- 2026-11-18 **skill-creator test-case runs and description optimization deferred to Saad's stop** — the plan requires Saad to review the trigger query sets first (`docs/anvil-rebuild/verification/skill-creator/trigger-queries-*.json`); the test-case runs go in the same batch so he decides the spend once. Confidence: medium.
 - 2026-11-18 **No separate wave-3 semantic review** — the T10 reviewer traced build ↔ verify ↔ finish hand-offs, and the T11/T12 reviewers checked against `hooks.py`/`gate.py`; the whole-branch final review (T15) and T13's skill lint cover the rest. Confidence: medium. Changes if: the final review finds wave-3 drift.
 - 2026-11-18 **Wave-3 lanes were cherry-picked, not merged** — they were cut before C2, and the work branch was reset onto the C2 squash, so a merge conflicted on every wave-2 file. Cherry-picking the six lane commits applied cleanly. The lesson is now in `references/git-flow.md` and `build/references/waves.md`. Confidence: high.
 - 2026-11-18 **The last commit point is recorded as `- C<k> (this commit) <date>` before its own squash; in AFK, verify lands it** — keeps one squashed commit per commit point (design §7.6) and keeps AFK pushes flowing, since `finish` can't be model-invoked. Confidence: medium. Changes if: Saad prefers finish to always land the last commit point.
@@ -51,3 +62,4 @@
 - 2026-11-18 **The `bin/anvil` wrappers put `bin/` on `sys.path` themselves (e.g. via `-c` bootstrap) instead of setting `PYTHONPATH`** — `python -I` ignores `PYTHONPATH`, so the plan's wrapper as written cannot import `anvil_cli`. Confidence: high. Changes if: the wrappers drop `-I`.
 - 2026-11-18 **Lane worktrees at `../anvil-lane-<task>`, created by the orchestrator** — as the plan states; wave 0 (T1 alone) runs in the main checkout on the work branch. Confidence: high. Changes if: a wave-0 lane needs isolation.
 ## Stop note
+- 2026-11-18 Stopped at T15 step 8 (hand over to Saad), as the plan says. Done: every task T1-T16 built, reviewed and fixed; final verification green (69 tests, smokes, lint, validators, local install). Left: the WSL eval run, skill-creator test runs and description optimization, a working cross-model reviewer, and the consent actions. Why: each needs Saad's go-ahead. Report: [2026-11-18-anvil-1.0-handover.md](2026-11-18-anvil-1.0-handover.md).

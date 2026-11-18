@@ -1,19 +1,16 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "mrerror-claude-skills",
-  "description": "MrError's opinionated workflow skills, bundled under Anvil: autonomous AFK mode, the Anvil superpowers-override (parallel planning + deferred testing), mock-first UI, UX audits, and cross-model Gemini research.",
+  "description": "MrError's Claude Code plugins: Anvil, Saad's development workflow (brainstorm, spec, plan, parallel build, verify, finish).",
   "owner": {
     "name": "MrErrorSan",
     "url": "https://github.com/MrErrorSan"
   },
-  "allowCrossMarketplaceDependenciesOn": [
-    "superpowers-marketplace"
-  ],
   "plugins": [
     {
       "name": "anvil",
       "source": "./plugins/anvil",
-      "description": "Anvil is a workflow governor over Superpowers (tiered decisions, parallel-agent plans, implement-then-test, lean contract plans). Bundles afk (unattended mode), ui-mockup, ux-audit, and cross-model (backend-agnostic second-model review/research), and ticket-update (tracker-agnostic ticket hygiene).",
+      "description": "Saad's development workflow: brainstorm, spec, plan, parallel build, verify, finish. Also bundles afk, debug, ui-mockup, ux-audit, cross-model and ticket-update.",
       "category": "workflow"
     }
   ]

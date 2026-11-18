@@ -1,0 +1,22 @@
+[
+  {"query": "the checkout page in apps/web throws when the cart has a discount code and a gift card at the same time, can you fix it", "should_trigger": true},
+  {"query": "add a CSV export button to the invoices table in src/billing/InvoiceList.tsx, finance wants the same columns as the screen", "should_trigger": true},
+  {"query": "typo on the login screen, it says 'Pasword' in src/auth/strings.ts, just fix it", "should_trigger": true},
+  {"query": "we need to move the session store from in-memory to redis before we scale past one pod. plan it out, nothing's decided yet", "should_trigger": true},
+  {"query": "I want to redo the whole settings area, it's grown into 6 tabs nobody understands. not sure what it should look like yet", "should_trigger": true},
+  {"query": "rename getUserData to fetchUserProfile everywhere in packages/core and fix the imports", "should_trigger": true},
+  {"query": "quick POC: can we stream the report generation over SSE instead of polling? throwaway branch is fine", "should_trigger": true},
+  {"query": "pick up where we left off on the csv-export topic, what stage is it at", "should_trigger": true},
+  {"query": "i'm going to bed. build the notifications preferences feature from docs/notif-prefs/plan.md, don't ask me anything", "should_trigger": true},
+  {"query": "should we use a queue or cron for the nightly reconciliation job? look at how jobs/ works today and write up a recommendation", "should_trigger": true},
+  {"query": "can you explain how the auth middleware in server/middleware/auth.ts decides which routes are public", "should_trigger": false},
+  {"query": "review the diff on my branch feature/rate-limits and tell me if anything looks off before I open the PR", "should_trigger": false},
+  {"query": "I messed up a rebase onto main and now half my commits are duplicated, how do I get back to where I was", "should_trigger": false},
+  {"query": "npm run dev takes 90 seconds to start since we added the monorepo packages, why is vite so slow", "should_trigger": false},
+  {"query": "write me a new Claude skill that formats our weekly changelog from merged PR titles", "should_trigger": false},
+  {"query": "summarise what changed in the last 10 commits on main for the standup", "should_trigger": false},
+  {"query": "what does the useResourceQuery hook return when the request fails? I keep getting undefined", "should_trigger": false},
+  {"query": "update the linear ticket ENG-412 to say the export is done and link the PR", "should_trigger": false},
+  {"query": "the CI job 'e2e' is red on main but passes locally, can you look at the logs from the last run", "should_trigger": false},
+  {"query": "draft a short message to the team explaining why we're pausing the redesign for two weeks", "should_trigger": false}
+]

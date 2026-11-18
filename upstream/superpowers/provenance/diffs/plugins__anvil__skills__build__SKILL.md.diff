@@ -1,0 +1,1791 @@
+diff --git a/superpowers/skills/subagent-driven-development/SKILL.md b/plugins/anvil/skills/build/SKILL.md
+index 4519578..1627f87 100644
+--- a/superpowers/skills/subagent-driven-development/SKILL.md
++++ b/plugins/anvil/skills/build/SKILL.md
+@@ -1,339 +1,161 @@
+ ---
+-name: subagent-driven-development
+-description: Use when executing implementation plans with independent tasks in the current session
++name: build
++description: Use when an approved Anvil plan is ready to be built, when Saad runs `/anvil:build` with a plan path, when the plan stage hands off after stop 2, or when a build that was interrupted (by `/clear`, compaction or a usage limit) needs to pick up where its `progress.md` left off.
+ ---
++<!-- adapted from superpowers@7.0.2: skills/subagent-driven-development/SKILL.md -->
++<!-- adapted from superpowers@7.0.2: skills/subagent-driven-development/references/preflight.md -->
++<!-- adapted from superpowers@7.0.2: skills/subagent-driven-development/references/handling-reports.md -->
++<!-- adapted from superpowers@7.0.2: skills/subagent-driven-development/references/batching.md -->
++<!-- adapted from superpowers@7.0.2: skills/executing-plans/SKILL.md -->
++<!-- adapted from superpowers@7.0.2: skills/dispatching-parallel-agents/SKILL.md -->
+ 
+-# Subagent-Driven Development
++# Build
+ 
+-Execute plan by dispatching a fresh implementer subagent per task, a task review (spec compliance + code quality) after each, and a broad whole-branch review at the end.
++Build an approved plan: a fresh implementer per task, one reviewer per task giving two verdicts (spec, then quality), a check after each merged wave, and one whole-branch review at the end. Then hand over to `anvil:verify`.
+ 
+-**Why subagents:** You delegate tasks to specialized agents with isolated context. By precisely crafting their instructions and context, you ensure they stay focused and succeed at their task. They should never inherit your session's context or history — you construct exactly what they need. This also preserves your own context for coordination work.
++You are the orchestrator: you write `progress.md`, create worktrees, merge lanes, land commit points and make rulings. In subagent mode you don't write task code: your context is for coordination, and code you write skips review.
+ 
+-**Core principle:** Fresh subagent per task + task review (spec + quality) + broad final review = high quality, fast iteration
++**Continuous execution.** Don't pause between tasks to check in: Saad approved the plan so it would run. `progress.md` is the live view (`anvil progress` prints it).
+ 
+-**Narration:** between tool calls, narrate at most one short line — the
+-ledger and the tool results carry the record.
++**Rulings, not stalls.** Conflicts, ambiguities, plan defects, a cap you would have asked to exceed: decide them. The spec is the binding authority, the plan is its argument, and your judgment settles what neither answers. Each ruling goes in the progress file's decision log, newest first:
+ 
+-**Continuous execution:** Do not pause to check in with your human partner between tasks. Execute all tasks from the plan without stopping. The only reasons to stop are the four named below, or all tasks complete. "Should I continue?" prompts and progress summaries waste their time — they asked you to execute the plan, so execute it.
++```
++- 2026-11-18 **<choice>** — <reason>. Confidence: high|medium|low. Changes if: <fact>.
++```
+ 
+-**Rulings, not stalls.** A running plan does not wait on a human. Conflicts,
+-ambiguities, plan defects, a cap you would have asked to exceed — decide
+-them. The spec is the binding authority, the plan is its argument, and your
+-judgment settles what neither answers. Record every decision in the ledger as
+-`Ruling: <what you decided> — <why> — <what it costs if wrong>`, and keep
+-going. A wrong ruling costs rework your human partner can see and undo; a
+-session parked on a question costs their whole day and buys nothing.
++The log is append-only: never edit or remove an entry. A ruling you reverse gets a new entry that names the old one. A wrong ruling costs rework Saad can see and undo; a build parked on a question costs his whole day.
+ 
+-Four things stop you, and only these: an irreversible or destructive
+-operation; a security-sensitive action; a side effect outside this worktree
+-that norms say you ask about first (a merge, a push to a shared branch, a
+-publish); and a plan so broken that every path forward is a guess. For those,
+-stop and ask.
++**Four things stop you, in any mode:**
++1. an irreversible or destructive operation (resetting Anvil's own work branch and removing its own lane worktrees are not in this group);
++2. a security-sensitive action;
++3. a side effect the plan doesn't authorise: a push, or a merge into any branch other than the work branch, outside the plan's commit points; a publish; a deploy. Approving the plan authorised the pushes its commit points name, and the first push of a new remote synced branch;
++4. a plan so broken that every path forward is a guess.
+ 
+-## When to Use
++A build is **pre-approved** when the plan's `Approved:` line reads `pre-approved …` or `skipped (AFK) …`; it runs with AFK decision-making. Outside AFK and pre-approved builds, two more things stop you: a checkpoint Saad named in the plan, and a change that replaces one of his decisions ([references/change-flow-back.md](references/change-flow-back.md)). When AFK is on or the build is pre-approved, nothing asks Saad: every question becomes a ruling, change requests are logged rather than asked, and only the four stops above stop you. To stop: say why in one short message, and add the reason under `## Blockers`. In AFK, also write it under `## Stop note`, so the Stop hook lets the turn end. If the repo has a tracker, `ticket-update` comments at real stops.
+ 
+-```dot
+-digraph when_to_use {
+-    "Have implementation plan?" [shape=diamond];
+-    "Tasks mostly independent?" [shape=diamond];
+-    "Partner chose inline, or no subagent tool?" [shape=diamond];
+-    "subagent-driven-development" [shape=box];
+-    "executing-plans" [shape=box];
+-    "Manual execution or brainstorm first" [shape=box];
++**Narration:** at most one short line between tool calls.
+ 
+-    "Have implementation plan?" -> "Tasks mostly independent?" [label="yes"];
+-    "Have implementation plan?" -> "Manual execution or brainstorm first" [label="no"];
+-    "Tasks mostly independent?" -> "Partner chose inline, or no subagent tool?" [label="yes"];
+-    "Tasks mostly independent?" -> "Manual execution or brainstorm first" [label="no - tightly coupled"];
+-    "Partner chose inline, or no subagent tool?" -> "executing-plans" [label="yes"];
+-    "Partner chose inline, or no subagent tool?" -> "subagent-driven-development" [label="no"];
+-}
+-```
++## Preflight
+ 
+-**vs. Executing Plans (inline):**
+-- Fresh subagent per task (no context pollution) instead of one context doing every task
+-- Review after each task (spec compliance + code quality) instead of only at the end
+-- Costs a fresh context per task and per review; inline costs one context plus one final reviewer
+-- Both run in this session, share the same plan workspace and ledger, and never pause between tasks
+-
+-## The Process
+-
+-```dot
+-digraph process {
+-    rankdir=TB;
+-
+-    subgraph cluster_per_task {
+-        label="Per Task";
+-        "Dispatch implementer subagent (./implementer-prompt.md)" [shape=box];
+-        "Implementer asks questions?" [shape=diamond];
+-        "Answer questions, provide context" [shape=box];
+-        "Implementer implements, tests, commits, self-reviews" [shape=box];
+-        "Generate review package, dispatch task reviewer (./task-reviewer-prompt.md)" [shape=box];
+-        "Spec ✅ and quality approved?" [shape=diamond];
+-        "Fix loop: read references/fix-loop.md before every round" [shape=box];
+-        "Append completion to ledger, mark todo complete" [shape=box];
+-    }
+-
+-    "Setup: worktree, ledger check, read plan, pre-flight review" [shape=box];
+-    "More tasks remain?" [shape=diamond];
+-    "Final review and finish: read references/final-review.md" [shape=box];
+-    "Final review clean: delete this plan's workspace" [shape=box];
+-    "Use superpowers:finishing-a-development-branch" [shape=box style=filled fillcolor=lightgreen];
+-
+-    "Setup: worktree, ledger check, read plan, pre-flight review" -> "Dispatch implementer subagent (./implementer-prompt.md)";
+-    "Dispatch implementer subagent (./implementer-prompt.md)" -> "Implementer asks questions?";
+-    "Implementer asks questions?" -> "Answer questions, provide context" [label="yes"];
+-    "Answer questions, provide context" -> "Implementer implements, tests, commits, self-reviews";
+-    "Implementer asks questions?" -> "Implementer implements, tests, commits, self-reviews" [label="no"];
+-    "Implementer implements, tests, commits, self-reviews" -> "Generate review package, dispatch task reviewer (./task-reviewer-prompt.md)";
+-    "Generate review package, dispatch task reviewer (./task-reviewer-prompt.md)" -> "Spec ✅ and quality approved?";
+-    "Spec ✅ and quality approved?" -> "Append completion to ledger, mark todo complete" [label="yes"];
+-    "Spec ✅ and quality approved?" -> "Fix loop: read references/fix-loop.md before every round" [label="no"];
+-    "Fix loop: read references/fix-loop.md before every round" -> "Append completion to ledger, mark todo complete" [label="addressed, or parked at the cap"];
+-    "Append completion to ledger, mark todo complete" -> "More tasks remain?";
+-    "More tasks remain?" -> "Dispatch implementer subagent (./implementer-prompt.md)" [label="yes"];
+-    "More tasks remain?" -> "Final review and finish: read references/final-review.md" [label="no"];
+-    "Final review and finish: read references/final-review.md" -> "Final review clean: delete this plan's workspace";
+-    "Final review clean: delete this plan's workspace" -> "Use superpowers:finishing-a-development-branch";
+-}
+-```
++1. **Sync.** `git fetch`, then `git status`. The synced branch is the plan header's `- **Synced branch:**` line. If it doesn't exist locally, create it: from `<remote>/<branch>` when that exists (`git branch --track <branch> <remote>/<branch>`), otherwise as a new branch from the current base (the branch checked out after the sync). A `(remote …)` branch not yet on the remote is pushed once now with `git push -u <remote> <branch>`. If it is behind its remote, pull. If it has diverged, stop and tell Saad: that is stop 4, since any merge you pick is a guess.
++2. **Gate.** `anvil topic show` and `anvil afk status` (AFK is also stated at session start). If there's no active topic (the plan was approved on another machine, or after `topic end`), or its folder isn't this plan's folder, run `anvil topic start <slug> --size <the plan's Size> --dir <the plan's folder>` first. Then `anvil check build` and `anvil topic stage build`. Both refuse unless the plan is approved. Don't work around a refusal; report it.
++3. **Resuming?** If `progress.md` already has `[~]` or `[x]` tasks, or `git worktree list` shows lanes for this topic, read [references/resuming.md](references/resuming.md) before anything else. Re-dispatching finished work is the costliest failure here.
++4. **Read once.** The plan's header, Global constraints, Review focus, Task table, Test strategy, Commit points and execution mode, and the spec's S-lines. Note the type-check and full-suite commands (`Type-check:`, `Full suite:`) and the suite's recorded duration.
++5. **Work branch.** `git switch -c anvil/<topic>/work <synced branch>`, or switch to it if it exists. No work on `main` or `master` without Saad's explicit consent. Branch rules: [../../references/git-flow.md](../../references/git-flow.md).
++6. **Progress file.** Create `progress.md` in the topic folder `anvil topic show` reports, if it's missing, from the task table, in the format in [../../references/formats.md](../../references/formats.md), and set `- **Stage:** build`. Only you write it; lanes never do.
++7. **Build folder.** Scratch files (the lane brief, per-task messages, reports, review packages) go in `$(git rev-parse --path-format=absolute --git-common-dir)/anvil/build/<slug>/`. Never committed; every worktree reads it by absolute path; it survives `/clear`.
++8. **Conflict scan.** Scan the plan once, writing down what you checked:
++   - tasks that contradict each other, the spec, or the Global constraints;
++   - anything the plan mandates that the review rubric treats as a defect (a test that asserts nothing, a duplicated logic block);
++   - one row for every pair of tasks that share an interface: what one produces against what the other consumes.
++
++   Rule on each conflict and log it. A clean scan gets one decision-log line saying so.
++9. **Lane brief.** Write one shared brief file for the whole build from [prompts/implementer.md](prompts/implementer.md). It carries the rules every lane shares, the pinned contracts ([references/waves.md](references/waves.md), "Before a wave"), and the project's environment notes (interpreter, test runner, shell traps).
++
++## Execution mode
++
++Use the mode the approved plan states.
++
++- **Parallel:** waves of up to the plan's lane count (default 3, 4 at most), one worktree per lane. Mechanics in [references/waves.md](references/waves.md); read it before the first wave.
++- **Sequential:** one task at a time, in task order. The implementer works in the main checkout on the work branch. Record BASE (`git rev-parse HEAD`) before each task. A task's check is its targeted tests through `anvil run --scope targeted`, plus its smoke path where the plan lists one (`anvil run --scope smoke`); a commit point lands once every task it closes has passed its check.
++- **Inline (single agent):** when Saad chose it, or no subagent tool is available. You do each task yourself, under an implementer's rules (targeted tests only, inside the write set, the test-changed vs code-changed statement). Never fabricate a dispatch. The per-task review still happens, by a fresh reviewer if you can dispatch one; otherwise do it yourself as a separate pass with [prompts/task-reviewer.md](prompts/task-reviewer.md), log `self-review (no subagent tool)` under the task, and say so at the end: Saad decides whether that's enough.
++
++## Model selection
++
++Use the least capable model that does each role well, and always name it in the dispatch: an omitted model inherits the session's.
+ 
+-## Setup
+-
+-Ensure the work happens in an isolated workspace: use
+-superpowers:using-git-worktrees to create one or verify the existing one.
+-Never start implementation on a main/master branch without your human
+-partner's explicit consent.
+-
+-Conversation memory does not survive compaction. In real sessions,
+-controllers that lost their place have re-dispatched entire completed task
+-sequences — the single most expensive failure observed. Track progress in
+-a ledger file, not only in todos.
+-
+-- Each plan owns a workspace: at skill start, run this skill's
+-  `bash scripts/sdd-workspace PLAN_FILE` by its absolute path, from the
+-  working tree you're executing in — it prints the plan's git-ignored
+-  directory (under `<repo-root>/.superpowers/sdd/`), home to
+-  every artifact for THIS plan: ledger, briefs, reports, review packages.
+-  Another plan's directory is never yours to read or write.
+-- Check for this plan's ledger at `<workspace>/progress.md`. If one exists,
+-  read [references/resuming.md](references/resuming.md) before anything
+-  else: it says whose ledger it is and where to resume.
+-- Create the ledger with its identity as the first line:
+-  `# SDD ledger — plan: <plan file path>`.
+-- The ledger is your recovery map: the commits it names exist in git even
+-  when your context no longer remembers creating them. After compaction,
+-  trust the ledger and `git log` over your own recollection.
+-- `git clean -fdx` will destroy the workspace (it's git-ignored scratch); if
+-  that happens, recover from `git log`.
+-
+-Read the plan once, note its context and Global Constraints, and create a
+-todo per task. If the plan names a Spec, read that too: the spec is the
+-authority the plan argues from, and conflicts inside the plan resolve
+-against it. A plan with no reachable spec gets a ledger note saying so —
+-rulings made without one are provisional.
+-
+-Before dispatching Task 1, read [references/preflight.md](references/preflight.md)
+-and run the conflict scan it describes. Its table and rulings go in the
+-ledger.
+-
+-## Model Selection
+-
+-Use the least powerful model that can handle each role to conserve cost and increase speed.
+-
+-**Mechanical implementation tasks** (isolated functions, clear specs, 1-2 files): use a fast, cheap model. Most implementation tasks are mechanical when the plan is well-specified.
+-
+-**Integration and judgment tasks** (multi-file coordination, pattern matching, debugging): use a standard model.
+-
+-**Architecture and design tasks**: use the most capable available model.
+-The final whole-branch review is one of these — dispatch it on the most
+-capable available model, not the session default.
+-
+-**Review tasks**: choose the model with the same judgment, scaled to the
+-diff's size, complexity, and risk. A small mechanical diff does not need the
+-most capable model; a subtle concurrency change does. Scoped re-reviews of
+-small fix diffs take a cheap-to-mid tier.
+-
+-**Fix-loop escalation (rounds 4-5)**: use a model at least one tier above
+-the implementer that got stuck.
+-
+-**Always specify the model explicitly when dispatching a subagent.** An
+-omitted model inherits your session's model — often the most capable and
+-most expensive — which silently defeats this section.
+-
+-**Turn count beats token price.** Wall-clock and context cost scale with how
+-many turns a subagent takes, and the cheapest models routinely take 2-3× the
+-turns on multi-step work — costing more overall. Use a mid-tier model as the
+-floor for reviewers and for implementers working from prose descriptions.
+-When the task's plan text contains the complete code to write, the
+-implementation is transcription plus testing: use the cheapest tier for
+-that implementer. Single-file mechanical fixes also take the cheapest tier.
+-
+-**Task complexity signals (implementation tasks):**
+-- Touches 1-2 files with a complete spec → cheap model
+-- Touches multiple files with integration concerns → standard model
+-- Requires design judgment or broad codebase understanding → most capable model
+-
+-## The Task Loop
+-
+-**Small same-shape work:** when the plan lists several small edits of the
+-same kind across files, read [references/batching.md](references/batching.md)
+-before dispatching them.
+-
+-Everything you paste into a dispatch prompt — and everything a subagent
+-prints back — stays resident in your context for the rest of the session
+-and is re-read on every later turn. Hand artifacts over as files.
+-
+-**Waiting on dispatched subagents:** never poll a wait interface with
+-short timeouts, and never sit in one silent, open-ended wait either.
+-While you have local work — ledger updates, packaging the next review,
+-reading reports — keep working; child results arrive on their own.
+-When you are genuinely idle, wait in bounded stretches (five to ten
+-minutes, where your platform allows), and between stretches post one
+-line of status and reconcile your live children: list them, and chase
+-any that finished without reporting. A bounded stretch keeps nearly
+-all of a long wait's efficiency while guaranteeing a stuck or lost
+-child is noticed within minutes, not at the end of the session.
++- **Implementers:** cheap for 1–2 files with a complete spec; standard for multi-file integration; most capable for design judgment or broad codebase understanding. Prose-only tasks get a mid tier at least: cheap models take two or three times the turns on multi-step work.
++- **Reviewers:** scaled to the diff's size and risk, mid tier as the floor. Scoped re-reviews of small fixes take a cheap-to-mid tier.
++- **Wave review:** mid tier. **Final review:** most capable. **Fix rounds 4–5:** one tier above the stuck implementer.
++
++## The task loop
++
++Every task goes through this loop, in every mode.
+ 
+ ### 1. Dispatch the implementer
+ 
+-Record BASE (`git rev-parse HEAD`) before dispatching — the review package
+-and fix-round diffs need it.
+-
+-- **Task brief:** before dispatching an implementer, run this skill's
+-  `bash scripts/task-brief PLAN_FILE N` by its absolute path, from the
+-  working tree you're executing in — it extracts the task's full text to a
+-  uniquely named file and prints the path. Compose the dispatch so the
+-  brief stays the single source of
+-  requirements. Your dispatch should contain: (1) one line on where this
+-  task fits in the project; (2) the brief path, introduced as "read this
+-  first — it is your requirements, with the exact values to use verbatim";
+-  (3) interfaces and decisions from earlier tasks that the brief cannot
+-  know; (4) your resolution of any ambiguity you noticed in the brief;
+-  (5) the report-file path and report contract. Exact values (numbers,
+-  magic strings, signatures, test cases) appear only in the brief. Never
+-  make a subagent read the whole plan file.
+-- **Report file:** name the implementer's report file after the brief
+-  (brief `…/task-N-brief.md` → report `…/task-N-report.md`) and put it in
+-  the dispatch prompt. The implementer writes the full report there and
+-  returns only status, commits, a one-line test summary, and concerns.
+-- A dispatch prompt describes one task, not the session's history. Do not
+-  paste accumulated prior-task summaries ("state after Tasks 1-3") into
+-  later dispatches — a real session's dispatch hit 42k chars of which 99%
+-  was pasted history. A fresh subagent needs its task, the interfaces it
+-  touches, and the global constraints. Nothing else.
+-- The dispatch carries the no-subagents contract (it is in the
+-  implementer template): the implementer never dispatches subagents —
+-  not helpers, and never a reviewer. Review arrives from you, after the
+-  report. In real sessions, every reviewer a worker spawned duplicated
+-  the task review the controller dispatched anyway — a full extra
+-  review seat per task.
+-- If an earlier task parked a finding in the area this task touches, carry
+-  a pointer to that ledger entry in the dispatch.
+-- Record the implementer's agent identity from the dispatch result —
+-  fix-loop rounds 1-3 resume this agent.
+-- Never dispatch multiple implementation subagents in parallel (conflicts).
+-
+-Template: [implementer-prompt.md](implementer-prompt.md)
++- Mark the task `[~] T3 <title> (lane anvil/<topic>/T3)` in `progress.md` when you dispatch it (in sequential mode, leave out the lane part).
++- The dispatch is short ([prompts/implementer.md](prompts/implementer.md)): the lane brief, the task's plan section, the absolute working directory, the report file path, and only what the brief can't know (interfaces and rulings from earlier tasks, your resolution of an ambiguity, a parked finding in the area).
++- Don't paste the plan, other tasks' history, or prior summaries into a dispatch: everything you paste, and everything a subagent prints back, stays in your context. Hand things over as files.
++- **Batch small same-shape tasks.** Several small, independent edits of the same kind (the same one-line fix or field addition across files) can go in one dispatch that lists every file and its change, reviewed as one diff. Keep one dispatch per task for work that needs its own judgment, tests or review.
++- Note the implementer's agent id: fix rounds 1–3 resume this agent.
+ 
+ ### 2. Handle the report
+ 
+-Implementer subagents report one of four statuses. Handle each appropriately:
+-
+-**DONE:** Generate the review package (`bash scripts/review-package PLAN_FILE BASE HEAD` by its absolute path, from the working tree you're executing in — it prints the unique file path it wrote; BASE is the commit you recorded before dispatching the implementer — never `HEAD~1`, which silently drops all but the last commit of a multi-commit task), then dispatch the task reviewer with the printed path.
+-
+-**Any other status** (DONE_WITH_CONCERNS, NEEDS_CONTEXT, BLOCKED): read
+-[references/handling-reports.md](references/handling-reports.md) and follow
+-it, every time you get one.
+-
+-If the implementer asks questions — before starting or mid-task — answer
+-clearly and completely, provide additional context if needed, and don't
+-rush it into implementation.
+-
+-### 3. Review the task
+-
+-Per-task reviews are task-scoped gates. The broad review happens once, at the
+-final whole-branch review. Never skip the task review, and never accept a
+-report missing either verdict — spec compliance AND task quality are both
+-required. Implementer self-review never replaces the task review; both are
+-needed.
+-
+-- Hand the reviewer its diff as a file: run this skill's
+-  `bash scripts/review-package PLAN_FILE BASE HEAD` by its absolute path, from
+-  the working tree you're executing in, and pass the reviewer the file path
+-  it prints (or, without bash: `git log --oneline`, `git diff --stat`,
+-  and `git diff -U10` for the range, redirected to one uniquely named
+-  file). The output never enters your own context, and the reviewer sees
+-  the commit list, stat summary, and full diff with context in one Read
+-  call. Use the BASE you recorded before dispatching the implementer —
+-  never `HEAD~1`, which silently truncates multi-commit tasks. Never
+-  dispatch a task reviewer without a diff file.
+-- **Reviewer inputs:** the task reviewer gets three paths — the same brief
+-  file, the report file, and the review package — plus the global
+-  constraints that bind the task.
+-- The global-constraints block you hand the reviewer is its attention
+-  lens. Copy the binding requirements verbatim from the plan's Global
+-  Constraints section or the spec: exact values, exact formats, and the
+-  stated relationships between components ("same layout as X", "matches
+-  Y"). The reviewer's template already carries the process rules (YAGNI,
+-  test hygiene, review method) — the constraints block is for what THIS
+-  project's spec demands.
+-- Do not add open-ended directives like "check all uses" or "run race tests
+-  if useful" without a concrete, task-specific reason
+-- Do not ask a reviewer to re-run tests the implementer already ran on the
+-  same code — the implementer's report carries the test evidence
+-- Do not pre-judge findings for the reviewer — never instruct a reviewer to
+-  ignore or not flag a specific issue. If you believe a finding would be a
+-  false positive, let the reviewer raise it and adjudicate it in the review
+-  loop. If the prompt you are writing contains "do not flag," "don't treat X
+-  as a defect," "at most Minor," or "the plan chose" — stop: you are
+-  pre-judging, usually to spare yourself a review loop.
+-If the reviewer reports "⚠️ Cannot verify from diff" items, read
+-[references/cannot-verify.md](references/cannot-verify.md) before you mark
+-the task complete.
+-
+-Template: [task-reviewer-prompt.md](task-reviewer-prompt.md)
+-
+-### 4. The fix loop
+-
+-The loop triggers when the review reports spec ❌, any Critical or Important
+-finding, or a ⚠️ item you confirmed as a real gap.
+-
+-When it triggers, read [references/fix-loop.md](references/fix-loop.md) and
+-follow it. Read it again before every round, even if you read it earlier in
+-this session: it holds the round cap, the breaker, and the ledger line each
+-round writes, and your memory of it does not survive compaction.
+-
+-### 5. Complete the task
+-
+-When the review comes back clean — or every open finding is parked with a
+-ruling at the cap — append the completion line to the ledger in the same
+-message as your other bookkeeping:
+-
+-- `Task <N>: complete (commits <base7>..<head7>, review clean)`
+-- `Task <N>: complete (commits <base7>..<head7>, <K> parked)` after a
+-  tripped breaker
+-
+-Then mark the todo complete and move on. Never move to the next task while
+-the review has open Critical/Important issues that are neither fixed nor
+-parked-with-ruling at the cap.
+-
+-## Final Review
+-
+-When every task is complete, read
+-[references/final-review.md](references/final-review.md) and follow it. It
+-covers the whole-branch review, its single fix wave, and how you finish.
+-
+-## Common Rationalizations
++- **DONE:** go to the review.
++- **DONE_WITH_CONCERNS:** correctness or scope concerns get addressed before the review; observations ("this file is getting large") get noted, and the review goes ahead.
++- **NEEDS_CONTEXT:** give the missing context and resume it.
++- **BLOCKED:** find what has to change. A context gap: more context. Needs more reasoning: a more capable model. Too big: split it and log the split. The plan is wrong: rule on the correction, log it, carry it in the re-dispatch. Never resend the same task to the same model unchanged.
++- **The spec looks wrong** (the report says a requirement can't hold, or Saad changes direction): follow [references/change-flow-back.md](references/change-flow-back.md).
++- **A failure whose cause isn't obvious** (on the merged tree, or a lane stuck on one): run `anvil:debug`, then come back here.
++
++Check the report has what the prompt asks for (S-lines covered, the targeted test command and summary line, a test-changed or code-changed statement per touched test). A missing item goes back to the implementer before the review.
++
++### 3. Check the write set
++
++`anvil lane-check T3 --base <base>`, run in the task's working directory. The base is the work branch in parallel mode, and the recorded BASE otherwise. Files outside the write set go back to the implementer: revert them, or report BLOCKED if the task needs them; the fix is then a plan ruling, never a quiet reach across.
++
++### 4. Review the task
++
++Every task gets reviewed, unless its row says `skip (fully specified)`: that task goes straight to `[x]` after a clean lane-check. The rule is fixed; it isn't your call per task. An implementer's self-review never replaces it.
++
++- Write the review package before anything else touches the branch: `git log --oneline BASE..HEAD`, `git diff --stat BASE..HEAD` and `git diff -U10 BASE..HEAD`, run in the lane, redirected into one file in the build folder. BASE is the commit the task started from, never `HEAD~1` (that drops every commit but the last). In parallel mode, write it before merging the lane.
++- Dispatch [prompts/task-reviewer.md](prompts/task-reviewer.md), filling its placeholders as its notes say.
++- Accept no review missing either verdict.
++
++### 5. Act on the review
++
++Read [references/receiving-review.md](references/receiving-review.md) when a review comes back with anything other than two clean verdicts, and again before every fix round: it holds the triage, the 5-round fix cap, the breaker, and what each round writes to `progress.md`. Your memory of it doesn't survive compaction.
++
++### 6. Complete the task
++
++When the review is clean, or every open finding is parked with a ruling at the cap, mark the task `[x] T3 <title>` in `progress.md`, with the report's test statements as an indented line under it (`  - tests: <file> code changed (S3)`): `finish` reports from these, since the build folder doesn't survive the build. The commit point adds ` C<k>`. Never start a task that depends on this one while it has open Critical or Important findings that are neither fixed nor parked.
++
++## Tests in the build
++
++The rules are in [../../references/test-policy.md](../../references/test-policy.md). Reuse needs the scope the run used: `anvil fresh --scope <the scope it ran with> -- <same cmd>`.
++
++## Simplicity
++
++See [../../references/simplicity.md](../../references/simplicity.md). The spec's `- **Mode:**` line says whether this is a normal change or a redesign.
++
++## Commit points
++
++Land one when every task it closes is `[x]` and its check is clean, per the plan's `## Commit points` table and [../../references/git-flow.md](../../references/git-flow.md):
++
++```bash
++anvil fresh --scope <scope> -- <cmd>     # each recorded check; rerun only what isn't fresh
++git add <topic folder> && git commit -m "docs(<topic>): progress"   # on the work branch, if changed
++git switch <synced>
++git merge --squash anvil/<topic>/work
++git commit -m "<the plan's message>"     # no co-author trailer or Claude attribution
++git push                                 # only if the row says yes
++git switch anvil/<topic>/work
++git reset --hard <synced>
++```
++
++Then record it under `## Commit points`: `- C<k> <sha> pushed <date>`, `- C<k> <sha> not pushed (push failed <date>)`, or `- C<k> <sha> local <date>` for a `no` row. The record travels in the next squash. The commit point that closes the last wave is left for `finish`, so the fixes verify makes travel in it.
++
++## Final review
++
++When every task is `[x]`:
++
++1. Write a package of the whole build (its range is in the placeholder notes of [prompts/final-review.md](prompts/final-review.md)) and dispatch that prompt on the most capable model, with the inputs it lists.
++2. Triage per [references/receiving-review.md](references/receiving-review.md). Critical and Important findings get **one** fix wave, batched by disjoint file groups ([references/waves.md](references/waves.md), "Batched fixes"), then exactly one scoped re-review of the fix range ([prompts/re-review.md](prompts/re-review.md)). No second wave: residual findings become rulings, and the load-bearing ones are named at the end.
++3. Each item on the reviewer's "Declined to judge" list is a ruling you make and log.
++
++## Hand-off
++
++1. Your closing message lists **Rulings I made**: every decision-log entry this build added, most review-worthy first, each with its confidence and "changes if"; then the deferred minors and anything parked. A ruling missing from it was made in secret.
++2. Remove the lane worktrees still left, and this topic's build folder.
++3. `anvil topic stage verify`, set `- **Stage:** verify` in `progress.md`, then run `anvil:verify`.
++
++## Common rationalizations
+ 
+ | Excuse | Reality |
+-|--------|---------|
+-| "Close enough on spec compliance" | Reviewer found spec gaps = not done. Fix or hit the cap and adjudicate — those are the only exits. |
+-| "I'll fix it myself, dispatching is overhead" | Controller fixes pollute your context and skip review. Resume the implementer. |
+-| "One more round will converge" | Past the cap, rounds don't converge — the failure is structural. Adjudicate and route. |
+-| "The reviewer will just find something new anyway" | Scoped re-reviews verify fixes; they cannot wander. New findings on untouched code go to the ledger, not the loop. |
+-| "This finding is obviously wrong, I'll drop it" | You adjudicate only at the cap, and every ruling is a ledger entry. Silent discards are forbidden. |
+-| "The fix was small, skip the re-review" | Unreviewed fixes are how regressions land. Every round ends with a scoped re-review. |
+-| "Reviews slow the loop down" | The loop without reviews is just unverified churn. Reviews are the loop's brakes and steering. |
+-| "Ledger bookkeeping is overhead" | The ledger is what survives compaction. Controllers without one have re-dispatched entire completed task sequences. |
+-| "The implementer spawned its own reviewer — free extra assurance" | It's a duplicate seat reviewing the same diff; the task review is the gate. A worker-spawned reviewer is a defect to flag, not rigor. |
++|---|---|
++| "Close enough on spec compliance" | A spec gap means not done. Fix it, or reach the cap and adjudicate. |
++| "The fix was small, skip the re-review" | Unreviewed fixes are how regressions land. |
++| "The lanes are independent, skip the wave check" | Each lane passes its own tests; clean merges can still be wrong together. |
++| "I remember which tasks are done" | You remember a summary. Read `progress.md` and `git log`. |
++| "Progress bookkeeping is overhead" | It's what survives compaction, and it's Saad's only live view. |
+diff --git a/superpowers/skills/subagent-driven-development/references/preflight.md b/plugins/anvil/skills/build/SKILL.md
+index 1701648..1627f87 100644
+--- a/superpowers/skills/subagent-driven-development/references/preflight.md
++++ b/plugins/anvil/skills/build/SKILL.md
+@@ -1,26 +1,161 @@
+-# The Pre-flight Scan
+-
+-Part of superpowers:subagent-driven-development. Run it once, before
+-dispatching Task 1.
+-
+-Before dispatching Task 1, scan the plan once for conflicts, writing down
+-what you checked as you check it:
+-
+-- tasks that contradict each other or the plan's Global Constraints
+-- anything the plan explicitly mandates that the review rubric treats as a
+-  defect (a test that asserts nothing, verbatim duplication of a logic block)
+-
+-The scan's output is a table, not a verdict. One row for every pair of tasks
+-that share a file or an interface: the two tasks, what one produces against
+-what the other consumes, and what you found. One row for every task: whether
+-its own text agrees with itself — the tests it specifies against the code it
+-specifies, the files it creates against the files it later touches. "The scan
+-is clean" without those rows is not a scan you ran.
+-
+-Write the table to the ledger. Rule on everything you find before execution
+-begins — each finding against the plan text that mandates it — and record
+-each ruling in the ledger. If the scan is clean, proceed without comment.
+-Rule on each conflict it surfaces — the spec is the binding authority, the
+-plan is its argument — record the ruling beside its row, and dispatch
+-Task 1. The review loop remains the net for conflicts that only emerge from
+-implementation.
++---
++name: build
++description: Use when an approved Anvil plan is ready to be built, when Saad runs `/anvil:build` with a plan path, when the plan stage hands off after stop 2, or when a build that was interrupted (by `/clear`, compaction or a usage limit) needs to pick up where its `progress.md` left off.
++---
++<!-- adapted from superpowers@7.0.2: skills/subagent-driven-development/SKILL.md -->
++<!-- adapted from superpowers@7.0.2: skills/subagent-driven-development/references/preflight.md -->
++<!-- adapted from superpowers@7.0.2: skills/subagent-driven-development/references/handling-reports.md -->
++<!-- adapted from superpowers@7.0.2: skills/subagent-driven-development/references/batching.md -->
++<!-- adapted from superpowers@7.0.2: skills/executing-plans/SKILL.md -->
++<!-- adapted from superpowers@7.0.2: skills/dispatching-parallel-agents/SKILL.md -->
++
++# Build
++
++Build an approved plan: a fresh implementer per task, one reviewer per task giving two verdicts (spec, then quality), a check after each merged wave, and one whole-branch review at the end. Then hand over to `anvil:verify`.
++
++You are the orchestrator: you write `progress.md`, create worktrees, merge lanes, land commit points and make rulings. In subagent mode you don't write task code: your context is for coordination, and code you write skips review.
++
++**Continuous execution.** Don't pause between tasks to check in: Saad approved the plan so it would run. `progress.md` is the live view (`anvil progress` prints it).
++
++**Rulings, not stalls.** Conflicts, ambiguities, plan defects, a cap you would have asked to exceed: decide them. The spec is the binding authority, the plan is its argument, and your judgment settles what neither answers. Each ruling goes in the progress file's decision log, newest first:
++
++```
++- 2026-11-18 **<choice>** — <reason>. Confidence: high|medium|low. Changes if: <fact>.
++```
++
++The log is append-only: never edit or remove an entry. A ruling you reverse gets a new entry that names the old one. A wrong ruling costs rework Saad can see and undo; a build parked on a question costs his whole day.
++
++**Four things stop you, in any mode:**
++1. an irreversible or destructive operation (resetting Anvil's own work branch and removing its own lane worktrees are not in this group);
++2. a security-sensitive action;
++3. a side effect the plan doesn't authorise: a push, or a merge into any branch other than the work branch, outside the plan's commit points; a publish; a deploy. Approving the plan authorised the pushes its commit points name, and the first push of a new remote synced branch;
++4. a plan so broken that every path forward is a guess.
++
++A build is **pre-approved** when the plan's `Approved:` line reads `pre-approved …` or `skipped (AFK) …`; it runs with AFK decision-making. Outside AFK and pre-approved builds, two more things stop you: a checkpoint Saad named in the plan, and a change that replaces one of his decisions ([references/change-flow-back.md](references/change-flow-back.md)). When AFK is on or the build is pre-approved, nothing asks Saad: every question becomes a ruling, change requests are logged rather than asked, and only the four stops above stop you. To stop: say why in one short message, and add the reason under `## Blockers`. In AFK, also write it under `## Stop note`, so the Stop hook lets the turn end. If the repo has a tracker, `ticket-update` comments at real stops.
++
++**Narration:** at most one short line between tool calls.
++
++## Preflight
++
++1. **Sync.** `git fetch`, then `git status`. The synced branch is the plan header's `- **Synced branch:**` line. If it doesn't exist locally, create it: from `<remote>/<branch>` when that exists (`git branch --track <branch> <remote>/<branch>`), otherwise as a new branch from the current base (the branch checked out after the sync). A `(remote …)` branch not yet on the remote is pushed once now with `git push -u <remote> <branch>`. If it is behind its remote, pull. If it has diverged, stop and tell Saad: that is stop 4, since any merge you pick is a guess.
++2. **Gate.** `anvil topic show` and `anvil afk status` (AFK is also stated at session start). If there's no active topic (the plan was approved on another machine, or after `topic end`), or its folder isn't this plan's folder, run `anvil topic start <slug> --size <the plan's Size> --dir <the plan's folder>` first. Then `anvil check build` and `anvil topic stage build`. Both refuse unless the plan is approved. Don't work around a refusal; report it.
++3. **Resuming?** If `progress.md` already has `[~]` or `[x]` tasks, or `git worktree list` shows lanes for this topic, read [references/resuming.md](references/resuming.md) before anything else. Re-dispatching finished work is the costliest failure here.
++4. **Read once.** The plan's header, Global constraints, Review focus, Task table, Test strategy, Commit points and execution mode, and the spec's S-lines. Note the type-check and full-suite commands (`Type-check:`, `Full suite:`) and the suite's recorded duration.
++5. **Work branch.** `git switch -c anvil/<topic>/work <synced branch>`, or switch to it if it exists. No work on `main` or `master` without Saad's explicit consent. Branch rules: [../../references/git-flow.md](../../references/git-flow.md).
++6. **Progress file.** Create `progress.md` in the topic folder `anvil topic show` reports, if it's missing, from the task table, in the format in [../../references/formats.md](../../references/formats.md), and set `- **Stage:** build`. Only you write it; lanes never do.
++7. **Build folder.** Scratch files (the lane brief, per-task messages, reports, review packages) go in `$(git rev-parse --path-format=absolute --git-common-dir)/anvil/build/<slug>/`. Never committed; every worktree reads it by absolute path; it survives `/clear`.
++8. **Conflict scan.** Scan the plan once, writing down what you checked:
++   - tasks that contradict each other, the spec, or the Global constraints;
++   - anything the plan mandates that the review rubric treats as a defect (a test that asserts nothing, a duplicated logic block);
++   - one row for every pair of tasks that share an interface: what one produces against what the other consumes.
++
++   Rule on each conflict and log it. A clean scan gets one decision-log line saying so.
++9. **Lane brief.** Write one shared brief file for the whole build from [prompts/implementer.md](prompts/implementer.md). It carries the rules every lane shares, the pinned contracts ([references/waves.md](references/waves.md), "Before a wave"), and the project's environment notes (interpreter, test runner, shell traps).
++
++## Execution mode
++
++Use the mode the approved plan states.
++
++- **Parallel:** waves of up to the plan's lane count (default 3, 4 at most), one worktree per lane. Mechanics in [references/waves.md](references/waves.md); read it before the first wave.
++- **Sequential:** one task at a time, in task order. The implementer works in the main checkout on the work branch. Record BASE (`git rev-parse HEAD`) before each task. A task's check is its targeted tests through `anvil run --scope targeted`, plus its smoke path where the plan lists one (`anvil run --scope smoke`); a commit point lands once every task it closes has passed its check.
++- **Inline (single agent):** when Saad chose it, or no subagent tool is available. You do each task yourself, under an implementer's rules (targeted tests only, inside the write set, the test-changed vs code-changed statement). Never fabricate a dispatch. The per-task review still happens, by a fresh reviewer if you can dispatch one; otherwise do it yourself as a separate pass with [prompts/task-reviewer.md](prompts/task-reviewer.md), log `self-review (no subagent tool)` under the task, and say so at the end: Saad decides whether that's enough.
++
++## Model selection
++
++Use the least capable model that does each role well, and always name it in the dispatch: an omitted model inherits the session's.
++
++- **Implementers:** cheap for 1–2 files with a complete spec; standard for multi-file integration; most capable for design judgment or broad codebase understanding. Prose-only tasks get a mid tier at least: cheap models take two or three times the turns on multi-step work.
++- **Reviewers:** scaled to the diff's size and risk, mid tier as the floor. Scoped re-reviews of small fixes take a cheap-to-mid tier.
++- **Wave review:** mid tier. **Final review:** most capable. **Fix rounds 4–5:** one tier above the stuck implementer.
++
++## The task loop
++
++Every task goes through this loop, in every mode.
++
++### 1. Dispatch the implementer
++
++- Mark the task `[~] T3 <title> (lane anvil/<topic>/T3)` in `progress.md` when you dispatch it (in sequential mode, leave out the lane part).
++- The dispatch is short ([prompts/implementer.md](prompts/implementer.md)): the lane brief, the task's plan section, the absolute working directory, the report file path, and only what the brief can't know (interfaces and rulings from earlier tasks, your resolution of an ambiguity, a parked finding in the area).
++- Don't paste the plan, other tasks' history, or prior summaries into a dispatch: everything you paste, and everything a subagent prints back, stays in your context. Hand things over as files.
++- **Batch small same-shape tasks.** Several small, independent edits of the same kind (the same one-line fix or field addition across files) can go in one dispatch that lists every file and its change, reviewed as one diff. Keep one dispatch per task for work that needs its own judgment, tests or review.
++- Note the implementer's agent id: fix rounds 1–3 resume this agent.
++
++### 2. Handle the report
++
++- **DONE:** go to the review.
++- **DONE_WITH_CONCERNS:** correctness or scope concerns get addressed before the review; observations ("this file is getting large") get noted, and the review goes ahead.
++- **NEEDS_CONTEXT:** give the missing context and resume it.
++- **BLOCKED:** find what has to change. A context gap: more context. Needs more reasoning: a more capable model. Too big: split it and log the split. The plan is wrong: rule on the correction, log it, carry it in the re-dispatch. Never resend the same task to the same model unchanged.
++- **The spec looks wrong** (the report says a requirement can't hold, or Saad changes direction): follow [references/change-flow-back.md](references/change-flow-back.md).
++- **A failure whose cause isn't obvious** (on the merged tree, or a lane stuck on one): run `anvil:debug`, then come back here.
++
++Check the report has what the prompt asks for (S-lines covered, the targeted test command and summary line, a test-changed or code-changed statement per touched test). A missing item goes back to the implementer before the review.
++
++### 3. Check the write set
++
++`anvil lane-check T3 --base <base>`, run in the task's working directory. The base is the work branch in parallel mode, and the recorded BASE otherwise. Files outside the write set go back to the implementer: revert them, or report BLOCKED if the task needs them; the fix is then a plan ruling, never a quiet reach across.
++
++### 4. Review the task
++
++Every task gets reviewed, unless its row says `skip (fully specified)`: that task goes straight to `[x]` after a clean lane-check. The rule is fixed; it isn't your call per task. An implementer's self-review never replaces it.
++
++- Write the review package before anything else touches the branch: `git log --oneline BASE..HEAD`, `git diff --stat BASE..HEAD` and `git diff -U10 BASE..HEAD`, run in the lane, redirected into one file in the build folder. BASE is the commit the task started from, never `HEAD~1` (that drops every commit but the last). In parallel mode, write it before merging the lane.
++- Dispatch [prompts/task-reviewer.md](prompts/task-reviewer.md), filling its placeholders as its notes say.
++- Accept no review missing either verdict.
++
++### 5. Act on the review
++
++Read [references/receiving-review.md](references/receiving-review.md) when a review comes back with anything other than two clean verdicts, and again before every fix round: it holds the triage, the 5-round fix cap, the breaker, and what each round writes to `progress.md`. Your memory of it doesn't survive compaction.
++
++### 6. Complete the task
++
++When the review is clean, or every open finding is parked with a ruling at the cap, mark the task `[x] T3 <title>` in `progress.md`, with the report's test statements as an indented line under it (`  - tests: <file> code changed (S3)`): `finish` reports from these, since the build folder doesn't survive the build. The commit point adds ` C<k>`. Never start a task that depends on this one while it has open Critical or Important findings that are neither fixed nor parked.
++
++## Tests in the build
++
++The rules are in [../../references/test-policy.md](../../references/test-policy.md). Reuse needs the scope the run used: `anvil fresh --scope <the scope it ran with> -- <same cmd>`.
++
++## Simplicity
++
++See [../../references/simplicity.md](../../references/simplicity.md). The spec's `- **Mode:**` line says whether this is a normal change or a redesign.
++
++## Commit points
++
++Land one when every task it closes is `[x]` and its check is clean, per the plan's `## Commit points` table and [../../references/git-flow.md](../../references/git-flow.md):
++
++```bash
++anvil fresh --scope <scope> -- <cmd>     # each recorded check; rerun only what isn't fresh
++git add <topic folder> && git commit -m "docs(<topic>): progress"   # on the work branch, if changed
++git switch <synced>
++git merge --squash anvil/<topic>/work
++git commit -m "<the plan's message>"     # no co-author trailer or Claude attribution
++git push                                 # only if the row says yes
++git switch anvil/<topic>/work
++git reset --hard <synced>
++```
++
++Then record it under `## Commit points`: `- C<k> <sha> pushed <date>`, `- C<k> <sha> not pushed (push failed <date>)`, or `- C<k> <sha> local <date>` for a `no` row. The record travels in the next squash. The commit point that closes the last wave is left for `finish`, so the fixes verify makes travel in it.
++
++## Final review
++
++When every task is `[x]`:
++
++1. Write a package of the whole build (its range is in the placeholder notes of [prompts/final-review.md](prompts/final-review.md)) and dispatch that prompt on the most capable model, with the inputs it lists.
++2. Triage per [references/receiving-review.md](references/receiving-review.md). Critical and Important findings get **one** fix wave, batched by disjoint file groups ([references/waves.md](references/waves.md), "Batched fixes"), then exactly one scoped re-review of the fix range ([prompts/re-review.md](prompts/re-review.md)). No second wave: residual findings become rulings, and the load-bearing ones are named at the end.
++3. Each item on the reviewer's "Declined to judge" list is a ruling you make and log.
++
++## Hand-off
++
++1. Your closing message lists **Rulings I made**: every decision-log entry this build added, most review-worthy first, each with its confidence and "changes if"; then the deferred minors and anything parked. A ruling missing from it was made in secret.
++2. Remove the lane worktrees still left, and this topic's build folder.
++3. `anvil topic stage verify`, set `- **Stage:** verify` in `progress.md`, then run `anvil:verify`.
++
++## Common rationalizations
++
++| Excuse | Reality |
++|---|---|
++| "Close enough on spec compliance" | A spec gap means not done. Fix it, or reach the cap and adjudicate. |
++| "The fix was small, skip the re-review" | Unreviewed fixes are how regressions land. |
++| "The lanes are independent, skip the wave check" | Each lane passes its own tests; clean merges can still be wrong together. |
++| "I remember which tasks are done" | You remember a summary. Read `progress.md` and `git log`. |
++| "Progress bookkeeping is overhead" | It's what survives compaction, and it's Saad's only live view. |
+diff --git a/superpowers/skills/subagent-driven-development/references/handling-reports.md b/plugins/anvil/skills/build/SKILL.md
+index cf91cdc..1627f87 100644
+--- a/superpowers/skills/subagent-driven-development/references/handling-reports.md
++++ b/plugins/anvil/skills/build/SKILL.md
+@@ -1,15 +1,161 @@
+-# Handling a Report That Isn't DONE
++---
++name: build
++description: Use when an approved Anvil plan is ready to be built, when Saad runs `/anvil:build` with a plan path, when the plan stage hands off after stop 2, or when a build that was interrupted (by `/clear`, compaction or a usage limit) needs to pick up where its `progress.md` left off.
++---
++<!-- adapted from superpowers@7.0.2: skills/subagent-driven-development/SKILL.md -->
++<!-- adapted from superpowers@7.0.2: skills/subagent-driven-development/references/preflight.md -->
++<!-- adapted from superpowers@7.0.2: skills/subagent-driven-development/references/handling-reports.md -->
++<!-- adapted from superpowers@7.0.2: skills/subagent-driven-development/references/batching.md -->
++<!-- adapted from superpowers@7.0.2: skills/executing-plans/SKILL.md -->
++<!-- adapted from superpowers@7.0.2: skills/dispatching-parallel-agents/SKILL.md -->
+ 
+-Part of superpowers:subagent-driven-development.
++# Build
+ 
+-**DONE_WITH_CONCERNS:** The implementer completed the work but flagged doubts. Read the concerns before proceeding. If the concerns are about correctness or scope, address them before review. If they're observations (e.g., "this file is getting large"), note them and proceed to review.
++Build an approved plan: a fresh implementer per task, one reviewer per task giving two verdicts (spec, then quality), a check after each merged wave, and one whole-branch review at the end. Then hand over to `anvil:verify`.
+ 
+-**NEEDS_CONTEXT:** The implementer needs information that wasn't provided. Provide the missing context and re-dispatch.
++You are the orchestrator: you write `progress.md`, create worktrees, merge lanes, land commit points and make rulings. In subagent mode you don't write task code: your context is for coordination, and code you write skips review.
+ 
+-**BLOCKED:** The implementer cannot complete the task. Assess the blocker:
+-1. If it's a context problem, provide more context and re-dispatch with the same model
+-2. If the task requires more reasoning, re-dispatch with a more capable model
+-3. If the task is too large, break it into smaller pieces
+-4. If the plan itself is wrong, rule on the correction, ledger it, and re-dispatch with the ruling carried in the dispatch
++**Continuous execution.** Don't pause between tasks to check in: Saad approved the plan so it would run. `progress.md` is the live view (`anvil progress` prints it).
+ 
+-**Never** ignore an escalation or force the same model to retry without changes. If the implementer said it's stuck, something needs to change.
++**Rulings, not stalls.** Conflicts, ambiguities, plan defects, a cap you would have asked to exceed: decide them. The spec is the binding authority, the plan is its argument, and your judgment settles what neither answers. Each ruling goes in the progress file's decision log, newest first:
++
++```
++- 2026-11-18 **<choice>** — <reason>. Confidence: high|medium|low. Changes if: <fact>.
++```
++
++The log is append-only: never edit or remove an entry. A ruling you reverse gets a new entry that names the old one. A wrong ruling costs rework Saad can see and undo; a build parked on a question costs his whole day.
++
++**Four things stop you, in any mode:**
++1. an irreversible or destructive operation (resetting Anvil's own work branch and removing its own lane worktrees are not in this group);
++2. a security-sensitive action;
++3. a side effect the plan doesn't authorise: a push, or a merge into any branch other than the work branch, outside the plan's commit points; a publish; a deploy. Approving the plan authorised the pushes its commit points name, and the first push of a new remote synced branch;
++4. a plan so broken that every path forward is a guess.
++
++A build is **pre-approved** when the plan's `Approved:` line reads `pre-approved …` or `skipped (AFK) …`; it runs with AFK decision-making. Outside AFK and pre-approved builds, two more things stop you: a checkpoint Saad named in the plan, and a change that replaces one of his decisions ([references/change-flow-back.md](references/change-flow-back.md)). When AFK is on or the build is pre-approved, nothing asks Saad: every question becomes a ruling, change requests are logged rather than asked, and only the four stops above stop you. To stop: say why in one short message, and add the reason under `## Blockers`. In AFK, also write it under `## Stop note`, so the Stop hook lets the turn end. If the repo has a tracker, `ticket-update` comments at real stops.
++
++**Narration:** at most one short line between tool calls.
++
++## Preflight
++
++1. **Sync.** `git fetch`, then `git status`. The synced branch is the plan header's `- **Synced branch:**` line. If it doesn't exist locally, create it: from `<remote>/<branch>` when that exists (`git branch --track <branch> <remote>/<branch>`), otherwise as a new branch from the current base (the branch checked out after the sync). A `(remote …)` branch not yet on the remote is pushed once now with `git push -u <remote> <branch>`. If it is behind its remote, pull. If it has diverged, stop and tell Saad: that is stop 4, since any merge you pick is a guess.
++2. **Gate.** `anvil topic show` and `anvil afk status` (AFK is also stated at session start). If there's no active topic (the plan was approved on another machine, or after `topic end`), or its folder isn't this plan's folder, run `anvil topic start <slug> --size <the plan's Size> --dir <the plan's folder>` first. Then `anvil check build` and `anvil topic stage build`. Both refuse unless the plan is approved. Don't work around a refusal; report it.
++3. **Resuming?** If `progress.md` already has `[~]` or `[x]` tasks, or `git worktree list` shows lanes for this topic, read [references/resuming.md](references/resuming.md) before anything else. Re-dispatching finished work is the costliest failure here.
++4. **Read once.** The plan's header, Global constraints, Review focus, Task table, Test strategy, Commit points and execution mode, and the spec's S-lines. Note the type-check and full-suite commands (`Type-check:`, `Full suite:`) and the suite's recorded duration.
++5. **Work branch.** `git switch -c anvil/<topic>/work <synced branch>`, or switch to it if it exists. No work on `main` or `master` without Saad's explicit consent. Branch rules: [../../references/git-flow.md](../../references/git-flow.md).
++6. **Progress file.** Create `progress.md` in the topic folder `anvil topic show` reports, if it's missing, from the task table, in the format in [../../references/formats.md](../../references/formats.md), and set `- **Stage:** build`. Only you write it; lanes never do.
++7. **Build folder.** Scratch files (the lane brief, per-task messages, reports, review packages) go in `$(git rev-parse --path-format=absolute --git-common-dir)/anvil/build/<slug>/`. Never committed; every worktree reads it by absolute path; it survives `/clear`.
++8. **Conflict scan.** Scan the plan once, writing down what you checked:
++   - tasks that contradict each other, the spec, or the Global constraints;
++   - anything the plan mandates that the review rubric treats as a defect (a test that asserts nothing, a duplicated logic block);
++   - one row for every pair of tasks that share an interface: what one produces against what the other consumes.
++
++   Rule on each conflict and log it. A clean scan gets one decision-log line saying so.
++9. **Lane brief.** Write one shared brief file for the whole build from [prompts/implementer.md](prompts/implementer.md). It carries the rules every lane shares, the pinned contracts ([references/waves.md](references/waves.md), "Before a wave"), and the project's environment notes (interpreter, test runner, shell traps).
++
++## Execution mode
++
++Use the mode the approved plan states.
++
++- **Parallel:** waves of up to the plan's lane count (default 3, 4 at most), one worktree per lane. Mechanics in [references/waves.md](references/waves.md); read it before the first wave.
++- **Sequential:** one task at a time, in task order. The implementer works in the main checkout on the work branch. Record BASE (`git rev-parse HEAD`) before each task. A task's check is its targeted tests through `anvil run --scope targeted`, plus its smoke path where the plan lists one (`anvil run --scope smoke`); a commit point lands once every task it closes has passed its check.
++- **Inline (single agent):** when Saad chose it, or no subagent tool is available. You do each task yourself, under an implementer's rules (targeted tests only, inside the write set, the test-changed vs code-changed statement). Never fabricate a dispatch. The per-task review still happens, by a fresh reviewer if you can dispatch one; otherwise do it yourself as a separate pass with [prompts/task-reviewer.md](prompts/task-reviewer.md), log `self-review (no subagent tool)` under the task, and say so at the end: Saad decides whether that's enough.
++
++## Model selection
++
++Use the least capable model that does each role well, and always name it in the dispatch: an omitted model inherits the session's.
++
++- **Implementers:** cheap for 1–2 files with a complete spec; standard for multi-file integration; most capable for design judgment or broad codebase understanding. Prose-only tasks get a mid tier at least: cheap models take two or three times the turns on multi-step work.
++- **Reviewers:** scaled to the diff's size and risk, mid tier as the floor. Scoped re-reviews of small fixes take a cheap-to-mid tier.
++- **Wave review:** mid tier. **Final review:** most capable. **Fix rounds 4–5:** one tier above the stuck implementer.
++
++## The task loop
++
++Every task goes through this loop, in every mode.
++
++### 1. Dispatch the implementer
++
++- Mark the task `[~] T3 <title> (lane anvil/<topic>/T3)` in `progress.md` when you dispatch it (in sequential mode, leave out the lane part).
++- The dispatch is short ([prompts/implementer.md](prompts/implementer.md)): the lane brief, the task's plan section, the absolute working directory, the report file path, and only what the brief can't know (interfaces and rulings from earlier tasks, your resolution of an ambiguity, a parked finding in the area).
++- Don't paste the plan, other tasks' history, or prior summaries into a dispatch: everything you paste, and everything a subagent prints back, stays in your context. Hand things over as files.
++- **Batch small same-shape tasks.** Several small, independent edits of the same kind (the same one-line fix or field addition across files) can go in one dispatch that lists every file and its change, reviewed as one diff. Keep one dispatch per task for work that needs its own judgment, tests or review.
++- Note the implementer's agent id: fix rounds 1–3 resume this agent.
++
++### 2. Handle the report
++
++- **DONE:** go to the review.
++- **DONE_WITH_CONCERNS:** correctness or scope concerns get addressed before the review; observations ("this file is getting large") get noted, and the review goes ahead.
++- **NEEDS_CONTEXT:** give the missing context and resume it.
++- **BLOCKED:** find what has to change. A context gap: more context. Needs more reasoning: a more capable model. Too big: split it and log the split. The plan is wrong: rule on the correction, log it, carry it in the re-dispatch. Never resend the same task to the same model unchanged.
++- **The spec looks wrong** (the report says a requirement can't hold, or Saad changes direction): follow [references/change-flow-back.md](references/change-flow-back.md).
++- **A failure whose cause isn't obvious** (on the merged tree, or a lane stuck on one): run `anvil:debug`, then come back here.
++
++Check the report has what the prompt asks for (S-lines covered, the targeted test command and summary line, a test-changed or code-changed statement per touched test). A missing item goes back to the implementer before the review.
++
++### 3. Check the write set
++
++`anvil lane-check T3 --base <base>`, run in the task's working directory. The base is the work branch in parallel mode, and the recorded BASE otherwise. Files outside the write set go back to the implementer: revert them, or report BLOCKED if the task needs them; the fix is then a plan ruling, never a quiet reach across.
++
++### 4. Review the task
++
++Every task gets reviewed, unless its row says `skip (fully specified)`: that task goes straight to `[x]` after a clean lane-check. The rule is fixed; it isn't your call per task. An implementer's self-review never replaces it.
++
++- Write the review package before anything else touches the branch: `git log --oneline BASE..HEAD`, `git diff --stat BASE..HEAD` and `git diff -U10 BASE..HEAD`, run in the lane, redirected into one file in the build folder. BASE is the commit the task started from, never `HEAD~1` (that drops every commit but the last). In parallel mode, write it before merging the lane.
++- Dispatch [prompts/task-reviewer.md](prompts/task-reviewer.md), filling its placeholders as its notes say.
++- Accept no review missing either verdict.
++
++### 5. Act on the review
++
++Read [references/receiving-review.md](references/receiving-review.md) when a review comes back with anything other than two clean verdicts, and again before every fix round: it holds the triage, the 5-round fix cap, the breaker, and what each round writes to `progress.md`. Your memory of it doesn't survive compaction.
++
++### 6. Complete the task
++
++When the review is clean, or every open finding is parked with a ruling at the cap, mark the task `[x] T3 <title>` in `progress.md`, with the report's test statements as an indented line under it (`  - tests: <file> code changed (S3)`): `finish` reports from these, since the build folder doesn't survive the build. The commit point adds ` C<k>`. Never start a task that depends on this one while it has open Critical or Important findings that are neither fixed nor parked.
++
++## Tests in the build
++
++The rules are in [../../references/test-policy.md](../../references/test-policy.md). Reuse needs the scope the run used: `anvil fresh --scope <the scope it ran with> -- <same cmd>`.
++
++## Simplicity
++
++See [../../references/simplicity.md](../../references/simplicity.md). The spec's `- **Mode:**` line says whether this is a normal change or a redesign.
++
++## Commit points
++
++Land one when every task it closes is `[x]` and its check is clean, per the plan's `## Commit points` table and [../../references/git-flow.md](../../references/git-flow.md):
++
++```bash
++anvil fresh --scope <scope> -- <cmd>     # each recorded check; rerun only what isn't fresh
++git add <topic folder> && git commit -m "docs(<topic>): progress"   # on the work branch, if changed
++git switch <synced>
++git merge --squash anvil/<topic>/work
++git commit -m "<the plan's message>"     # no co-author trailer or Claude attribution
++git push                                 # only if the row says yes
++git switch anvil/<topic>/work
++git reset --hard <synced>
++```
++
++Then record it under `## Commit points`: `- C<k> <sha> pushed <date>`, `- C<k> <sha> not pushed (push failed <date>)`, or `- C<k> <sha> local <date>` for a `no` row. The record travels in the next squash. The commit point that closes the last wave is left for `finish`, so the fixes verify makes travel in it.
++
++## Final review
++
++When every task is `[x]`:
++
++1. Write a package of the whole build (its range is in the placeholder notes of [prompts/final-review.md](prompts/final-review.md)) and dispatch that prompt on the most capable model, with the inputs it lists.
++2. Triage per [references/receiving-review.md](references/receiving-review.md). Critical and Important findings get **one** fix wave, batched by disjoint file groups ([references/waves.md](references/waves.md), "Batched fixes"), then exactly one scoped re-review of the fix range ([prompts/re-review.md](prompts/re-review.md)). No second wave: residual findings become rulings, and the load-bearing ones are named at the end.
++3. Each item on the reviewer's "Declined to judge" list is a ruling you make and log.
++
++## Hand-off
++
++1. Your closing message lists **Rulings I made**: every decision-log entry this build added, most review-worthy first, each with its confidence and "changes if"; then the deferred minors and anything parked. A ruling missing from it was made in secret.
++2. Remove the lane worktrees still left, and this topic's build folder.
++3. `anvil topic stage verify`, set `- **Stage:** verify` in `progress.md`, then run `anvil:verify`.
++
++## Common rationalizations
++
++| Excuse | Reality |
++|---|---|
++| "Close enough on spec compliance" | A spec gap means not done. Fix it, or reach the cap and adjudicate. |
++| "The fix was small, skip the re-review" | Unreviewed fixes are how regressions land. |
++| "The lanes are independent, skip the wave check" | Each lane passes its own tests; clean merges can still be wrong together. |
++| "I remember which tasks are done" | You remember a summary. Read `progress.md` and `git log`. |
++| "Progress bookkeeping is overhead" | It's what survives compaction, and it's Saad's only live view. |
+diff --git a/superpowers/skills/subagent-driven-development/references/batching.md b/plugins/anvil/skills/build/SKILL.md
+index 6224e4b..1627f87 100644
+--- a/superpowers/skills/subagent-driven-development/references/batching.md
++++ b/plugins/anvil/skills/build/SKILL.md
+@@ -1,11 +1,161 @@
+-# Batching Small Same-Shape Work
++---
++name: build
++description: Use when an approved Anvil plan is ready to be built, when Saad runs `/anvil:build` with a plan path, when the plan stage hands off after stop 2, or when a build that was interrupted (by `/clear`, compaction or a usage limit) needs to pick up where its `progress.md` left off.
++---
++<!-- adapted from superpowers@7.0.2: skills/subagent-driven-development/SKILL.md -->
++<!-- adapted from superpowers@7.0.2: skills/subagent-driven-development/references/preflight.md -->
++<!-- adapted from superpowers@7.0.2: skills/subagent-driven-development/references/handling-reports.md -->
++<!-- adapted from superpowers@7.0.2: skills/subagent-driven-development/references/batching.md -->
++<!-- adapted from superpowers@7.0.2: skills/executing-plans/SKILL.md -->
++<!-- adapted from superpowers@7.0.2: skills/dispatching-parallel-agents/SKILL.md -->
+ 
+-Part of superpowers:subagent-driven-development.
++# Build
+ 
+-**Batch small same-shape work.** When the plan lists several tasks that are
+-each a small, independent edit of the same kind — the same one-line fix,
+-constant change, or field addition repeated across files — do not dispatch
+-one subagent per task. Compose ONE dispatch brief listing every file and
+-its change, send the whole batch to a single subagent, and review its diff
+-as one unit. Reserve one-dispatch-per-task for work that needs its own
+-judgment, its own tests, or its own review surface.
++Build an approved plan: a fresh implementer per task, one reviewer per task giving two verdicts (spec, then quality), a check after each merged wave, and one whole-branch review at the end. Then hand over to `anvil:verify`.
++
++You are the orchestrator: you write `progress.md`, create worktrees, merge lanes, land commit points and make rulings. In subagent mode you don't write task code: your context is for coordination, and code you write skips review.
++
++**Continuous execution.** Don't pause between tasks to check in: Saad approved the plan so it would run. `progress.md` is the live view (`anvil progress` prints it).
++
++**Rulings, not stalls.** Conflicts, ambiguities, plan defects, a cap you would have asked to exceed: decide them. The spec is the binding authority, the plan is its argument, and your judgment settles what neither answers. Each ruling goes in the progress file's decision log, newest first:
++
++```
++- 2026-11-18 **<choice>** — <reason>. Confidence: high|medium|low. Changes if: <fact>.
++```
++
++The log is append-only: never edit or remove an entry. A ruling you reverse gets a new entry that names the old one. A wrong ruling costs rework Saad can see and undo; a build parked on a question costs his whole day.
++
++**Four things stop you, in any mode:**
++1. an irreversible or destructive operation (resetting Anvil's own work branch and removing its own lane worktrees are not in this group);
++2. a security-sensitive action;
++3. a side effect the plan doesn't authorise: a push, or a merge into any branch other than the work branch, outside the plan's commit points; a publish; a deploy. Approving the plan authorised the pushes its commit points name, and the first push of a new remote synced branch;
++4. a plan so broken that every path forward is a guess.
++
++A build is **pre-approved** when the plan's `Approved:` line reads `pre-approved …` or `skipped (AFK) …`; it runs with AFK decision-making. Outside AFK and pre-approved builds, two more things stop you: a checkpoint Saad named in the plan, and a change that replaces one of his decisions ([references/change-flow-back.md](references/change-flow-back.md)). When AFK is on or the build is pre-approved, nothing asks Saad: every question becomes a ruling, change requests are logged rather than asked, and only the four stops above stop you. To stop: say why in one short message, and add the reason under `## Blockers`. In AFK, also write it under `## Stop note`, so the Stop hook lets the turn end. If the repo has a tracker, `ticket-update` comments at real stops.
++
++**Narration:** at most one short line between tool calls.
++
++## Preflight
++
++1. **Sync.** `git fetch`, then `git status`. The synced branch is the plan header's `- **Synced branch:**` line. If it doesn't exist locally, create it: from `<remote>/<branch>` when that exists (`git branch --track <branch> <remote>/<branch>`), otherwise as a new branch from the current base (the branch checked out after the sync). A `(remote …)` branch not yet on the remote is pushed once now with `git push -u <remote> <branch>`. If it is behind its remote, pull. If it has diverged, stop and tell Saad: that is stop 4, since any merge you pick is a guess.
++2. **Gate.** `anvil topic show` and `anvil afk status` (AFK is also stated at session start). If there's no active topic (the plan was approved on another machine, or after `topic end`), or its folder isn't this plan's folder, run `anvil topic start <slug> --size <the plan's Size> --dir <the plan's folder>` first. Then `anvil check build` and `anvil topic stage build`. Both refuse unless the plan is approved. Don't work around a refusal; report it.
++3. **Resuming?** If `progress.md` already has `[~]` or `[x]` tasks, or `git worktree list` shows lanes for this topic, read [references/resuming.md](references/resuming.md) before anything else. Re-dispatching finished work is the costliest failure here.
++4. **Read once.** The plan's header, Global constraints, Review focus, Task table, Test strategy, Commit points and execution mode, and the spec's S-lines. Note the type-check and full-suite commands (`Type-check:`, `Full suite:`) and the suite's recorded duration.
++5. **Work branch.** `git switch -c anvil/<topic>/work <synced branch>`, or switch to it if it exists. No work on `main` or `master` without Saad's explicit consent. Branch rules: [../../references/git-flow.md](../../references/git-flow.md).
++6. **Progress file.** Create `progress.md` in the topic folder `anvil topic show` reports, if it's missing, from the task table, in the format in [../../references/formats.md](../../references/formats.md), and set `- **Stage:** build`. Only you write it; lanes never do.
++7. **Build folder.** Scratch files (the lane brief, per-task messages, reports, review packages) go in `$(git rev-parse --path-format=absolute --git-common-dir)/anvil/build/<slug>/`. Never committed; every worktree reads it by absolute path; it survives `/clear`.
++8. **Conflict scan.** Scan the plan once, writing down what you checked:
++   - tasks that contradict each other, the spec, or the Global constraints;
++   - anything the plan mandates that the review rubric treats as a defect (a test that asserts nothing, a duplicated logic block);
++   - one row for every pair of tasks that share an interface: what one produces against what the other consumes.
++
++   Rule on each conflict and log it. A clean scan gets one decision-log line saying so.
++9. **Lane brief.** Write one shared brief file for the whole build from [prompts/implementer.md](prompts/implementer.md). It carries the rules every lane shares, the pinned contracts ([references/waves.md](references/waves.md), "Before a wave"), and the project's environment notes (interpreter, test runner, shell traps).
++
++## Execution mode
++
++Use the mode the approved plan states.
++
++- **Parallel:** waves of up to the plan's lane count (default 3, 4 at most), one worktree per lane. Mechanics in [references/waves.md](references/waves.md); read it before the first wave.
++- **Sequential:** one task at a time, in task order. The implementer works in the main checkout on the work branch. Record BASE (`git rev-parse HEAD`) before each task. A task's check is its targeted tests through `anvil run --scope targeted`, plus its smoke path where the plan lists one (`anvil run --scope smoke`); a commit point lands once every task it closes has passed its check.
++- **Inline (single agent):** when Saad chose it, or no subagent tool is available. You do each task yourself, under an implementer's rules (targeted tests only, inside the write set, the test-changed vs code-changed statement). Never fabricate a dispatch. The per-task review still happens, by a fresh reviewer if you can dispatch one; otherwise do it yourself as a separate pass with [prompts/task-reviewer.md](prompts/task-reviewer.md), log `self-review (no subagent tool)` under the task, and say so at the end: Saad decides whether that's enough.
++
++## Model selection
++
++Use the least capable model that does each role well, and always name it in the dispatch: an omitted model inherits the session's.
++
++- **Implementers:** cheap for 1–2 files with a complete spec; standard for multi-file integration; most capable for design judgment or broad codebase understanding. Prose-only tasks get a mid tier at least: cheap models take two or three times the turns on multi-step work.
++- **Reviewers:** scaled to the diff's size and risk, mid tier as the floor. Scoped re-reviews of small fixes take a cheap-to-mid tier.
++- **Wave review:** mid tier. **Final review:** most capable. **Fix rounds 4–5:** one tier above the stuck implementer.
++
++## The task loop
++
++Every task goes through this loop, in every mode.
++
++### 1. Dispatch the implementer
++
++- Mark the task `[~] T3 <title> (lane anvil/<topic>/T3)` in `progress.md` when you dispatch it (in sequential mode, leave out the lane part).
++- The dispatch is short ([prompts/implementer.md](prompts/implementer.md)): the lane brief, the task's plan section, the absolute working directory, the report file path, and only what the brief can't know (interfaces and rulings from earlier tasks, your resolution of an ambiguity, a parked finding in the area).
++- Don't paste the plan, other tasks' history, or prior summaries into a dispatch: everything you paste, and everything a subagent prints back, stays in your context. Hand things over as files.
++- **Batch small same-shape tasks.** Several small, independent edits of the same kind (the same one-line fix or field addition across files) can go in one dispatch that lists every file and its change, reviewed as one diff. Keep one dispatch per task for work that needs its own judgment, tests or review.
++- Note the implementer's agent id: fix rounds 1–3 resume this agent.
++
++### 2. Handle the report
++
++- **DONE:** go to the review.
++- **DONE_WITH_CONCERNS:** correctness or scope concerns get addressed before the review; observations ("this file is getting large") get noted, and the review goes ahead.
++- **NEEDS_CONTEXT:** give the missing context and resume it.
++- **BLOCKED:** find what has to change. A context gap: more context. Needs more reasoning: a more capable model. Too big: split it and log the split. The plan is wrong: rule on the correction, log it, carry it in the re-dispatch. Never resend the same task to the same model unchanged.
++- **The spec looks wrong** (the report says a requirement can't hold, or Saad changes direction): follow [references/change-flow-back.md](references/change-flow-back.md).
++- **A failure whose cause isn't obvious** (on the merged tree, or a lane stuck on one): run `anvil:debug`, then come back here.
++
++Check the report has what the prompt asks for (S-lines covered, the targeted test command and summary line, a test-changed or code-changed statement per touched test). A missing item goes back to the implementer before the review.
++
++### 3. Check the write set
++
++`anvil lane-check T3 --base <base>`, run in the task's working directory. The base is the work branch in parallel mode, and the recorded BASE otherwise. Files outside the write set go back to the implementer: revert them, or report BLOCKED if the task needs them; the fix is then a plan ruling, never a quiet reach across.
++
++### 4. Review the task
++
++Every task gets reviewed, unless its row says `skip (fully specified)`: that task goes straight to `[x]` after a clean lane-check. The rule is fixed; it isn't your call per task. An implementer's self-review never replaces it.
++
++- Write the review package before anything else touches the branch: `git log --oneline BASE..HEAD`, `git diff --stat BASE..HEAD` and `git diff -U10 BASE..HEAD`, run in the lane, redirected into one file in the build folder. BASE is the commit the task started from, never `HEAD~1` (that drops every commit but the last). In parallel mode, write it before merging the lane.
++- Dispatch [prompts/task-reviewer.md](prompts/task-reviewer.md), filling its placeholders as its notes say.
++- Accept no review missing either verdict.
++
++### 5. Act on the review
++
++Read [references/receiving-review.md](references/receiving-review.md) when a review comes back with anything other than two clean verdicts, and again before every fix round: it holds the triage, the 5-round fix cap, the breaker, and what each round writes to `progress.md`. Your memory of it doesn't survive compaction.
++
++### 6. Complete the task
++
++When the review is clean, or every open finding is parked with a ruling at the cap, mark the task `[x] T3 <title>` in `progress.md`, with the report's test statements as an indented line under it (`  - tests: <file> code changed (S3)`): `finish` reports from these, since the build folder doesn't survive the build. The commit point adds ` C<k>`. Never start a task that depends on this one while it has open Critical or Important findings that are neither fixed nor parked.
++
++## Tests in the build
++
++The rules are in [../../references/test-policy.md](../../references/test-policy.md). Reuse needs the scope the run used: `anvil fresh --scope <the scope it ran with> -- <same cmd>`.
++
++## Simplicity
++
++See [../../references/simplicity.md](../../references/simplicity.md). The spec's `- **Mode:**` line says whether this is a normal change or a redesign.
++
++## Commit points
++
++Land one when every task it closes is `[x]` and its check is clean, per the plan's `## Commit points` table and [../../references/git-flow.md](../../references/git-flow.md):
++
++```bash
++anvil fresh --scope <scope> -- <cmd>     # each recorded check; rerun only what isn't fresh
++git add <topic folder> && git commit -m "docs(<topic>): progress"   # on the work branch, if changed
++git switch <synced>
++git merge --squash anvil/<topic>/work
++git commit -m "<the plan's message>"     # no co-author trailer or Claude attribution
++git push                                 # only if the row says yes
++git switch anvil/<topic>/work
++git reset --hard <synced>
++```
++
++Then record it under `## Commit points`: `- C<k> <sha> pushed <date>`, `- C<k> <sha> not pushed (push failed <date>)`, or `- C<k> <sha> local <date>` for a `no` row. The record travels in the next squash. The commit point that closes the last wave is left for `finish`, so the fixes verify makes travel in it.
++
++## Final review
++
++When every task is `[x]`:
++
++1. Write a package of the whole build (its range is in the placeholder notes of [prompts/final-review.md](prompts/final-review.md)) and dispatch that prompt on the most capable model, with the inputs it lists.
++2. Triage per [references/receiving-review.md](references/receiving-review.md). Critical and Important findings get **one** fix wave, batched by disjoint file groups ([references/waves.md](references/waves.md), "Batched fixes"), then exactly one scoped re-review of the fix range ([prompts/re-review.md](prompts/re-review.md)). No second wave: residual findings become rulings, and the load-bearing ones are named at the end.
++3. Each item on the reviewer's "Declined to judge" list is a ruling you make and log.
++
++## Hand-off
++
++1. Your closing message lists **Rulings I made**: every decision-log entry this build added, most review-worthy first, each with its confidence and "changes if"; then the deferred minors and anything parked. A ruling missing from it was made in secret.
++2. Remove the lane worktrees still left, and this topic's build folder.
++3. `anvil topic stage verify`, set `- **Stage:** verify` in `progress.md`, then run `anvil:verify`.
++
++## Common rationalizations
++
++| Excuse | Reality |
++|---|---|
++| "Close enough on spec compliance" | A spec gap means not done. Fix it, or reach the cap and adjudicate. |
++| "The fix was small, skip the re-review" | Unreviewed fixes are how regressions land. |
++| "The lanes are independent, skip the wave check" | Each lane passes its own tests; clean merges can still be wrong together. |
++| "I remember which tasks are done" | You remember a summary. Read `progress.md` and `git log`. |
++| "Progress bookkeeping is overhead" | It's what survives compaction, and it's Saad's only live view. |
+diff --git a/superpowers/skills/executing-plans/SKILL.md b/plugins/anvil/skills/build/SKILL.md
+index ea23196..1627f87 100644
+--- a/superpowers/skills/executing-plans/SKILL.md
++++ b/plugins/anvil/skills/build/SKILL.md
+@@ -1,323 +1,161 @@
+ ---
+-name: executing-plans
+-description: Use when executing an implementation plan in the current session as the implementer yourself — your human partner chose inline execution, or no subagent tool is available
++name: build
++description: Use when an approved Anvil plan is ready to be built, when Saad runs `/anvil:build` with a plan path, when the plan stage hands off after stop 2, or when a build that was interrupted (by `/clear`, compaction or a usage limit) needs to pick up where its `progress.md` left off.
+ ---
++<!-- adapted from superpowers@7.0.2: skills/subagent-driven-development/SKILL.md -->
++<!-- adapted from superpowers@7.0.2: skills/subagent-driven-development/references/preflight.md -->
++<!-- adapted from superpowers@7.0.2: skills/subagent-driven-development/references/handling-reports.md -->
++<!-- adapted from superpowers@7.0.2: skills/subagent-driven-development/references/batching.md -->
++<!-- adapted from superpowers@7.0.2: skills/executing-plans/SKILL.md -->
++<!-- adapted from superpowers@7.0.2: skills/dispatching-parallel-agents/SKILL.md -->
+ 
+-# Executing Plans
+-
+-Execute the plan yourself, task by task, in this session: no implementer
+-subagent per task, no reviewer per task. One fresh-context review of the
+-whole branch at the end.
+-
+-**Why inline:** Subagent-driven development pays for a fresh implementer
+-and a fresh reviewer on every task, each re-reading the codebase from zero.
+-Inline execution pays for one context (yours) plus one reviewer at the end.
+-What it gives up is a fresh context per task and a second pair of eyes per
+-task. This skill keeps what those two things bought, by other means: the
+-brief is the spec, the ledger is your memory, TDD is the per-task gate, and
+-the final reviewer is the second pair of eyes.
+-
+-**Core principle:** The plan already did the thinking. Execute it exactly,
+-prove each step with a test you watched fail and then pass, and leave a
+-record that survives your own forgetting.
+-
+-**Narration:** between tool calls, narrate at most one short line — the
+-ledger and the tool results carry the record.
+-
+-**Continuous execution:** Do not pause to check in with your human partner
+-between tasks. They chose inline execution to spend less, not to answer
+-"should I continue?" after every task. Execute all tasks from the plan
+-without stopping.
+-
+-**Rulings, not stalls.** Conflicts, ambiguities, plan defects — decide them.
+-The spec is the binding authority, the plan is its argument, and your
+-judgment settles what neither answers. Record every decision in the ledger
+-as `Ruling: <what you decided> — <why> — <what it costs if wrong>`, and keep
+-going. Deviating from the plan without a ledgered ruling is a decision made
+-in secret.
+-
+-Four things stop you, and only these: an irreversible or destructive
+-operation; a security-sensitive action; a side effect outside this worktree
+-that norms say you ask about first (a merge, a push to a shared branch, a
+-publish); and a plan so broken that every path forward is a guess. For
+-those, stop and ask.
+-
+-## When to Use
+-
+-- You have a plan from superpowers:writing-plans and your human partner
+-  chose inline execution at the handoff.
+-- Your harness has no subagent tool (see the per-platform references in
+-  `../using-superpowers/references/`). Never fabricate a dispatch; run
+-  the plan here.
+-- Tasks are mostly independent — the same precondition as
+-  superpowers:subagent-driven-development.
+-
+-A fully specified plan makes inline execution transcription plus testing:
+-it runs well on a mid-tier session model, and the one place the most
+-capable model earns its cost is the final review, which this skill
+-dispatches separately. Tell your human partner so when they choose inline.
+-
+-Prefer superpowers:subagent-driven-development when your human partner
+-wants a review gate on every task, or when the plan is long enough that
+-its later tasks would run on a compacted context. Inline execution over a
+-long plan still works — the ledger is what makes it recoverable — but the
+-last tasks get the least of you.
+-
+-## The Process
+-
+-```dot
+-digraph process {
+-    rankdir=TB;
+-
+-    subgraph cluster_per_task {
+-        label="Per Task";
+-        "task-start: brief + BASE; read the brief" [shape=box];
+-        "Work the steps in order: TDD, run every verification, read every output" [shape=box];
+-        "Step output matches plan's Expected?" [shape=diamond];
+-        "Plan wrong? Rule and ledger. Code wrong? systematic-debugging" [shape=box];
+-        "Commit as the plan's commit steps say" [shape=box];
+-        "Completion contract met?" [shape=diamond];
+-        "task-done: run tests, ledger the result; mark todo complete" [shape=box];
+-    }
+-
+-    "Setup: worktree, workspace + ledger, read plan + spec, pre-flight scan" [shape=box];
+-    "More tasks remain?" [shape=diamond];
+-    "Final whole-branch review (fresh reviewer if you have one)" [shape=box];
+-    "Re-grade, then: Critical/Important → ONE fix pass, each fix RED→GREEN + green suite; Minor → ledger" [shape=box];
+-    "Final review clean: delete this plan's workspace" [shape=box];
+-    "Use superpowers:finishing-a-development-branch" [shape=box style=filled fillcolor=lightgreen];
+-
+-    "Setup: worktree, workspace + ledger, read plan + spec, pre-flight scan" -> "task-start: brief + BASE; read the brief";
+-    "task-start: brief + BASE; read the brief" -> "Work the steps in order: TDD, run every verification, read every output";
+-    "Work the steps in order: TDD, run every verification, read every output" -> "Step output matches plan's Expected?";
+-    "Step output matches plan's Expected?" -> "Plan wrong? Rule and ledger. Code wrong? systematic-debugging" [label="no"];
+-    "Plan wrong? Rule and ledger. Code wrong? systematic-debugging" -> "Work the steps in order: TDD, run every verification, read every output";
+-    "Step output matches plan's Expected?" -> "Commit as the plan's commit steps say" [label="yes, last step"];
+-    "Commit as the plan's commit steps say" -> "Completion contract met?";
+-    "Completion contract met?" -> "Work the steps in order: TDD, run every verification, read every output" [label="no - finish the task"];
+-    "Completion contract met?" -> "task-done: run tests, ledger the result; mark todo complete" [label="yes"];
+-    "task-done: run tests, ledger the result; mark todo complete" -> "More tasks remain?";
+-    "More tasks remain?" -> "task-start: brief + BASE; read the brief" [label="yes"];
+-    "More tasks remain?" -> "Final whole-branch review (fresh reviewer if you have one)" [label="no"];
+-    "Final whole-branch review (fresh reviewer if you have one)" -> "Re-grade, then: Critical/Important → ONE fix pass, each fix RED→GREEN + green suite; Minor → ledger";
+-    "Re-grade, then: Critical/Important → ONE fix pass, each fix RED→GREEN + green suite; Minor → ledger" -> "Final review clean: delete this plan's workspace";
+-    "Final review clean: delete this plan's workspace" -> "Use superpowers:finishing-a-development-branch";
+-}
++# Build
++
++Build an approved plan: a fresh implementer per task, one reviewer per task giving two verdicts (spec, then quality), a check after each merged wave, and one whole-branch review at the end. Then hand over to `anvil:verify`.
++
++You are the orchestrator: you write `progress.md`, create worktrees, merge lanes, land commit points and make rulings. In subagent mode you don't write task code: your context is for coordination, and code you write skips review.
++
++**Continuous execution.** Don't pause between tasks to check in: Saad approved the plan so it would run. `progress.md` is the live view (`anvil progress` prints it).
++
++**Rulings, not stalls.** Conflicts, ambiguities, plan defects, a cap you would have asked to exceed: decide them. The spec is the binding authority, the plan is its argument, and your judgment settles what neither answers. Each ruling goes in the progress file's decision log, newest first:
++
++```
++- 2026-11-18 **<choice>** — <reason>. Confidence: high|medium|low. Changes if: <fact>.
+ ```
+ 
+-## Setup
+-
+-Ensure the work happens in an isolated workspace: use
+-superpowers:using-git-worktrees to create one or verify the existing one.
+-Never start implementation on a main/master branch without your human
+-partner's explicit consent.
+-
+-Conversation memory does not survive compaction. An inline executor that
+-loses its place re-implements tasks whose commits already exist — the same
+-failure as a controller re-dispatching them, paid for in your own context.
+-Track progress in a ledger file, not only in todos. Harness todos are a
+-live view; the ledger is the record.
+-
+-The workspace and ledger are shared with superpowers:subagent-driven-development
+-— same directory, same format — so a plan can change executors mid-flight
+-and the new one resumes from the same ledger.
+-
+-- Each plan owns a workspace: at skill start, run
+-  `../subagent-driven-development/scripts/sdd-workspace PLAN_FILE` by its
+-  absolute path, from the working tree you're executing in — it
+-  prints the plan's git-ignored directory
+-  (`<repo-root>/.superpowers/sdd/<plan-basename>/`), home to every
+-  artifact for THIS plan: ledger, briefs, review packages. Another plan's
+-  directory is never yours to read or write.
+-- Check for this plan's ledger at `<workspace>/progress.md`. If its first
+-  line names your plan file, tasks with a `Task <N>: complete` line are
+-  DONE — do not redo them; resume at the first task without one. Their
+-  commits exist in git even when your context no longer remembers making
+-  them: after compaction, trust the ledger and `git log` over your own
+-  recollection. A ledger whose first line names a different plan file is
+-  another plan's progress: leave it and start your own, fresh.
+-- Create the ledger with its identity as the first line:
+-  `# SDD ledger — plan: <plan file path>`.
+-- `git clean -fdx` will destroy the workspace (it's git-ignored scratch);
+-  if that happens, recover from `git log`.
+-
+-Read the plan once, note its context and Global Constraints, and create a
+-todo per task. If the plan names a Spec, read that too: the spec is the
+-authority the plan argues from, and conflicts inside the plan resolve
+-against it. A plan with no reachable spec gets a ledger note saying so —
+-rulings made without one are provisional.
+-
+-**REQUIRED SUB-SKILL:** load superpowers:test-driven-development now,
+-before Task 1. It governs every step of every task below; a plan whose
+-steps already say "write the failing test first" does not exempt you
+-from reading it.
+-
+-Before Task 1, scan the plan for conflicts between tasks. The plan's
+-Interfaces blocks tell you where to look: for every task that consumes
+-what an earlier task produces, one ledger row — the two tasks, what one
+-produces against what the other consumes, and what you found. Tasks that
+-share nothing get no row; a plan whose tasks share nothing gets the single
+-line `Pre-flight: no shared interfaces`. Rule on each conflict a row
+-surfaces with the spec as the binding authority, record the ruling beside
+-its row, and start Task 1. Each task's own text is checked when you read
+-its brief, not here.
+-
+-## The Task Loop
+-
+-Everything you print, and every tool result, stays resident in your
+-context for the rest of the session. Redirect long test output to a file
+-in the workspace and read its tail; read a brief, not the whole plan.
+-
+-### 1. Take the task
+-
+-- Run this skill's `scripts/task-start PLAN_FILE N` by its absolute path,
+-  from the working tree you're executing in. It prints the brief
+-  path and BASE (the commit the task's range is cut from) in one call.
+-  Read the brief for every task, including ones you remember from setup:
+-  what you remember is a summary, the brief has the exact values,
+-  signatures, and test cases.
+-- Mark the task's todo in_progress.
+-
+-Every tool call is a turn that re-reads your whole context. Bookkeeping
+-rides along with work — a ledger append in the same call as the commit,
+-never in a call of its own.
+-
+-### 2. Work the steps
+-
+-The plan's steps are already in RED-GREEN order; follow them in that
+-order under superpowers:test-driven-development, loaded at setup. A test
+-step's code is written first and run first. Watching it fail is a step,
+-not a formality — a test that passes before the implementation exists is
+-a finding about the test.
+-
+-Every step that runs a command has an `Expected:` line. Run the command,
+-read its output, and compare. Three outcomes:
+-
+-- **Matches.** Next step.
+-- **The code is wrong.** Use superpowers:systematic-debugging. Find the
+-  cause; never patch the symptom to make the step's output match.
+-- **The plan is wrong** — a step contradicts the spec, an interface from an
+-  earlier task doesn't match what this task consumes, a command that
+-  cannot work. Rule on the smallest change that satisfies the spec, ledger
+-  it as `Task <N>: Ruling: <finding> — <what you decided and why>`, and
+-  continue. The ruling is carried, not remembered: later tasks that touch
+-  the same interface read it from the ledger.
+-
+-Commit as the plan's commit steps say. A task that spans several commits
+-is fine; BASE is what the review range is cut from, never `HEAD~1`.
+-
+-### 3. The completion contract
+-
+-Before a task's ledger line, all of the following are true, with evidence
+-in this session — not inferred from the diff looking right:
+-
+-- Every test the brief names exists and ran in this task, and you read
+-  the output.
+-- The final test run for the task passed — `task-done` is that run, and
+-  it writes the command and result into the ledger line.
+-- Every `Expected:` line in the brief was compared against real output.
+-- Every deviation from the brief has a `Ruling:` line in the ledger.
+-
+-**REQUIRED SUB-SKILL:** superpowers:verification-before-completion governs
+-the claim. If any item is missing, the task is not complete: finish it.
+-
+-### 4. Complete the task
+-
+-Run this skill's `scripts/task-done PLAN_FILE N BASE -- <test command>`
+-by its absolute path, from the working tree you're executing in, with the test command the brief names for the whole task. It runs the
+-tests, keeps the full output in the workspace, prints the tail, and — only
+-if they pass — appends the completion line to the ledger:
+-
+-`Task <N>: complete (commits <base7>..<head7>, tests: <command> → <result>)`
+-
+-A failing run records nothing; the task is not complete. When it records,
+-mark the todo complete and take the next task.
+-
+-## Final Review
+-
+-Run `../subagent-driven-development/scripts/review-package PLAN_FILE MERGE_BASE HEAD`
+-by its absolute path, from the working tree you're executing in (MERGE_BASE = the commit the branch started from, e.g.
+-`git merge-base main HEAD`) and review from the file it prints.
+-
+-**With a subagent tool:** dispatch the reviewer on the most capable
+-available model — the whole-branch review is a judgment task — using
+-superpowers:requesting-code-review's
+-[code-reviewer.md](../requesting-code-review/code-reviewer.md), with the
+-package path, the plan and spec paths, the plan's Review Focus section
+-verbatim if it has one (the input classes and failure modes the plan's
+-tests do not exercise — the reviewer checks each deliberately), and a
+-pointer to the ledger's `Ruling:` lines so it can weigh the calls you
+-made. Specify the model
+-explicitly; an omitted model inherits the session's, which may not be the
+-most capable. This is the one fresh context the whole run buys. Do not
+-skip it, and do not replace it with your own read of the diff.
+-
+-**Without a subagent tool:** read code-reviewer.md and perform that review
+-yourself against the package, as a separate pass after the last task's
+-ledger line. Write `Final review: self-review (no subagent tool)` to the
+-ledger, and say so in your final message: a self-review by the author is
+-weaker than a fresh reviewer, and your human partner decides whether that
+-is enough before merge.
+-
+-Sort the findings before you act on any of them. The reviewer's severity
+-labels are advice; the gate is yours. Its "Declined to judge" list is
+-yours too: every line there is a ruling you make and ledger, exactly like
+-a plan conflict — `Final: Ruling: <behavior the reviewer set aside> —
+-<what a reasonable person using this software gets, and why that stands
+-or why it is now a finding> — <cost if wrong>`. Re-grade first, by effect: the
+-spec is a vision document, and a finding's grade is what a reasonable
+-person using this software gets if it ships, not whether the spec names
+-the input that triggers it — a reviewer who set a finding at Minor
+-because the spec was silent has graded the spec, not the effect. Then:
+-
+-- **Critical and Important** enter the fix pass.
+-- **Minor** goes to the ledger as `Final: minor (deferred): <one-liner>`
+-  and to your final message under "Deferred minors". Minors never enter
+-  the fix pass, and never become rulings — a ruling is a decision about a
+-  conflict, not a note that you declined a polish suggestion.
+-
+-Fix the Critical and Important findings yourself — you are the
+-implementer here — in ONE pass. Each fix is verified by TDD, not by a
+-second reviewer: write the test that reproduces the finding, watch it
+-fail, make it pass, then run the whole suite. Record each in the ledger as
+-`Final: fixed <finding> — <test name> RED→GREEN, suite <N>/<N>`. A fix
+-without a test that failed first is not verified; a suite that is not
+-green after the pass means the pass is not over. Do not dispatch a
+-re-review: it would re-read a diff whose covering tests already answer
+-"addressed" and whose suite run already answers "broke nothing".
+-
+-A finding you decide not to fix is a ruling — `Final: Ruling: <finding> —
+-<why the code stands> — <cost if wrong>` — and reaches your human partner
+-in the rulings list. There is no second fix pass.
+-
+-## Finish
+-
+-Before you delete anything, collect every ledger line containing
+-`Ruling:` into your final message under "Rulings I made", in the order you
+-made them, each with what it costs if wrong, and every `minor (deferred)`
+-line under "Deferred minors". Both lists are exhaustive. Your final
+-message is the only place the decisions you took on your human partner's
+-behalf — and the findings you chose not to act on — reach them.
+-
+-When the final review is clean and its fixes are committed, delete this
+-plan's workspace directory — the git history is the record now. Sibling
+-directories belong to other plans; leave them alone.
+-
+-Use superpowers:finishing-a-development-branch.
+-
+-## Common Rationalizations
++The log is append-only: never edit or remove an entry. A ruling you reverse gets a new entry that names the old one. A wrong ruling costs rework Saad can see and undo; a build parked on a question costs his whole day.
++
++**Four things stop you, in any mode:**
++1. an irreversible or destructive operation (resetting Anvil's own work branch and removing its own lane worktrees are not in this group);
++2. a security-sensitive action;
++3. a side effect the plan doesn't authorise: a push, or a merge into any branch other than the work branch, outside the plan's commit points; a publish; a deploy. Approving the plan authorised the pushes its commit points name, and the first push of a new remote synced branch;
++4. a plan so broken that every path forward is a guess.
++
++A build is **pre-approved** when the plan's `Approved:` line reads `pre-approved …` or `skipped (AFK) …`; it runs with AFK decision-making. Outside AFK and pre-approved builds, two more things stop you: a checkpoint Saad named in the plan, and a change that replaces one of his decisions ([references/change-flow-back.md](references/change-flow-back.md)). When AFK is on or the build is pre-approved, nothing asks Saad: every question becomes a ruling, change requests are logged rather than asked, and only the four stops above stop you. To stop: say why in one short message, and add the reason under `## Blockers`. In AFK, also write it under `## Stop note`, so the Stop hook lets the turn end. If the repo has a tracker, `ticket-update` comments at real stops.
++
++**Narration:** at most one short line between tool calls.
++
++## Preflight
++
++1. **Sync.** `git fetch`, then `git status`. The synced branch is the plan header's `- **Synced branch:**` line. If it doesn't exist locally, create it: from `<remote>/<branch>` when that exists (`git branch --track <branch> <remote>/<branch>`), otherwise as a new branch from the current base (the branch checked out after the sync). A `(remote …)` branch not yet on the remote is pushed once now with `git push -u <remote> <branch>`. If it is behind its remote, pull. If it has diverged, stop and tell Saad: that is stop 4, since any merge you pick is a guess.
++2. **Gate.** `anvil topic show` and `anvil afk status` (AFK is also stated at session start). If there's no active topic (the plan was approved on another machine, or after `topic end`), or its folder isn't this plan's folder, run `anvil topic start <slug> --size <the plan's Size> --dir <the plan's folder>` first. Then `anvil check build` and `anvil topic stage build`. Both refuse unless the plan is approved. Don't work around a refusal; report it.
++3. **Resuming?** If `progress.md` already has `[~]` or `[x]` tasks, or `git worktree list` shows lanes for this topic, read [references/resuming.md](references/resuming.md) before anything else. Re-dispatching finished work is the costliest failure here.
++4. **Read once.** The plan's header, Global constraints, Review focus, Task table, Test strategy, Commit points and execution mode, and the spec's S-lines. Note the type-check and full-suite commands (`Type-check:`, `Full suite:`) and the suite's recorded duration.
++5. **Work branch.** `git switch -c anvil/<topic>/work <synced branch>`, or switch to it if it exists. No work on `main` or `master` without Saad's explicit consent. Branch rules: [../../references/git-flow.md](../../references/git-flow.md).
++6. **Progress file.** Create `progress.md` in the topic folder `anvil topic show` reports, if it's missing, from the task table, in the format in [../../references/formats.md](../../references/formats.md), and set `- **Stage:** build`. Only you write it; lanes never do.
++7. **Build folder.** Scratch files (the lane brief, per-task messages, reports, review packages) go in `$(git rev-parse --path-format=absolute --git-common-dir)/anvil/build/<slug>/`. Never committed; every worktree reads it by absolute path; it survives `/clear`.
++8. **Conflict scan.** Scan the plan once, writing down what you checked:
++   - tasks that contradict each other, the spec, or the Global constraints;
++   - anything the plan mandates that the review rubric treats as a defect (a test that asserts nothing, a duplicated logic block);
++   - one row for every pair of tasks that share an interface: what one produces against what the other consumes.
++
++   Rule on each conflict and log it. A clean scan gets one decision-log line saying so.
++9. **Lane brief.** Write one shared brief file for the whole build from [prompts/implementer.md](prompts/implementer.md). It carries the rules every lane shares, the pinned contracts ([references/waves.md](references/waves.md), "Before a wave"), and the project's environment notes (interpreter, test runner, shell traps).
++
++## Execution mode
++
++Use the mode the approved plan states.
++
++- **Parallel:** waves of up to the plan's lane count (default 3, 4 at most), one worktree per lane. Mechanics in [references/waves.md](references/waves.md); read it before the first wave.
++- **Sequential:** one task at a time, in task order. The implementer works in the main checkout on the work branch. Record BASE (`git rev-parse HEAD`) before each task. A task's check is its targeted tests through `anvil run --scope targeted`, plus its smoke path where the plan lists one (`anvil run --scope smoke`); a commit point lands once every task it closes has passed its check.
++- **Inline (single agent):** when Saad chose it, or no subagent tool is available. You do each task yourself, under an implementer's rules (targeted tests only, inside the write set, the test-changed vs code-changed statement). Never fabricate a dispatch. The per-task review still happens, by a fresh reviewer if you can dispatch one; otherwise do it yourself as a separate pass with [prompts/task-reviewer.md](prompts/task-reviewer.md), log `self-review (no subagent tool)` under the task, and say so at the end: Saad decides whether that's enough.
++
++## Model selection
++
++Use the least capable model that does each role well, and always name it in the dispatch: an omitted model inherits the session's.
++
++- **Implementers:** cheap for 1–2 files with a complete spec; standard for multi-file integration; most capable for design judgment or broad codebase understanding. Prose-only tasks get a mid tier at least: cheap models take two or three times the turns on multi-step work.
++- **Reviewers:** scaled to the diff's size and risk, mid tier as the floor. Scoped re-reviews of small fixes take a cheap-to-mid tier.
++- **Wave review:** mid tier. **Final review:** most capable. **Fix rounds 4–5:** one tier above the stuck implementer.
++
++## The task loop
++
++Every task goes through this loop, in every mode.
++
++### 1. Dispatch the implementer
++
++- Mark the task `[~] T3 <title> (lane anvil/<topic>/T3)` in `progress.md` when you dispatch it (in sequential mode, leave out the lane part).
++- The dispatch is short ([prompts/implementer.md](prompts/implementer.md)): the lane brief, the task's plan section, the absolute working directory, the report file path, and only what the brief can't know (interfaces and rulings from earlier tasks, your resolution of an ambiguity, a parked finding in the area).
++- Don't paste the plan, other tasks' history, or prior summaries into a dispatch: everything you paste, and everything a subagent prints back, stays in your context. Hand things over as files.
++- **Batch small same-shape tasks.** Several small, independent edits of the same kind (the same one-line fix or field addition across files) can go in one dispatch that lists every file and its change, reviewed as one diff. Keep one dispatch per task for work that needs its own judgment, tests or review.
++- Note the implementer's agent id: fix rounds 1–3 resume this agent.
++
++### 2. Handle the report
++
++- **DONE:** go to the review.
++- **DONE_WITH_CONCERNS:** correctness or scope concerns get addressed before the review; observations ("this file is getting large") get noted, and the review goes ahead.
++- **NEEDS_CONTEXT:** give the missing context and resume it.
++- **BLOCKED:** find what has to change. A context gap: more context. Needs more reasoning: a more capable model. Too big: split it and log the split. The plan is wrong: rule on the correction, log it, carry it in the re-dispatch. Never resend the same task to the same model unchanged.
++- **The spec looks wrong** (the report says a requirement can't hold, or Saad changes direction): follow [references/change-flow-back.md](references/change-flow-back.md).
++- **A failure whose cause isn't obvious** (on the merged tree, or a lane stuck on one): run `anvil:debug`, then come back here.
++
++Check the report has what the prompt asks for (S-lines covered, the targeted test command and summary line, a test-changed or code-changed statement per touched test). A missing item goes back to the implementer before the review.
++
++### 3. Check the write set
++
++`anvil lane-check T3 --base <base>`, run in the task's working directory. The base is the work branch in parallel mode, and the recorded BASE otherwise. Files outside the write set go back to the implementer: revert them, or report BLOCKED if the task needs them; the fix is then a plan ruling, never a quiet reach across.
++
++### 4. Review the task
++
++Every task gets reviewed, unless its row says `skip (fully specified)`: that task goes straight to `[x]` after a clean lane-check. The rule is fixed; it isn't your call per task. An implementer's self-review never replaces it.
++
++- Write the review package before anything else touches the branch: `git log --oneline BASE..HEAD`, `git diff --stat BASE..HEAD` and `git diff -U10 BASE..HEAD`, run in the lane, redirected into one file in the build folder. BASE is the commit the task started from, never `HEAD~1` (that drops every commit but the last). In parallel mode, write it before merging the lane.
++- Dispatch [prompts/task-reviewer.md](prompts/task-reviewer.md), filling its placeholders as its notes say.
++- Accept no review missing either verdict.
++
++### 5. Act on the review
++
++Read [references/receiving-review.md](references/receiving-review.md) when a review comes back with anything other than two clean verdicts, and again before every fix round: it holds the triage, the 5-round fix cap, the breaker, and what each round writes to `progress.md`. Your memory of it doesn't survive compaction.
++
++### 6. Complete the task
++
++When the review is clean, or every open finding is parked with a ruling at the cap, mark the task `[x] T3 <title>` in `progress.md`, with the report's test statements as an indented line under it (`  - tests: <file> code changed (S3)`): `finish` reports from these, since the build folder doesn't survive the build. The commit point adds ` C<k>`. Never start a task that depends on this one while it has open Critical or Important findings that are neither fixed nor parked.
++
++## Tests in the build
++
++The rules are in [../../references/test-policy.md](../../references/test-policy.md). Reuse needs the scope the run used: `anvil fresh --scope <the scope it ran with> -- <same cmd>`.
++
++## Simplicity
++
++See [../../references/simplicity.md](../../references/simplicity.md). The spec's `- **Mode:**` line says whether this is a normal change or a redesign.
++
++## Commit points
++
++Land one when every task it closes is `[x]` and its check is clean, per the plan's `## Commit points` table and [../../references/git-flow.md](../../references/git-flow.md):
++
++```bash
++anvil fresh --scope <scope> -- <cmd>     # each recorded check; rerun only what isn't fresh
++git add <topic folder> && git commit -m "docs(<topic>): progress"   # on the work branch, if changed
++git switch <synced>
++git merge --squash anvil/<topic>/work
++git commit -m "<the plan's message>"     # no co-author trailer or Claude attribution
++git push                                 # only if the row says yes
++git switch anvil/<topic>/work
++git reset --hard <synced>
++```
++
++Then record it under `## Commit points`: `- C<k> <sha> pushed <date>`, `- C<k> <sha> not pushed (push failed <date>)`, or `- C<k> <sha> local <date>` for a `no` row. The record travels in the next squash. The commit point that closes the last wave is left for `finish`, so the fixes verify makes travel in it.
++
++## Final review
++
++When every task is `[x]`:
++
++1. Write a package of the whole build (its range is in the placeholder notes of [prompts/final-review.md](prompts/final-review.md)) and dispatch that prompt on the most capable model, with the inputs it lists.
++2. Triage per [references/receiving-review.md](references/receiving-review.md). Critical and Important findings get **one** fix wave, batched by disjoint file groups ([references/waves.md](references/waves.md), "Batched fixes"), then exactly one scoped re-review of the fix range ([prompts/re-review.md](prompts/re-review.md)). No second wave: residual findings become rulings, and the load-bearing ones are named at the end.
++3. Each item on the reviewer's "Declined to judge" list is a ruling you make and log.
++
++## Hand-off
++
++1. Your closing message lists **Rulings I made**: every decision-log entry this build added, most review-worthy first, each with its confidence and "changes if"; then the deferred minors and anything parked. A ruling missing from it was made in secret.
++2. Remove the lane worktrees still left, and this topic's build folder.
++3. `anvil topic stage verify`, set `- **Stage:** verify` in `progress.md`, then run `anvil:verify`.
++
++## Common rationalizations
+ 
+ | Excuse | Reality |
+-|--------|---------|
+-| "I remember what Task N says" | You remember a summary. The brief has the exact values. Read it. |
+-| "The plan's code is right, skip watching the test fail" | A test you never saw fail proves nothing. It is one step. Run it. |
+-| "I'll run the full suite at the end instead of per step" | Per-step runs are how you learn which step broke it. The end-of-task run is the contract, not a substitute. |
+-| "The plan is wrong here, I'll just do the right thing" | Do the right thing and ledger the ruling. Unledgered deviation is a decision made in secret. |
+-| "I'll write the ledger lines after a few tasks" | Compaction does not wait for a convenient moment. One line per task, in the same message as the commit. |
+-| "Let me check in before the next task" | They chose inline to spend less. Progress prompts spend their time instead. Only the four stops stop you. |
+-| "I read my own diff carefully; the final reviewer is redundant" | Same author, same blind spots. The reviewer is the only fresh context this run buys. |
+-| "Tests should pass, the change was trivial" | "Should" is not evidence. The contract requires the command and its output. |
+-| "Subagents are slow and expensive, I'll skip the final review too" | Inline already removed the per-task reviewers. One review of the whole branch is the floor, not the ceiling. |
+-| "The reviewer said Minor, so it's Minor" | The label graded the spec's silence. Grade what the person gets. Re-grade, then gate. |
+-| "The fix is obvious, no need for a failing test first" | The failing test is the only proof the finding was real and is now gone. Without it you have a diff and a hope. |
+-| "I'll fix the minors too while I'm in there" | Every minor you fix is a test, a fix, and a suite run your partner did not ask for. Ledger them; your partner decides. |
++|---|---|
++| "Close enough on spec compliance" | A spec gap means not done. Fix it, or reach the cap and adjudicate. |
++| "The fix was small, skip the re-review" | Unreviewed fixes are how regressions land. |
++| "The lanes are independent, skip the wave check" | Each lane passes its own tests; clean merges can still be wrong together. |
++| "I remember which tasks are done" | You remember a summary. Read `progress.md` and `git log`. |
++| "Progress bookkeeping is overhead" | It's what survives compaction, and it's Saad's only live view. |
+diff --git a/superpowers/skills/dispatching-parallel-agents/SKILL.md b/plugins/anvil/skills/build/SKILL.md
+index 3fa091b..1627f87 100644
+--- a/superpowers/skills/dispatching-parallel-agents/SKILL.md
++++ b/plugins/anvil/skills/build/SKILL.md
+@@ -1,167 +1,161 @@
+ ---
+-name: dispatching-parallel-agents
+-description: Use when facing 2+ independent tasks that can be worked on without shared state or sequential dependencies
++name: build
++description: Use when an approved Anvil plan is ready to be built, when Saad runs `/anvil:build` with a plan path, when the plan stage hands off after stop 2, or when a build that was interrupted (by `/clear`, compaction or a usage limit) needs to pick up where its `progress.md` left off.
+ ---
++<!-- adapted from superpowers@7.0.2: skills/subagent-driven-development/SKILL.md -->
++<!-- adapted from superpowers@7.0.2: skills/subagent-driven-development/references/preflight.md -->
++<!-- adapted from superpowers@7.0.2: skills/subagent-driven-development/references/handling-reports.md -->
++<!-- adapted from superpowers@7.0.2: skills/subagent-driven-development/references/batching.md -->
++<!-- adapted from superpowers@7.0.2: skills/executing-plans/SKILL.md -->
++<!-- adapted from superpowers@7.0.2: skills/dispatching-parallel-agents/SKILL.md -->
+ 
+-# Dispatching Parallel Agents
++# Build
+ 
+-## Overview
++Build an approved plan: a fresh implementer per task, one reviewer per task giving two verdicts (spec, then quality), a check after each merged wave, and one whole-branch review at the end. Then hand over to `anvil:verify`.
+ 
+-You delegate tasks to specialized agents with isolated context. By precisely crafting their instructions and context, you ensure they stay focused and succeed at their task. They should never inherit your session's context or history — you construct exactly what they need. This also preserves your own context for coordination work.
++You are the orchestrator: you write `progress.md`, create worktrees, merge lanes, land commit points and make rulings. In subagent mode you don't write task code: your context is for coordination, and code you write skips review.
+ 
+-When you have multiple unrelated failures (different test files, different subsystems, different bugs), investigating them sequentially wastes time. Each investigation is independent and can happen in parallel.
++**Continuous execution.** Don't pause between tasks to check in: Saad approved the plan so it would run. `progress.md` is the live view (`anvil progress` prints it).
+ 
+-**Core principle:** Dispatch one agent per independent problem domain. Let them work concurrently.
++**Rulings, not stalls.** Conflicts, ambiguities, plan defects, a cap you would have asked to exceed: decide them. The spec is the binding authority, the plan is its argument, and your judgment settles what neither answers. Each ruling goes in the progress file's decision log, newest first:
+ 
+-## When to Use
++```
++- 2026-11-18 **<choice>** — <reason>. Confidence: high|medium|low. Changes if: <fact>.
++```
+ 
+-```dot
+-digraph when_to_use {
+-    "Multiple failures?" [shape=diamond];
+-    "Are they independent?" [shape=diamond];
+-    "Single agent investigates all" [shape=box];
+-    "One agent per problem domain" [shape=box];
+-    "Can they work in parallel?" [shape=diamond];
+-    "Sequential agents" [shape=box];
+-    "Parallel dispatch" [shape=box];
++The log is append-only: never edit or remove an entry. A ruling you reverse gets a new entry that names the old one. A wrong ruling costs rework Saad can see and undo; a build parked on a question costs his whole day.
+ 
+-    "Multiple failures?" -> "Are they independent?" [label="yes"];
+-    "Are they independent?" -> "Single agent investigates all" [label="no - related"];
+-    "Are they independent?" -> "Can they work in parallel?" [label="yes"];
+-    "Can they work in parallel?" -> "Parallel dispatch" [label="yes"];
+-    "Can they work in parallel?" -> "Sequential agents" [label="no - shared state"];
+-}
+-```
++**Four things stop you, in any mode:**
++1. an irreversible or destructive operation (resetting Anvil's own work branch and removing its own lane worktrees are not in this group);
++2. a security-sensitive action;
++3. a side effect the plan doesn't authorise: a push, or a merge into any branch other than the work branch, outside the plan's commit points; a publish; a deploy. Approving the plan authorised the pushes its commit points name, and the first push of a new remote synced branch;
++4. a plan so broken that every path forward is a guess.
+ 
+-**Use when:**
+-- 3+ test files failing with different root causes
+-- Multiple subsystems broken independently
+-- Each problem can be understood without context from others
+-- No shared state between investigations
++A build is **pre-approved** when the plan's `Approved:` line reads `pre-approved …` or `skipped (AFK) …`; it runs with AFK decision-making. Outside AFK and pre-approved builds, two more things stop you: a checkpoint Saad named in the plan, and a change that replaces one of his decisions ([references/change-flow-back.md](references/change-flow-back.md)). When AFK is on or the build is pre-approved, nothing asks Saad: every question becomes a ruling, change requests are logged rather than asked, and only the four stops above stop you. To stop: say why in one short message, and add the reason under `## Blockers`. In AFK, also write it under `## Stop note`, so the Stop hook lets the turn end. If the repo has a tracker, `ticket-update` comments at real stops.
+ 
+-**Don't use when:**
+-- Failures are related (fix one might fix others)
+-- Need to understand full system state
+-- Agents would interfere with each other
++**Narration:** at most one short line between tool calls.
+ 
+-## The Pattern
++## Preflight
+ 
+-### 1. Identify Independent Domains
++1. **Sync.** `git fetch`, then `git status`. The synced branch is the plan header's `- **Synced branch:**` line. If it doesn't exist locally, create it: from `<remote>/<branch>` when that exists (`git branch --track <branch> <remote>/<branch>`), otherwise as a new branch from the current base (the branch checked out after the sync). A `(remote …)` branch not yet on the remote is pushed once now with `git push -u <remote> <branch>`. If it is behind its remote, pull. If it has diverged, stop and tell Saad: that is stop 4, since any merge you pick is a guess.
++2. **Gate.** `anvil topic show` and `anvil afk status` (AFK is also stated at session start). If there's no active topic (the plan was approved on another machine, or after `topic end`), or its folder isn't this plan's folder, run `anvil topic start <slug> --size <the plan's Size> --dir <the plan's folder>` first. Then `anvil check build` and `anvil topic stage build`. Both refuse unless the plan is approved. Don't work around a refusal; report it.
++3. **Resuming?** If `progress.md` already has `[~]` or `[x]` tasks, or `git worktree list` shows lanes for this topic, read [references/resuming.md](references/resuming.md) before anything else. Re-dispatching finished work is the costliest failure here.
++4. **Read once.** The plan's header, Global constraints, Review focus, Task table, Test strategy, Commit points and execution mode, and the spec's S-lines. Note the type-check and full-suite commands (`Type-check:`, `Full suite:`) and the suite's recorded duration.
++5. **Work branch.** `git switch -c anvil/<topic>/work <synced branch>`, or switch to it if it exists. No work on `main` or `master` without Saad's explicit consent. Branch rules: [../../references/git-flow.md](../../references/git-flow.md).
++6. **Progress file.** Create `progress.md` in the topic folder `anvil topic show` reports, if it's missing, from the task table, in the format in [../../references/formats.md](../../references/formats.md), and set `- **Stage:** build`. Only you write it; lanes never do.
++7. **Build folder.** Scratch files (the lane brief, per-task messages, reports, review packages) go in `$(git rev-parse --path-format=absolute --git-common-dir)/anvil/build/<slug>/`. Never committed; every worktree reads it by absolute path; it survives `/clear`.
++8. **Conflict scan.** Scan the plan once, writing down what you checked:
++   - tasks that contradict each other, the spec, or the Global constraints;
++   - anything the plan mandates that the review rubric treats as a defect (a test that asserts nothing, a duplicated logic block);
++   - one row for every pair of tasks that share an interface: what one produces against what the other consumes.
+ 
+-Group failures by what's broken:
+-- File A tests: Tool approval flow
+-- File B tests: Batch completion behavior
+-- File C tests: Abort functionality
++   Rule on each conflict and log it. A clean scan gets one decision-log line saying so.
++9. **Lane brief.** Write one shared brief file for the whole build from [prompts/implementer.md](prompts/implementer.md). It carries the rules every lane shares, the pinned contracts ([references/waves.md](references/waves.md), "Before a wave"), and the project's environment notes (interpreter, test runner, shell traps).
+ 
+-Each domain is independent - fixing tool approval doesn't affect abort tests.
++## Execution mode
+ 
+-### 2. Create Focused Agent Tasks
++Use the mode the approved plan states.
+ 
+-Each agent gets:
+-- **Specific scope:** One test file or subsystem
+-- **Clear goal:** Make these tests pass
+-- **Constraints:** Don't change other code
+-- **Expected output:** Summary of what you found and fixed
++- **Parallel:** waves of up to the plan's lane count (default 3, 4 at most), one worktree per lane. Mechanics in [references/waves.md](references/waves.md); read it before the first wave.
++- **Sequential:** one task at a time, in task order. The implementer works in the main checkout on the work branch. Record BASE (`git rev-parse HEAD`) before each task. A task's check is its targeted tests through `anvil run --scope targeted`, plus its smoke path where the plan lists one (`anvil run --scope smoke`); a commit point lands once every task it closes has passed its check.
++- **Inline (single agent):** when Saad chose it, or no subagent tool is available. You do each task yourself, under an implementer's rules (targeted tests only, inside the write set, the test-changed vs code-changed statement). Never fabricate a dispatch. The per-task review still happens, by a fresh reviewer if you can dispatch one; otherwise do it yourself as a separate pass with [prompts/task-reviewer.md](prompts/task-reviewer.md), log `self-review (no subagent tool)` under the task, and say so at the end: Saad decides whether that's enough.
+ 
+-### 3. Dispatch in Parallel
++## Model selection
+ 
+-Issue all three subagent dispatches in the same response — they run in parallel:
++Use the least capable model that does each role well, and always name it in the dispatch: an omitted model inherits the session's.
+ 
+-```text
+-Subagent (general-purpose): "Fix agent-tool-abort.test.ts failures"
+-Subagent (general-purpose): "Fix batch-completion-behavior.test.ts failures"
+-Subagent (general-purpose): "Fix tool-approval-race-conditions.test.ts failures"
+-# All three run concurrently.
+-```
++- **Implementers:** cheap for 1–2 files with a complete spec; standard for multi-file integration; most capable for design judgment or broad codebase understanding. Prose-only tasks get a mid tier at least: cheap models take two or three times the turns on multi-step work.
++- **Reviewers:** scaled to the diff's size and risk, mid tier as the floor. Scoped re-reviews of small fixes take a cheap-to-mid tier.
++- **Wave review:** mid tier. **Final review:** most capable. **Fix rounds 4–5:** one tier above the stuck implementer.
+ 
+-Multiple dispatch calls in one response = parallel execution. One per response = sequential.
++## The task loop
+ 
+-### 4. Review and Integrate
++Every task goes through this loop, in every mode.
+ 
+-When agents return:
+-- Read each summary
+-- Verify fixes don't conflict
+-- Run full test suite
+-- Integrate all changes
++### 1. Dispatch the implementer
+ 
+-## Agent Prompt Structure
++- Mark the task `[~] T3 <title> (lane anvil/<topic>/T3)` in `progress.md` when you dispatch it (in sequential mode, leave out the lane part).
++- The dispatch is short ([prompts/implementer.md](prompts/implementer.md)): the lane brief, the task's plan section, the absolute working directory, the report file path, and only what the brief can't know (interfaces and rulings from earlier tasks, your resolution of an ambiguity, a parked finding in the area).
++- Don't paste the plan, other tasks' history, or prior summaries into a dispatch: everything you paste, and everything a subagent prints back, stays in your context. Hand things over as files.
++- **Batch small same-shape tasks.** Several small, independent edits of the same kind (the same one-line fix or field addition across files) can go in one dispatch that lists every file and its change, reviewed as one diff. Keep one dispatch per task for work that needs its own judgment, tests or review.
++- Note the implementer's agent id: fix rounds 1–3 resume this agent.
+ 
+-Good agent prompts are:
+-1. **Focused** - One clear problem domain
+-2. **Self-contained** - All context needed to understand the problem
+-3. **Specific about output** - What should the agent return?
++### 2. Handle the report
+ 
+-```markdown
+-Fix the 3 failing tests in src/agents/agent-tool-abort.test.ts:
++- **DONE:** go to the review.
++- **DONE_WITH_CONCERNS:** correctness or scope concerns get addressed before the review; observations ("this file is getting large") get noted, and the review goes ahead.
++- **NEEDS_CONTEXT:** give the missing context and resume it.
++- **BLOCKED:** find what has to change. A context gap: more context. Needs more reasoning: a more capable model. Too big: split it and log the split. The plan is wrong: rule on the correction, log it, carry it in the re-dispatch. Never resend the same task to the same model unchanged.
++- **The spec looks wrong** (the report says a requirement can't hold, or Saad changes direction): follow [references/change-flow-back.md](references/change-flow-back.md).
++- **A failure whose cause isn't obvious** (on the merged tree, or a lane stuck on one): run `anvil:debug`, then come back here.
+ 
+-1. "should abort tool with partial output capture" - expects 'interrupted at' in message
+-2. "should handle mixed completed and aborted tools" - fast tool aborted instead of completed
+-3. "should properly track pendingToolCount" - expects 3 results but gets 0
++Check the report has what the prompt asks for (S-lines covered, the targeted test command and summary line, a test-changed or code-changed statement per touched test). A missing item goes back to the implementer before the review.
+ 
+-These are timing/race condition issues. Your task:
++### 3. Check the write set
+ 
+-1. Read the test file and understand what each test verifies
+-2. Identify root cause - timing issues or actual bugs?
+-3. Fix by:
+-   - Replacing arbitrary timeouts with event-based waiting
+-   - Fixing bugs in abort implementation if found
+-   - Adjusting test expectations if testing changed behavior
++`anvil lane-check T3 --base <base>`, run in the task's working directory. The base is the work branch in parallel mode, and the recorded BASE otherwise. Files outside the write set go back to the implementer: revert them, or report BLOCKED if the task needs them; the fix is then a plan ruling, never a quiet reach across.
+ 
+-Do NOT just increase timeouts - find the real issue.
++### 4. Review the task
+ 
+-Return: Summary of what you found and what you fixed.
+-```
++Every task gets reviewed, unless its row says `skip (fully specified)`: that task goes straight to `[x]` after a clean lane-check. The rule is fixed; it isn't your call per task. An implementer's self-review never replaces it.
+ 
+-## Common Mistakes
++- Write the review package before anything else touches the branch: `git log --oneline BASE..HEAD`, `git diff --stat BASE..HEAD` and `git diff -U10 BASE..HEAD`, run in the lane, redirected into one file in the build folder. BASE is the commit the task started from, never `HEAD~1` (that drops every commit but the last). In parallel mode, write it before merging the lane.
++- Dispatch [prompts/task-reviewer.md](prompts/task-reviewer.md), filling its placeholders as its notes say.
++- Accept no review missing either verdict.
+ 
+-**❌ Too broad:** "Fix all the tests" - agent gets lost
+-**✅ Specific:** "Fix agent-tool-abort.test.ts" - focused scope
++### 5. Act on the review
+ 
+-**❌ No context:** "Fix the race condition" - agent doesn't know where
+-**✅ Context:** Paste the error messages and test names
++Read [references/receiving-review.md](references/receiving-review.md) when a review comes back with anything other than two clean verdicts, and again before every fix round: it holds the triage, the 5-round fix cap, the breaker, and what each round writes to `progress.md`. Your memory of it doesn't survive compaction.
+ 
+-**❌ No constraints:** Agent might refactor everything
+-**✅ Constraints:** "Do NOT change production code" or "Fix tests only"
++### 6. Complete the task
+ 
+-**❌ Vague output:** "Fix it" - you don't know what changed
+-**✅ Specific:** "Return summary of root cause and changes"
++When the review is clean, or every open finding is parked with a ruling at the cap, mark the task `[x] T3 <title>` in `progress.md`, with the report's test statements as an indented line under it (`  - tests: <file> code changed (S3)`): `finish` reports from these, since the build folder doesn't survive the build. The commit point adds ` C<k>`. Never start a task that depends on this one while it has open Critical or Important findings that are neither fixed nor parked.
+ 
+-## When NOT to Use
++## Tests in the build
+ 
+-**Related failures:** Fixing one might fix others - investigate together first
+-**Need full context:** Understanding requires seeing entire system
+-**Exploratory debugging:** You don't know what's broken yet
+-**Shared state:** Agents would interfere (editing same files, using same resources)
++The rules are in [../../references/test-policy.md](../../references/test-policy.md). Reuse needs the scope the run used: `anvil fresh --scope <the scope it ran with> -- <same cmd>`.
+ 
+-## Real Example from Session
++## Simplicity
+ 
+-**Scenario:** 6 test failures across 3 files after major refactoring
++See [../../references/simplicity.md](../../references/simplicity.md). The spec's `- **Mode:**` line says whether this is a normal change or a redesign.
+ 
+-**Failures:**
+-- agent-tool-abort.test.ts: 3 failures (timing issues)
+-- batch-completion-behavior.test.ts: 2 failures (tools not executing)
+-- tool-approval-race-conditions.test.ts: 1 failure (execution count = 0)
++## Commit points
+ 
+-**Decision:** Independent domains - abort logic separate from batch completion separate from race conditions
++Land one when every task it closes is `[x]` and its check is clean, per the plan's `## Commit points` table and [../../references/git-flow.md](../../references/git-flow.md):
+ 
+-**Dispatch:**
+-```
+-Agent 1 → Fix agent-tool-abort.test.ts
+-Agent 2 → Fix batch-completion-behavior.test.ts
+-Agent 3 → Fix tool-approval-race-conditions.test.ts
++```bash
++anvil fresh --scope <scope> -- <cmd>     # each recorded check; rerun only what isn't fresh
++git add <topic folder> && git commit -m "docs(<topic>): progress"   # on the work branch, if changed
++git switch <synced>
++git merge --squash anvil/<topic>/work
++git commit -m "<the plan's message>"     # no co-author trailer or Claude attribution
++git push                                 # only if the row says yes
++git switch anvil/<topic>/work
++git reset --hard <synced>
+ ```
+ 
+-**Results:**
+-- Agent 1: Replaced timeouts with event-based waiting
+-- Agent 2: Fixed event structure bug (threadId in wrong place)
+-- Agent 3: Added wait for async tool execution to complete
++Then record it under `## Commit points`: `- C<k> <sha> pushed <date>`, `- C<k> <sha> not pushed (push failed <date>)`, or `- C<k> <sha> local <date>` for a `no` row. The record travels in the next squash. The commit point that closes the last wave is left for `finish`, so the fixes verify makes travel in it.
++
++## Final review
++
++When every task is `[x]`:
++
++1. Write a package of the whole build (its range is in the placeholder notes of [prompts/final-review.md](prompts/final-review.md)) and dispatch that prompt on the most capable model, with the inputs it lists.
++2. Triage per [references/receiving-review.md](references/receiving-review.md). Critical and Important findings get **one** fix wave, batched by disjoint file groups ([references/waves.md](references/waves.md), "Batched fixes"), then exactly one scoped re-review of the fix range ([prompts/re-review.md](prompts/re-review.md)). No second wave: residual findings become rulings, and the load-bearing ones are named at the end.
++3. Each item on the reviewer's "Declined to judge" list is a ruling you make and log.
++
++## Hand-off
+ 
+-**Integration:** All fixes independent, no conflicts, full suite green
++1. Your closing message lists **Rulings I made**: every decision-log entry this build added, most review-worthy first, each with its confidence and "changes if"; then the deferred minors and anything parked. A ruling missing from it was made in secret.
++2. Remove the lane worktrees still left, and this topic's build folder.
++3. `anvil topic stage verify`, set `- **Stage:** verify` in `progress.md`, then run `anvil:verify`.
+ 
+-## Verification
++## Common rationalizations
+ 
+-After agents return:
+-1. **Review each summary** - Understand what changed
+-2. **Check for conflicts** - Did agents edit same code?
+-3. **Run full suite** - Verify all fixes work together
+-4. **Spot check** - Agents can make systematic errors
++| Excuse | Reality |
++|---|---|
++| "Close enough on spec compliance" | A spec gap means not done. Fix it, or reach the cap and adjudicate. |
++| "The fix was small, skip the re-review" | Unreviewed fixes are how regressions land. |
++| "The lanes are independent, skip the wave check" | Each lane passes its own tests; clean merges can still be wrong together. |
++| "I remember which tasks are done" | You remember a summary. Read `progress.md` and `git log`. |
++| "Progress bookkeeping is overhead" | It's what survives compaction, and it's Saad's only live view. |

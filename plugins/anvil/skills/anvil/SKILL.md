@@ -30,9 +30,9 @@ Pick the size from how Saad describes the work, and state it in the first line o
 
 For direct or full: `anvil topic start <slug> --size <size> [--dir <project's doc location>]`, then `anvil:brainstorm`. Pass `--dir` when the project's doc rule names a location.
 
-**Another topic active.** If `anvil topic show` reports a different topic held at spec or plan and this request isn't part of it, tell Saad and offer to park it: `anvil topic end` (its documents stay; `anvil topic start <slug> --size <size> [--dir <folder>]` resumes it). In AFK, park it and log the decision. Research needs no parking: edits under `docs/research/` are never held.
+**An active topic.** Check `anvil topic show` first. A message about the active topic at stage build or verify is a change request: it goes to `anvil:build`'s change flow-back, not a new `topic start`. For unrelated work, `topic start` is refused while a topic is active: tell Saad and offer to park it with `anvil topic end` (its documents stay; `topic start` with its slug resumes it). In AFK, park it and log the decision. Research needs no parking: edits under `docs/research/` are never held.
 
-If the work grows mid-way, say so and step up: rerun `anvil topic start <slug> --size full` (the folder is kept). Going from direct to full, move the spec part of `plan.md` into a new `spec.md`.
+If the work grows mid-way, say so and step up: rerun `anvil topic start <slug> --size full` (the folder is kept). Going from direct to full, move the spec part of `plan.md` into a new `spec.md`. If the plan was already approved, the new `spec.md` passes stop 1 (`anvil present spec`, Saad's reply, `anvil approve spec`) before the build goes on.
 
 Trivial's one check is the project's narrowest relevant check, run through `anvil run --scope targeted -- <cmd>` when it's a test command.
 
@@ -65,11 +65,9 @@ brainstorm ─► spec ─[stop 1]─► plan ─[stop 2]─► build ─► ver
 
 Approval covers what he saw. "Sounds good" about an idea doesn't approve a document he hasn't read. Never write the `Approved:` line by hand; if `approve` refuses, tell him why.
 
-**Pre-approval.** When Saad's own words already pass a stop ("approve the spec yourself", "go straight to the build"), run `anvil approve <doc> --quote "<his exact words>" --pre` (3+ words of his message) instead of stopping. That stage then runs with AFK decision-making: each choice you make for him goes into `progress.md`'s decision log in the formats.md entry shape (choice, reason, confidence, changes if).
+**Pre-approval.** When Saad's own words already pass a stop ("approve the spec yourself", "go straight to the build"), run `anvil approve <doc> --quote "<his exact words>" --pre` instead of stopping. That stage then runs with AFK decision-making: each choice you make for him goes into `progress.md`'s decision log in the formats.md entry shape (choice, reason, confidence, changes if).
 
 **AFK.** When his message says he's away ("AFK", "I'm going to bed", "don't ask me"), use `anvil:afk`. It turns AFK on with his quote, and each skipped stop is recorded with `anvil approve <doc> --quote "<the AFK quote>" --afk`.
-
-Extra checkpoints happen only where Saad asks for one.
 
 ## Simple code
 
@@ -101,13 +99,12 @@ The project's `CLAUDE.md`, `.claude/rules/*` and doc-location rules override Anv
 | brainstorm, spec | `anvil:cross-model` | research on big questions; review of decisions that are expensive to undo |
 | plan approved | `anvil:ticket-update` | split plan tasks into tickets, if the project tracks work |
 | build | `anvil:ticket-update`, `anvil:debug` | comments at real stops; failures with no obvious cause |
-| verify | `anvil:ux-audit`, `anvil:cross-model` | the build against the mock; a second model before done on large or hard-to-reverse changes |
+| verify | `anvil:ux-audit`, `anvil:cross-model` | any UI change, against the mock if one exists; a second model before done on large or hard-to-reverse changes |
 | finish | `anvil:ticket-update` | the completion comment |
 | any | `anvil:afk` | runs without stops and logs decisions |
 
 ## Alongside Superpowers
 
-- Anvil is self-contained: it adapts the Superpowers 7.0.2 parts it uses.
 - With both installed, Anvil's stage skills take the place of Superpowers' brainstorming, writing-plans, executing-plans, subagent-driven-development, test-driven-development, requesting-code-review, verification-before-completion, finishing-a-development-branch and systematic-debugging for work in this flow. Superpowers' writing-skills and diagnosing-superpowers stay usable.
 - Anvil only: turn Superpowers off with `enabledPlugins` (`false`). Superpowers only: `/plugin disable anvil`.
 
