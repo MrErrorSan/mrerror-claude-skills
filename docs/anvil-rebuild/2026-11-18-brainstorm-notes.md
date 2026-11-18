@@ -152,23 +152,21 @@ These still need to be covered before the design can be written:
 6. **The approaches:** ways to build the new Anvil, compared, with a pick.
 7. **Sizing,** and then the full written design, with a builder check before review.
 
-## 7. Coexistence with Superpowers (decided)
+## 7. Coexistence with Superpowers (decided, revised 2026-11-18)
 
 Saad will keep both installed. He'll use Anvil alone once he trusts it, and alongside Superpowers until then. He delegated the design to Claude. **[user]**
 
-The decision is one self-contained Anvil, plus a single rule for when Superpowers is also present. There's no two-faced skill and no separate "classic" Anvil.
+The decision is one self-contained Anvil. There's no two-faced skill and no separate "classic" Anvil.
 
-| Setup | What happens |
-|---|---|
-| **Anvil only** (target) | Anvil's own startup hook starts the workflow. |
-| **Both installed** (building trust) | Anvil leads. Its startup hook states once that Anvil's workflow replaces Superpowers' brainstorming, planning, executing, review and finishing skills. Superpowers skills that Anvil doesn't replace (for example `writing-skills`) stay usable. |
-| **Superpowers only** (escape hatch) | `/plugin disable anvil` returns to plain Superpowers. |
+**Revision.** The first version assumed that Anvil's startup hook carries the user's authority. That's wrong. Hook output arrives as a system reminder, while CLAUDE.md arrives as a user message. Text in a hook phrased as commands can also trip prompt-injection defences. Individual plugin skills can't be hidden either: a plugin is on or off as a whole. See C1 and C2 in [research/2026-11-18-anthropic-guidance.md](research/2026-11-18-anthropic-guidance.md).
 
-Why:
-- Today's confusion comes from about 6 rule-by-rule overrides that the model weighs every session. A single statement settles it.
-- `using-superpowers` itself says the user's instructions outrank its skills. Anvil's startup hook is installed by the user, so it counts as one of those instructions.
-- Anvil's skills get distinct names and descriptions, so they don't compete with Superpowers' skills for the same trigger.
-- To verify during the build: how a plugin's startup hook is declared in the current version of Claude Code, and whether its output arrives with the authority this design assumes.
+| Setup | How it's achieved | Strength |
+|---|---|---|
+| **Anvil only** (target) | Turn Superpowers off with `enabledPlugins`, per project (`.claude/settings.local.json`) or for the user. Anvil's startup hook starts the workflow. | Hard switch |
+| **Both installed** (building trust) | Three parts:<br>1. **One sentence in Saad's global `~/.claude/CLAUDE.md`** saying that Anvil's workflow replaces Superpowers' brainstorming, planning, building, review and finishing skills. That carries real user authority, and `using-superpowers` itself defers to CLAUDE.md.<br>2. **Anvil's startup hook** states the same thing as plain facts, not commands.<br>3. **Distinct skill names and descriptions**, so the two plugins' skills don't compete for the same trigger. | Wording only. It must be **measured** with `claude plugin eval` on a fixture that has Superpowers installed |
+| **Superpowers only** (escape hatch) | `/plugin disable anvil` | Hard switch |
+
+**Prerequisite.** Update Claude Code from 2.1.268. Plugin evals need 2.1.269, and `/doctor prompt-audit` needs 2.1.283.
 
 ## 8. Mocks, research, demos (agreed in principle)
 
