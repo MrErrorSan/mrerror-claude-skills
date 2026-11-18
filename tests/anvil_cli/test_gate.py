@@ -62,6 +62,31 @@ class GateTests(unittest.TestCase):
         self.assertEqual(value, f'{self.today} by Saad ("I approve the spec")')
         self.assertEqual(self.approved(d / "spec.md"), value)
 
+    def test_approve_amended_accepts_dictated_edits(self):
+        d = self.topic()
+        self.approve_spec()
+        gate.present(self.repo, "plan")
+        ts = self.presented_ts("plan")
+        self.prompt("approved, go ahead. one fix: S1 also covers empty input", ts + 1)
+        write(d / "plan.md", DOC.format(kind="Plan", size="full") + "- **S2** Empty input.\n")
+        # Without --amended the edited plan is refused, and the message names the option.
+        with self.assertRaisesRegex(gate.GateError, "--amended"):
+            gate.approve(self.repo, "plan", "approved, go ahead")
+        value = gate.approve(self.repo, "plan", "approved, go ahead", amended=True)
+        self.assertEqual(value, f'{self.today} by Saad ("approved, go ahead"), '
+                                "with the edits he asked for")
+        self.assertEqual(self.approved(d / "plan.md"), value)
+
+    def test_approve_amended_still_needs_words_after_present(self):
+        d = self.topic()
+        self.approve_spec()
+        gate.present(self.repo, "plan")
+        self.prompt("approved, go ahead", self.presented_ts("plan") - 5)
+        write(d / "plan.md", DOC.format(kind="Plan", size="full") + "- **S2** Later.\n")
+        with self.assertRaises(gate.GateError):
+            gate.approve(self.repo, "plan", "approved, go ahead", amended=True)
+        self.assertEqual(self.approved(d / "plan.md"), "no")
+
     def test_approve_rejects_changed_doc(self):
         d = self.topic()
         self.approve_spec()

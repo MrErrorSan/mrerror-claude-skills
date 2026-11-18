@@ -107,6 +107,11 @@ class HookTests(unittest.TestCase):
         # Research docs have no stops, so they aren't held either.
         self.assertEqual(self.tool("Write", content="x", file_path=str(
             self.repo / "docs" / "research" / "2026-11-18-x.md")), {})
+        # Nor are other docs a project rule may require (a decision log), but code under
+        # docs/ still is.
+        self.assertEqual(self.edit(self.repo / "docs" / "decisions.md"), {})
+        self.assertIsNotNone(deny_reason(self.tool("Write", content="x", file_path=str(
+            self.repo / "docs" / "gen.py"))))
         # Plan stage with the plan still unapproved: the reason names the plan.
         state.save(self.repo, "active.json",
                    {"slug": "demo", "dir": "docs/demo", "size": "full", "stage": "plan"})

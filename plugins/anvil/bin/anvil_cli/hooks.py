@@ -108,7 +108,9 @@ def pre_tool_use(event: dict) -> dict:
     root = state.repo_root(cwd)
     if (topic.get("stage") in ("spec", "plan") and path is not None
             and _inside(path, root) and not _inside(path, folder)
-            and not _inside(path, root / "docs" / "research")):  # research docs have no stops
+            # Docs aren't code: project rules often ask for decision logs or notes before
+            # anything is approved (and research docs have no stops at all).
+            and not (path.suffix.lower() == ".md" and _inside(path, root / "docs"))):
         plan_ok, plan_reason = gate.check(cwd, "build")
         if not plan_ok:
             spec_ok, spec_reason = gate.check(cwd, "plan")

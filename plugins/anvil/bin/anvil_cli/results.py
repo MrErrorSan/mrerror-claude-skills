@@ -97,6 +97,34 @@ def _key_or_none(cwd, cmd, scope):
         return None  # not a git repo, git missing, or odd git output: nothing to key on
 
 
+_POSIX_ARG = re.compile(r"^(--?[\w-]+=)?(/[A-Za-z0-9_.~-][^\s]*)$")
+
+
+def native_args(cmd: list[str]) -> list[str]:
+    """On Windows, turn POSIX-style path arguments (/tmp/x, --out=/c/x) into native paths.
+
+    bin/anvil sets MSYS_NO_PATHCONV so Git Bash passes --quote text through untouched; that
+    also stops it converting a test command's path arguments, which a Windows program then
+    can't open. Only arguments whose converted parent folder exists are changed.
+    """
+    cygpath = shutil.which("cygpath") if os.name == "nt" else None
+    if not cygpath:
+        return list(cmd)
+    hits = [(i, m) for i, a in enumerate(cmd[1:], 1) if (m := _POSIX_ARG.match(a))]
+    if not hits:
+        return list(cmd)
+    try:
+        r = subprocess.run([cygpath, "-w", *(m.group(2) for _, m in hits)], capture_output=True,
+                           text=True, timeout=10, check=True)
+    except (OSError, subprocess.SubprocessError):
+        return list(cmd)
+    out = list(cmd)
+    for (i, m), win in zip(hits, r.stdout.splitlines()):
+        if win and Path(win).parent.exists():
+            out[i] = (m.group(1) or "") + win
+    return out
+
+
 def _run(cwd, cmd, scope, external, out):
     """Run cmd, streaming its output to out. Returns (exit code, record or None)."""
     before = _key_or_none(cwd, cmd, scope)
@@ -179,14 +207,14 @@ def count_tests(output: str) -> int:
 
 def cmd_run(args) -> int:
     out = sys.stderr if args.json else sys.stdout  # keep stdout pure JSON with --json
-    code, rec = _run(Path.cwd(), args.cmd, args.scope, args.external, out)
+    code, rec = _run(Path.cwd(), native_args(args.cmd), args.scope, args.external, out)
     if args.json:
         print(json.dumps({"exit": code, "record": rec}, ensure_ascii=False))
     return code
 
 
 def cmd_fresh(args) -> int:
-    rec = fresh(Path.cwd(), args.cmd, args.scope)
+    rec = fresh(Path.cwd(), native_args(args.cmd), args.scope)
     if args.json:
         print(json.dumps(rec, ensure_ascii=False))
     elif rec:

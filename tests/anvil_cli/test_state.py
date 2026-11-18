@@ -110,6 +110,19 @@ class StateTests(unittest.TestCase):
                        {"slug": "demo", "dir": "docs/demo", "size": "direct", "stage": "plan"})
             self.assertEqual(self.topic_start(repo, "demo")["started"], 0)
 
+    def test_topic_start_parks_a_topic_at_finish(self):
+        with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmp:
+            repo = make_repo(Path(tmp))
+            self.topic_start(repo, "demo", "--size", "direct")
+            # At build it's refused, as before.
+            self.assertEqual(self.topic(repo, "stage", "verify"), 0)
+            self.assertIsNone(self.topic_start(repo, "other", code=1))
+            # At finish, verify has landed the work: new work parks it.
+            self.assertEqual(self.topic(repo, "stage", "finish"), 0)
+            topic = self.topic_start(repo, "other", "--size", "direct")
+            self.assertEqual(topic["slug"], "other")
+            self.assertIn("Parked topic demo (stage finish", self.err)
+
     def test_topic_start_and_end_set_afk_lifetime(self):
         with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmp:
             repo = make_repo(Path(tmp))

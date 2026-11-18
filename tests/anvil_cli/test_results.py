@@ -1,6 +1,8 @@
 import contextlib
 import io
 import os
+import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -33,6 +35,20 @@ class ResultsTests(unittest.TestCase):
 
     def tearDown(self):
         self._tmp.cleanup()
+
+    def test_native_args_leaves_non_paths_alone(self):
+        cmd = ["python", "-m", "unittest", "-v", "tests/test_x.py", "--name=demo"]
+        self.assertEqual(results.native_args(cmd), cmd)
+
+    @unittest.skipUnless(os.name == "nt" and shutil.which("cygpath"), "Git Bash on Windows only")
+    def test_native_args_converts_posix_paths_on_windows(self):
+        posix = subprocess.run(["cygpath", "-u", str(self.tmp)], capture_output=True,
+                               text=True, check=True).stdout.strip()
+        got = results.native_args(["python", "x.py", f"{posix}/out.csv", f"--out={posix}/o",
+                                   "/no_such_root_zz/q"])
+        self.assertEqual(Path(got[2]), self.tmp / "out.csv")
+        self.assertEqual(Path(got[3].removeprefix("--out=")), self.tmp / "o")
+        self.assertEqual(got[4], "/no_such_root_zz/q")  # parent missing: left as typed
 
     def test_key_changes_on_edit_and_untracked(self):
         k0 = results.tree_key(self.repo)

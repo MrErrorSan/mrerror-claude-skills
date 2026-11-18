@@ -5,7 +5,7 @@ parsed argparse.Namespace and returns an int exit code. Lanes write only the
 module function; argument parsing for every subcommand lives here:
 
     gate.cmd_present(args) -> int       args.which: spec|plan
-    gate.cmd_approve(args) -> int       args.which, args.quote, args.pre, args.afk
+    gate.cmd_approve(args) -> int       args.which, args.quote, args.pre, args.afk, args.amended
     gate.cmd_check(args) -> int         args.stage: plan|build
     gate.cmd_afk(args) -> int           args.action: on|off|status; args.quote (on)
     docs.cmd_spec_lines(args) -> int    args.live, args.retired
@@ -75,6 +75,8 @@ def build_parser() -> argparse.ArgumentParser:
     approve.add_argument("--quote", required=True)
     approve.add_argument("--pre", action="store_true")
     approve.add_argument("--afk", action="store_true")
+    approve.add_argument("--amended", action="store_true",
+                         help="Saad's reply approved it and dictated the edits made since")
     add("check", "is this stage allowed to start?").add_argument(
         "stage", choices=("plan", "build"))
 
@@ -146,11 +148,17 @@ def cmd_topic(args) -> int:
     cwd = Path.cwd()
     topic = state.active_topic(cwd)
     if args.action == "start":
-        if topic and topic.get("slug") != args.slug:
-            print(f"Topic {topic['slug']} is active (stage {topic.get('stage')}). Run "
-                  "`anvil topic end` first, or continue it.", file=sys.stderr)
-            return 1
         from . import gate
+        if topic and topic.get("slug") != args.slug:
+            if topic.get("stage") != "finish":
+                print(f"Topic {topic['slug']} is active (stage {topic.get('stage')}). Run "
+                      "`anvil topic end` first, or continue it.", file=sys.stderr)
+                return 1
+            # Verify already landed its work on the synced branch; only the optional
+            # /anvil:finish (push, merge, clean-up) was left. Its documents stay.
+            print(f"Parked topic {topic['slug']} (stage finish: its work is already landed).",
+                  file=sys.stderr)
+            topic = None
         # Restarting the same slug (a size step-up) keeps its folder unless --dir is
         # given, and keeps its start time.
         if topic:

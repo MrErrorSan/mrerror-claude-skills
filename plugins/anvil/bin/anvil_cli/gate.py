@@ -110,7 +110,8 @@ def present(cwd: Path, which: str) -> None:
     state.save(cwd, "presented.json", presented)
 
 
-def approve(cwd, which, quote: str, pre: bool = False, afk: bool = False) -> str:
+def approve(cwd, which, quote: str, pre: bool = False, afk: bool = False,
+            amended: bool = False) -> str:
     path = _doc(cwd, which)
     shown = " ".join(quote.split())
     today = datetime.date.today().isoformat()
@@ -136,13 +137,18 @@ def approve(cwd, which, quote: str, pre: bool = False, afk: bool = False) -> str
         rec = state.load(cwd, "presented.json", {}).get(which)
         if not rec:
             raise GateError(f"The {which} was never presented. Run: anvil present {which}")
-        if rec["hash"] != _hash(path):
-            raise GateError(f"The {which} changed after it was presented. "
-                            f"Show it again and run: anvil present {which}")
+        # --amended: Saad approved and dictated edits in the same reply. The edits make
+        # the hash differ; his reply still has to come after the version he read.
+        if rec["hash"] != _hash(path) and not amended:
+            raise GateError(f"The {which} changed after it was presented. If Saad's reply "
+                            "approved it and asked for these edits, run approve with --amended; "
+                            f"otherwise show it again and run: anvil present {which}")
         if not quote_in_prompts(cwd, quote, rec["ts"]):
             raise GateError(f'"{shown}" is not in a message from Saad sent after the {which} '
                             "was presented (3+ words, or his whole message).")
         value = f'{today} by Saad ("{shown}")'
+        if amended:
+            value += ", with the edits he asked for"
     raw = path.read_bytes().decode("utf-8")
     path.write_bytes(docs.set_header(raw, "Approved", value).encode("utf-8"))
     return value
@@ -238,11 +244,13 @@ def cmd_present(args) -> int:
 
 
 def cmd_approve(args) -> int:
-    if args.pre and args.afk:
-        print("anvil approve: use --pre or --afk, not both", file=sys.stderr)
+    amended = getattr(args, "amended", False)
+    if sum(map(bool, (args.pre, args.afk, amended))) > 1:
+        print("anvil approve: use only one of --pre, --afk and --amended", file=sys.stderr)
         return 2
     try:
-        value = approve(Path.cwd(), args.which, args.quote, pre=args.pre, afk=args.afk)
+        value = approve(Path.cwd(), args.which, args.quote, pre=args.pre, afk=args.afk,
+                        amended=amended)
     except GateError as e:
         return _report(args, False, str(e))
     return _report(args, True, f"Approved: {value}", approved=value)
