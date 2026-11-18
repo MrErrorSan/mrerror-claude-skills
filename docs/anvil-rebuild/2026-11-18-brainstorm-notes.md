@@ -224,3 +224,34 @@ Output goes to [research/](research/):
 - the consequences of parallelizing, and how others plan for parallel work;
 - avoiding repeated test runs;
 - the "simple code" rules.
+
+## 10. Whole-market view and updates (2026-11-18)
+
+### What Saad asked [user]
+
+- **Don't fix on Superpowers before seeing the whole market.** That includes Anthropic's own skills and those published by Anthropic employees (he recalls "grill me"), alternatives to Superpowers, and anything faster.
+- **Check how updates work:** are they automatic or manual, which versions are installed now, and should anything be updated?
+
+### Facts checked on this machine [evidence]
+
+- `superpowers@claude-plugins-official` **7.0.2** is installed at user scope. It is the latest release (2026-11-03), and it **auto-updated** here on 2026-11-13.
+- A **stale 7.0.0** is installed at project scope under `~/.claude-personal`, the second account.
+- Claude Code is **2.1.268**.
+- Superpowers went from 6.4.1 to 7.0.2 between 2026-09-19 and 2026-11-03. Those releases changed behavior, not just wording. For example, 7.0.2 reworked brainstorming's questions and measured the change with blind-graded evals.
+- Round-1 research attributes "grill me" to **Matt Pocock**, which still needs verifying. Round 2 is checking the affiliation.
+
+### What follows [proposal]
+
+- **Once Anvil copies Superpowers' prompts, it stops getting upstream improvements automatically.**
+  - The design needs an **upstream watch**: on each new Superpowers release, compare the changes against the parts Anvil copied, then adopt or reject each change on purpose.
+  - Record the source version for each copied file.
+- **How Anvil itself updates** on the second machine depends on the marketplace's auto-update settings. This is being researched.
+
+### Research (running)
+
+[research/2026-11-18-market-scan.md](research/2026-11-18-market-scan.md) covers:
+- Anthropic's own development plugins
+- skills published by Anthropic employees
+- Matt Pocock's skills
+- other alternatives
+- the plugin update mechanics
