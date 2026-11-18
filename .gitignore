@@ -12,3 +12,7 @@ graphify-out/
 
 # private working notes (may quote client work; repo is public)
 docs/**/private/
+
+# python bytecode
+__pycache__/
+*.pyc

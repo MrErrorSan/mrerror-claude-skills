@@ -1,0 +1,4 @@
+# Hook scripts and the bash CLI wrapper are run by bash, which breaks on CRLF.
+plugins/anvil/hooks/** text eol=lf
+plugins/anvil/bin/anvil text eol=lf
+*.sh text eol=lf
