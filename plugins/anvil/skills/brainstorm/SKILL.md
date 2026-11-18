@@ -111,7 +111,7 @@ Write a plain document, for a human, that a talented builder in the domain could
 - **Decisions:** each with the call, the reason, the alternatives not taken, and whether it is *decided* (by Saad, or as your call) or *waiting on Saad*.
 - **Change log:** a dated "Created" entry. Later entries say whether each change is a change request or a new feature, and what earlier decision it conflicts with.
 
-Only what Saad said goes in as his. Anything you filled in is marked as your call.
+Only what Saad said goes in as his. Anything you filled in is marked as your call. A restriction the request didn't state (rejecting a value, making two options exclusive, an error for a combination, a default) is a call too, however obvious it feels: it goes in Decisions as your call and in the stop message's list of calls, never only as a spec line.
 
 **A bug fix** keeps the spec part to a few lines: the bug, the expected behavior as S-lines, and the reproduction steps. The repro test is written before the fix and stays as a keep test.
 
@@ -136,7 +136,8 @@ Direct size skips the builder check: the plan's own checks cover the merged docu
 2. Send Saad one message: the spec's path, a few lines on what it says, the **Waiting on you** questions with their recommended answers, and a short list of the calls you made, so he can check those while reading. End with how to approve: "Reply yes to approve with the recommendations, or tell me what to change." Then end the turn.
 3. On his reply:
    - **He approves** (with or without answers): run `anvil approve spec --quote "<his words>"`, three or more words from his reply or his whole message. Then fold his answers in as decisions (`decided by Saad`), not change requests, and move them out of Waiting on you. An answer that changes an S-line retires it and adds a new number, as above.
-   - **He asks for changes:** make them, run `anvil present spec` again, and stop again.
+   - **He approves and dictates edits** ("yes, but S4 should …"): approve first with his words, as above, then make exactly those edits, logged in the change log as his. No second stop.
+   - **He asks for changes without approving:** make them, run `anvil present spec` again, and stop again.
    - **`approve` refuses:** tell him the reason it gave. Don't work around it, and never write the `Approved:` line by hand.
 4. After approval: `anvil:plan` (it runs `anvil topic stage plan`).
 

@@ -95,7 +95,7 @@ After a wave's reviews (the per-task reviews and the wave review) are in, fix in
 2. Group the open findings by the files they touch. Findings whose files overlap join one group, so the groups are disjoint.
 3. One fixer per group, each with the **full findings list for its group**. A group that lies inside one lane's write set goes to that lane's own implementer (resumed, in its worktree; that's the fix round for each of its tasks). A group that spans lanes (usually a wave-review finding) gets one fixer in a fresh worktree from the work branch, with the union of those write sets.
 4. Disjoint groups run at the same time, dispatched in one message.
-5. Each group gets one scoped re-review, then its commits merge in task order. Each round counts toward the 5-round cap of every task it touches.
+5. Each group gets one scoped re-review when its fix reached beyond the findings' lines (otherwise you check it against each finding, as in receiving-review.md), then its commits merge in task order. Each round counts toward the 5-round cap of every task it touches.
 
 ## Closing the wave
 

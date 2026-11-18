@@ -6,6 +6,23 @@ stop → plan → stop → parallel build → verify → finish, with the gates,
 results and progress kept on disk. Anvil is self-contained: it doesn't need
 Superpowers or any other plugin.
 
+## What's new in 2.0
+
+2.0 comes from an A/B test of 1.0 against Superpowers 7.0.2 and plain Claude: 63 runs on Opus 5.5. The results are in [docs/anvil-ab/](docs/anvil-ab/2026-11-18-ab-results.md) and the plan is in [docs/anvil-v2/](docs/anvil-v2/2026-11-19-v2-plan.md). All three were equally correct; 1.0 was 2.4× slower. 2.0 keeps the stops, the docs and the gates and cuts the waiting:
+
+- **Small plans build inline.** For 3 tasks or fewer, the orchestrator builds them itself, and one reviewer checks the whole diff once. There are no per-task subagent rounds.
+- **Fewer review rounds.** A fix that stays inside its findings is checked without a re-review. The whole-branch review runs only for 4+ tasks or a 300+-line diff.
+- **Verify lands the work.** The last commit point is on the synced branch at hand-off, and `/anvil:finish` is optional: push, merge, PR, clean-up. New work parks a finished topic by itself.
+- **"Approved, one fix: …" passes the stop.** Saad's dictated edits are applied after approving (or with `anvil approve --amended`), with no second round.
+- **AFK keeps going.** It never asks Saad to run a command, and "keep going" fixes the cheap deferred items.
+- **Smaller fixes:**
+  - `anvil run` converts `/tmp/...` paths on Windows;
+  - docs under `docs/` aren't held before approval;
+  - doc and code edits never use shell heredocs;
+  - implementers keep line endings;
+  - unstated restrictions are listed as calls;
+  - reports use plain words.
+
 ## What's inside `anvil`
 
 | Skill | Use it for |

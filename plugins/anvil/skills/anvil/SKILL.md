@@ -53,15 +53,15 @@ brainstorm ─► spec ─[stop 1]─► plan ─[stop 2]─► build ─► ver
 | brainstorm and spec | `anvil:brainstorm` | full: stop 1; direct: hands to `anvil:plan` in the same document |
 | plan | `anvil:plan` | stop 2, then a fresh session or straight on |
 | build | `anvil:build` | every task `[x]` in `progress.md` |
-| verify | `anvil:verify` | the converge check, then Saad runs `/anvil:finish` |
-| finish | `anvil:finish` | Saad runs it; commit, push, clean-up, `anvil topic end` |
+| verify | `anvil:verify` | the converge check, the last commit point landed on the synced branch, the report |
+| finish | `anvil:finish` | optional, Saad runs it: pushes or merges beyond the plan, a PR, clean-up, `anvil topic end` |
 | any stage | `anvil:debug` | a failure whose cause isn't obvious; then back to the stage |
 
 ## How a stop passes
 
 1. Write the document, then run `anvil present spec` (or `plan`). Any edit after that needs another `present`.
 2. Show Saad the path, a short summary and what's waiting on him. End the turn.
-3. When he approves, run `anvil approve spec --quote "<his words>"` with three or more words from his reply, or his whole message. The CLI checks the quote against his recorded messages and writes the `Approved:` line. If he asks for changes, make them, present again, and stop again.
+3. When he approves, run `anvil approve spec --quote "<his words>"` with three or more words from his reply, or his whole message. The CLI checks the quote against his recorded messages and writes the `Approved:` line. If he approves and dictates specific edits in the same reply ("approved, one fix: …"), make exactly those edits and run `anvil approve <doc> --amended --quote "<his words>"`: no second round. If he asks for changes without approving, or your edits go beyond what he dictated, make them, present again, and stop again.
 
 Approval covers what he saw. "Sounds good" about an idea doesn't approve a document he hasn't read. Never write the `Approved:` line by hand; if `approve` refuses, tell him why.
 
@@ -83,6 +83,10 @@ The spec's `- **Mode:**` line says which of the first two applies.
 
 The project's `CLAUDE.md`, `.claude/rules/*` and doc-location rules override Anvil's defaults. Saad's direct requests override both.
 
+## Talking to Saad
+
+Plain words, outcome first. Ids like S3, T1 and C1 belong in the docs; in chat, say what the behaviour is. Keep stop messages short: the path, what it does, the calls he should check (each with what it costs to reverse), what's waiting on him. In the docs, address him as "you".
+
 ## Where files go
 
 - Topic documents: `docs/<slug>/` holds `spec.md`, `plan.md` and `progress.md` (direct size: `plan.md` and `progress.md`). Formats: [formats.md](../../references/formats.md).
@@ -90,6 +94,7 @@ The project's `CLAUDE.md`, `.claude/rules/*` and doc-location rules override Anv
 - Research: `docs/research/YYYY-MM-DD-<topic>.md`.
 - Repos with `docs/superpowers/specs|plans` keep them: read those; new work goes to the default unless a project rule names a place.
 - Status lives in `progress.md`, not in todo tools. Anvil's state is never committed.
+- Edit topic docs with the edit and write tools. Shell heredocs, `sed -i` and `cat >>` mangle Markdown and have emptied a spec before.
 
 ## The other skills
 

@@ -98,7 +98,8 @@ A finding is never left unmentioned, and parallel is never proposed over one.
 **Propose a mode, with numbers.** Parallel is opted into at stop 2; it runs 3 lanes by default, 4 at most.
 - **Parallel pays** when the graph is wide (around 6 or more tasks, at least 3 ready at once after the foundations), the shared surface is frozen in T1, tasks are similar in size, and implementation time dominates each task.
 - **Sequential is faster** for a chain of dependent steps, 4 tasks or fewer, tightly coupled UI, contracts still in flux, mostly shared files, heavy per-lane environments, a build that will hit the usage limit anyway, or a project that forbids extra worktrees.
-- **About 4 tasks or fewer:** one line under `## Execution` is enough: sequential, and why.
+- **3 tasks or fewer in sequence:** `Mode: inline`. The orchestrator builds them itself and one reviewer checks the whole diff at the end ([build](../build/SKILL.md), Execution mode). One line under `## Execution` is enough. Propose subagent mode only for a reason: a task needing a different model, a large diff, or Saad asking for it.
+- **4 tasks or so, in a chain:** sequential, and one line why.
 - **Otherwise, give the numbers:** lanes per wave; the task count against the wave count; a rough time for each mode (sequential ≈ tasks × per-task time; parallel ≈ per wave, the slowest task plus the merge and wave check); and the saving. A well-split plan gets roughly 1.5–2.5x on the build stage, a chain about 1x. Parallel uses roughly 10–30% more tokens and drains the usage window as many times faster as it has lanes. If the build clearly won't fit one usage window, say so.
 
 **Checkpoints** go in the plan only where Saad asked for one, at the point he named, with his words quoted. Otherwise write "Checkpoints: none". Don't add your own.
@@ -121,17 +122,19 @@ Then create `progress.md` in the topic folder, or bring its `## Tasks` list in l
 
 1. `anvil plan-check` is clean, or every finding is answered under `## Execution`.
 2. `anvil present plan`. It records the plan's hash; any later edit means presenting again.
-3. Show Saad, briefly:
+3. Show Saad, briefly, in plain words (the ids stay in the document):
    - the plan's path;
    - the tasks and waves, and the proposed mode with its numbers (or the reason for sequential);
    - the test list by type, which he is approving too;
    - the synced branch and the commit points, including which ones push;
-   - anything that needs his call: `main`/`master` consent, a checkpoint he mentioned, a decision the spec left waiting on him.
+   - anything that needs his call: `main`/`master` consent, a checkpoint he mentioned, a decision the spec left waiting on him;
+   - the calls you made, numbered, each with what it costs to reverse. Unstated restrictions (a rejected value, exclusive options) belong here.
 4. End your turn and wait. Only Saad passes this stop.
 
 **On his reply:**
 - **He approves:** `anvil approve plan --quote "<his words>"`, quoting 3+ words of his message, or all of a shorter one. If his reply picks the mode, approve first, then write his choice under `## Execution`; otherwise the proposed mode stands.
-- **He asks for changes:** make them, run `anvil plan-check` again, present again, and stop again.
+- **He approves and dictates edits** ("approved, one fix: `--top 0` prints nothing"): approve first with his words, then make exactly those edits (the spec part's lines retire and renumber as usual), log them in the change log as his, and rerun `anvil plan-check`. No second stop. If you already edited before approving, use `anvil approve plan --amended --quote "<his words>"`.
+- **He asks for changes without approving,** or the edits he asks for need new design: make them, run `anvil plan-check` again, present again, and stop again.
 - **The approve is refused:** say why in one line. Never retry with words he didn't type.
 
 **Pre-approval and AFK.** If Saad pre-approved the plan in his own words ("go straight to the build", "don't stop for the plan"), run `anvil approve plan --quote "<his words>" --pre` (3+ words of his message). If AFK is on, run `anvil approve plan --afk --quote "<his AFK words>"`. Either way, skip steps 2–4 of stop 2 (no present, no wait), and the plan stage runs with AFK decision-making: the calls he would have made at the stop (mode, synced branch, commit pushes) are made on his behalf, and each goes into the progress decision log in the formats.md entry shape (choice, reason, confidence, changes if). `main` or `master` still isn't chosen without his explicit consent; pick a new branch instead.

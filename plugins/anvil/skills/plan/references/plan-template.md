@@ -187,7 +187,7 @@ Build: <command | none>
 
 `anvil plan-check`: <result>.
 
-- **Proposed mode:** sequential, because the plan has <n> tasks; lanes and merges cost more than they save at this size.
+- **Proposed mode:** inline, because the plan has <n> tasks in sequence: I build them myself and one reviewer checks the whole diff at the end. Lanes, per-task reviews and merges cost more than they save at this size.
 - **Checkpoints:** none
 
 ## T1: <title>

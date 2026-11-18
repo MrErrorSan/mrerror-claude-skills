@@ -1,13 +1,13 @@
 ---
 name: finish
-description: Use when Saad runs `/anvil:finish` on an Anvil topic after `anvil:verify` has handed it over (stage `finish`), including after an AFK run where verify already landed the last commit point.
+description: Use when Saad runs `/anvil:finish` on an Anvil topic after `anvil:verify` has landed the work (stage `finish`), to push or merge beyond the plan's commit points, open a PR, update the ticket, or clean up branches.
 disable-model-invocation: true
 ---
 <!-- adapted from superpowers@7.0.2: skills/finishing-a-development-branch/SKILL.md -->
 
 # Finish
 
-Finish handles what the build left: the last commit point, the scaffold tests, the done markers, the ticket, the clean-up, and the report. Most committing and pushing already happened at the build's commit points ([git-flow.md](../../references/git-flow.md)). Saad started this, so the questions here get asked; they're batched into one message so he answers once.
+Finish is optional. Verify normally lands the last commit point itself, running this skill's sections 2 to 5, so the work is already on the synced branch. Finish handles what's left that needs Saad: pushes and merges beyond the plan's commit points, a PR, the ticket, the clean-up, and the report. If verify couldn't land it, finish does it here. Most committing and pushing already happened at the build's commit points ([git-flow.md](../../references/git-flow.md)). Saad started this, so the questions here get asked; they're batched into one message so he answers once.
 
 **Project rules win.** The project's `CLAUDE.md` and `.claude/rules/*` override these steps where they differ. A repo that says "commit and push after every unit of work" treats each commit point as that unit. Follow its sync rules too: if it asks to name untracked files before a push, name them.
 
@@ -21,7 +21,7 @@ Finish handles what the build left: the last commit point, the scaffold tests, t
    - `progress.md`: tasks with their indented notes (`  - tests: …`, deferred minors, parked findings), `## Commit points`, `## Decision log`, `## Stop note`;
    - the plan's `## Test strategy` and `## Commit points` tables;
    - verify's notes, `$(git rev-parse --path-format=absolute --git-common-dir)/anvil/build/<slug>/verify.md`: the converge table, the evidence, the leftovers.
-4. If `## Commit points` already lists every row of the plan's table, verify landed the last one in AFK (its line reads `(this commit)`). Skip sections 2 to 5: take its sha from `git log -1 --format=%h <synced>`, check the push as in section 5, and go on to section 6.
+4. If `## Commit points` already lists every row of the plan's table, verify landed the last one (its line reads `(this commit)`); that is the normal case. Skip sections 2 to 5: take its sha from `git log -1 --format=%h <synced>`, check the push as in section 5, and go on to section 6.
 
 ## 2. Entry checks
 

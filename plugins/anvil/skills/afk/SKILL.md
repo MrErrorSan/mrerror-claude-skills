@@ -183,8 +183,17 @@ one report Saad can act on in one pass, in this order:
 4. **What I'd look at first:** your honest read on the weakest part.
 5. **What I didn't do:** anything left out, blocked or deferred, and why.
 
-When an Anvil topic is at the finish stage, end the report with a line
-telling Saad to run `/anvil:finish`; only he can run it.
+Verify has already landed the work on the synced branch, so the report says
+where it is. Never end an AFK report by asking Saad to run a command: if a push
+or merge beyond the plan is still open, name it as an option for when he's
+back, not a request.
+
+**"Keep going" after delivery.** If Saad is still away and a message says to
+keep going, the work isn't over: take the cheap, in-scope items you deferred
+or flagged as weak (a parser edge case, a missing test for a stated
+behaviour, an unclear error), fix them on a new work branch from the synced
+branch, check them, land them as one more commit, and report again. Stop when
+nothing cheap and in scope is left, and say that plainly.
 
 Report faithfully. If something failed, say so with the output; if you skipped
 part of the scope, say that plainly. An unattended run that overstates its own

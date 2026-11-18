@@ -51,6 +51,11 @@ earlier lane]
 - Editing a test so it passes needs a changed S-line. Without one, fix the code.
 - The smallest change that meets your task's S-lines, using existing patterns.
   No abstraction, option or helper that no S-line needs.
+- Keep each file's existing line endings (CRLF stays CRLF, LF stays LF) and
+  encoding. Before you report, check `git diff --stat`: a whole-file diff on a
+  small change means the endings changed; restore them.
+- Edit files with your edit and write tools, not shell heredocs, `sed -i` or
+  `cat >>`: shell quoting mangles code and can empty a file.
 - If a file you're writing is growing beyond the plan's intent, don't split it
   on your own: finish, and report DONE_WITH_CONCERNS saying so.
 - Commit in your working directory, on your branch, when done: a short

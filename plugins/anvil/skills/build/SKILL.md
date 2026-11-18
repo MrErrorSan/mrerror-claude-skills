@@ -11,9 +11,14 @@ description: Use when an approved Anvil plan is ready to be built, when Saad run
 
 # Build
 
-Build an approved plan: a fresh implementer per task, one reviewer per task giving two verdicts (spec, then quality), a check after each merged wave, and one whole-branch review at the end. Then hand over to `anvil:verify`.
+Build an approved plan, then hand over to `anvil:verify`. The plan's mode sets the shape:
+
+- **Inline** (the default for 3 tasks or fewer in sequence): you build each task yourself, then one fresh reviewer checks the whole diff once, spec first and then quality.
+- **Subagent** (sequential or parallel, for larger plans): a fresh implementer per task, one reviewer per task giving the same two verdicts, a check after each merged wave, and one whole-branch review at the end when the build is big enough to need it.
 
 You are the orchestrator: you write `progress.md`, create worktrees, merge lanes, land commit points and make rulings. In subagent mode you don't write task code: your context is for coordination, and code you write skips review.
+
+Cost matters as much as rigor here. A review round on a ten-line change costs minutes and rarely finds anything a single end review wouldn't. Spend reviews where diffs are big, contracts are shared, or lanes ran in parallel.
 
 **Continuous execution.** Don't pause between tasks to check in: Saad approved the plan so it would run. `progress.md` is the live view (`anvil progress` prints it).
 
@@ -58,7 +63,11 @@ Use the mode the approved plan states.
 
 - **Parallel:** waves of up to the plan's lane count (default 3, 4 at most), one worktree per lane. Mechanics in [references/waves.md](references/waves.md); read it before the first wave.
 - **Sequential:** one task at a time, in task order. The implementer works in the main checkout on the work branch. Record BASE (`git rev-parse HEAD`) before each task. A task's check is its targeted tests through `anvil run --scope targeted`, plus its smoke path where the plan lists one (`anvil run --scope smoke`); a commit point lands once every task it closes has passed its check.
-- **Inline (single agent):** when Saad chose it, or no subagent tool is available. You do each task yourself, under an implementer's rules (targeted tests only, inside the write set, the test-changed vs code-changed statement). Never fabricate a dispatch. The per-task review still happens, by a fresh reviewer if you can dispatch one; otherwise do it yourself as a separate pass with [prompts/task-reviewer.md](prompts/task-reviewer.md), log `self-review (no subagent tool)` under the task, and say so at the end: Saad decides whether that's enough.
+- **Inline (single agent):** the plan's default for 3 tasks or fewer in sequence, and the mode whenever Saad chose it or no subagent tool is available. Skip the lane brief, the per-task dispatches and the per-task reviews:
+  1. Build each task yourself, in order, under an implementer's rules: inside the write set, the plan's interfaces, targeted tests through `anvil run --scope targeted`, and a test-changed vs code-changed note per touched test. Mark each `[~]`, then `[x]` with its `  - tests: …` line, in `progress.md`.
+  2. When every task is done, package the whole build (`git diff -U10 <synced>..HEAD` plus `--stat`, into the build folder) and dispatch **one** fresh reviewer with [prompts/task-reviewer.md](prompts/task-reviewer.md), filled for the whole plan: every S-line, every task's tests, mid tier. If no subagent tool exists, do that review yourself as a separate pass, log `self-review (no subagent tool)`, and say so at the end.
+  3. Critical and Important findings get **one** fix round, done by you. Re-review only if the fix went beyond the findings' lines; otherwise reread your fix against each finding, rerun the covering targeted tests, and log that. Leftovers become rulings.
+  4. No whole-branch review: the one review already covered the whole branch.
 
 ## Model selection
 
@@ -70,7 +79,7 @@ Use the least capable model that does each role well, and always name it in the 
 
 ## The task loop
 
-Every task goes through this loop, in every mode.
+Every task in subagent mode (sequential or parallel) goes through this loop. Inline mode uses its own short loop, above.
 
 ### 1. Dispatch the implementer
 
@@ -139,15 +148,15 @@ If `git status --porcelain` lists anything outside the topic folder, stop before
 
 ## Final review
 
-A plan with one task skips this review, since its task review already covered the whole branch; log the skip in the decision log. Otherwise, when every task is `[x]`:
+Inline builds never get this review (their one review already covered the whole branch). In subagent mode, skip it when the plan has 3 tasks or fewer, or the whole diff is under about 300 changed lines: the task reviews already covered it. Log the skip in the decision log. Otherwise, when every task is `[x]`:
 
 1. Write a package of the whole build (its range is in the placeholder notes of [prompts/final-review.md](prompts/final-review.md)) and dispatch that prompt on the most capable model, with the inputs it lists.
-2. Triage per [references/receiving-review.md](references/receiving-review.md). Critical and Important findings get **one** fix wave, batched by disjoint file groups ([references/waves.md](references/waves.md), "Batched fixes"), then exactly one scoped re-review of the fix range ([prompts/re-review.md](prompts/re-review.md)). No second wave: residual findings become rulings, and the load-bearing ones are named at the end.
+2. Triage per [references/receiving-review.md](references/receiving-review.md). Critical and Important findings get **one** fix wave, batched by disjoint file groups ([references/waves.md](references/waves.md), "Batched fixes"), then one scoped re-review of the fix range ([prompts/re-review.md](prompts/re-review.md)) if the fixes went beyond the findings' lines; otherwise you check the fix diff against each finding yourself and log it. No second wave: residual findings become rulings, and the load-bearing ones are named at the end.
 3. Each item on the reviewer's "Declined to judge" list is a ruling you make and log.
 
 ## Hand-off
 
-1. Your closing message lists **Rulings I made**: every decision-log entry this build added, most review-worthy first, each with its confidence and "changes if"; then the deferred minors and anything parked. A ruling missing from it was made in secret.
+1. Your closing message lists **Rulings I made**: every decision-log entry this build added, most review-worthy first, each with its confidence and "changes if"; then the deferred minors and anything parked. A ruling missing from it was made in secret. Write it in plain words for Saad: what each ruling means for the behaviour, not task or S-line ids (those stay in the docs).
 2. Remove the lane worktrees still left, and this topic's build folder.
 3. `anvil topic stage verify`, set `- **Stage:** verify` in `progress.md`, then run `anvil:verify`.
 
@@ -156,7 +165,9 @@ A plan with one task skips this review, since its task review already covered th
 | Excuse | Reality |
 |---|---|
 | "Close enough on spec compliance" | A spec gap means not done. Fix it, or reach the cap and adjudicate. |
-| "The fix was small, skip the re-review" | Unreviewed fixes are how regressions land. |
+| "The fix was small, skip the re-review" | Allowed only when the fix stayed inside the findings' lines and you checked it against each finding, with the covering tests rerun. A fix that reached further gets the re-review. |
+| "Every task deserves its own reviewer" | In a small sequential plan one end review finds the same problems for a fraction of the time. Per-task reviews pay off for parallel lanes and large diffs. |
+| "I'll fix the line endings later" | Keep each file's existing line endings (CRLF stays CRLF). Check `git diff --stat` before reporting: a whole-file diff on a one-line change means the endings changed. |
 | "The lanes are independent, skip the wave check" | Each lane passes its own tests; clean merges can still be wrong together. |
 | "I remember which tasks are done" | You remember a summary. Read `progress.md` and `git log`. |
 | "Progress bookkeeping is overhead" | It's what survives compaction, and it's Saad's only live view. |

@@ -28,12 +28,12 @@ Indented lines under a task aren't counted as tasks, so they're safe in `## Task
 
 ## The fix loop
 
-A fix round is one fix dispatch plus one scoped re-review. **Five rounds at most per task.**
+A fix round is one fix dispatch plus, when needed, one scoped re-review. **Five rounds at most per task.**
 
 - **Rounds 1–3:** resume the original implementer with the open findings verbatim, using the fix message in [../prompts/implementer.md](../prompts/implementer.md). Its context is intact: it knows the task, the code and its own choices. If the agent can't be resumed, dispatch a fresh one with the lane brief, the report file and the findings; the report file is the memory either way.
 - **Rounds 4–5:** a fresh implementer on a model one tier up, with the same inputs and this framing: "A prior implementer attempted this task <N> times; you own it now. Read the report file for what was tried." A loop that survives three resumes usually means the implementer can't see its own problem.
 - **Every round:** the implementer checks each finding against the code (it may argue one is wrong, with evidence), fixes the rest, reruns the covering targeted tests through `anvil run --scope targeted`, appends a fix report and commits. Before the re-review, confirm the fix report has the covering tests, the command and the output. Name the covering test files in the fix message: a one-line fix doesn't need more.
-- **The re-review is scoped:** package `FIX_BASE..HEAD`, where FIX_BASE is the head the previous review saw, and dispatch [../prompts/re-review.md](../prompts/re-review.md) with the findings, the report and the package. New Critical or Important breakage in the fix diff joins the open findings.
+- **When to re-review:** read the fix diff (`git diff FIX_BASE..HEAD`, where FIX_BASE is the head the previous review saw). If it stays inside the lines the findings named and the covering tests are green, check it against each finding yourself and log `fix checked by orchestrator` under the task: no re-review. If it reaches beyond those lines (new functions, other files, changed tests), the re-review is scoped: package `FIX_BASE..HEAD` and dispatch [../prompts/re-review.md](../prompts/re-review.md) with the findings, the report and the package. New Critical or Important breakage in the fix diff joins the open findings.
 - **After each round,** add an indented line under the task:
   `  - fix round <R>/5: <X> addressed, <Y> open (<one-liners>); <a7>..<b7>`
 - After a wave, fixes are batched by disjoint file groups ([waves.md](waves.md), "Batched fixes"). A batched round counts as one round for every task it touches.
