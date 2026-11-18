@@ -281,3 +281,33 @@ Output goes to [research/](research/):
 - **Use plain wording** throughout.
 - **Track progress in a file Anvil owns**, not in harness todo tools.
 - **Keep the upstream watch** from §10.
+
+## 11. What Anvil is (decided 2026-11-18)
+
+### Saad's decision [user]
+
+**Anvil is Saad's own take on Superpowers: how he wants Claude Code to do the work.**
+
+- **Anvil contains everything his workflow relies on,** even where that repeats something Superpowers or another skill already has.
+  - He doesn't maintain those other skills, and they can change underneath him.
+  - His flow must stay **consistent and predictable.**
+- **It enforces what he likes and removes what he doesn't.** If it's a wrapper, it's a useful one.
+- **It takes the best of everything researched** (Superpowers, Anthropic guidance, community frameworks, practitioner experience, the simplicity research). It also covers known model limitations and Superpowers' issues.
+
+### Two conditions that come with owning everything [proposal]
+
+1. **"Best of everything" means best by evidence, not the most features.**
+   - Each piece gets in only if it has evidence behind it or is one of Saad's stated preferences.
+   - Each skill stays under a size budget, roughly 20k characters, so it isn't cut off after compaction.
+   - Example: the viral "4 rules" file doesn't go in, because the research found no evidence for it. The three-line normal-change vs redesign rule does, along with the rule that every plan piece names its spec line and the reviewer's over-building check.
+2. **Owning it means maintaining it.**
+   - The upstream watch (§10) and the eval suite are part of the product, not extras.
+   - Without them, Anvil drifts the way the old React copy did.
+
+### Chosen approach
+
+**A, kept close to Superpowers.**
+- One skill per stage, plus small hooks and one script.
+- Each stage starts from Superpowers' prompts, rewritten in plain wording and changed where Saad's requirements and the research say so.
+- **Anvil owns the debugging, review and finishing it relies on.**
+- **It doesn't copy** `writing-skills` or `diagnosing-superpowers`. They're outside the workflow.
