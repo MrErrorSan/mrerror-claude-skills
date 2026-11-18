@@ -6,12 +6,14 @@
     "name": "MrErrorSan",
     "url": "https://github.com/MrErrorSan"
   },
-  "allowCrossMarketplaceDependenciesOn": ["superpowers-marketplace"],
+  "allowCrossMarketplaceDependenciesOn": [
+    "superpowers-marketplace"
+  ],
   "plugins": [
     {
       "name": "anvil",
       "source": "./plugins/anvil",
-      "description": "Anvil is a workflow governor over Superpowers (tiered decisions, parallel-agent plans, implement-then-test, lean contract plans). Bundles afk (unattended mode), ui-mockup, ux-audit, and cross-model (backend-agnostic second-model review/research).",
+      "description": "Anvil is a workflow governor over Superpowers (tiered decisions, parallel-agent plans, implement-then-test, lean contract plans). Bundles afk (unattended mode), ui-mockup, ux-audit, and cross-model (backend-agnostic second-model review/research), and ticket-update (tracker-agnostic ticket hygiene).",
       "category": "workflow"
     }
   ]

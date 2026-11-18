@@ -17,6 +17,7 @@ auto-installs the capability plugins it builds on.
 | **ui-mockup** | before any UI / screen / component / layout | Mock + align on structure (incl. empty / loading / error states) **before** writing production UI. |
 | **ux-audit** | after UI is built; "review the ux" | Audits the built UI against UX heuristics, reports ranked findings, applies fixes. |
 | **cross-model** | before calling work done, expensive-to-reverse decisions, a problem that failed twice, research | Backend-agnostic **second-model review/research** with AGREE / DISAGREE / NEEDS-CHECK triage. Uses Antigravity CLI (`agy`) on a Gemini subscription by default, or a router / API key, or falls back to Claude-only. |
+| **ticket-update** | a task finishes or work stops in a tracked repo; "update linear / jira", "make this week's tickets", "stand-up line" | Keeps the team's tracker current. It detects Linear / Jira / GitHub / GitLab / Azure DevOps and asks when unsure. It writes tickets an agent can build from (Goal · In scope · Not in scope · Done when · Dependencies), enforces the required fields (assignee, ≤3-day estimate, due date, parent, labels, priority), logs approvals and completion evidence as comments, and hands back a stand-up line. Touches only your own tickets. |
 
 Progressive disclosure keeps it cheap: ~1.2k tokens always-on; each skill's full
 body loads only when it triggers.
@@ -45,12 +46,12 @@ Then **restart Claude Code** (or `/reload-plugins`) so the skills load.
 Verify:
 
 ```bash
-claude plugin details anvil@mrerror-claude-skills   # should list 5 skills
+claude plugin details anvil@mrerror-claude-skills   # should list 6 skills
 ```
 
 ### What gets installed
 
-`anvil` + its 5 skills, plus these auto-installed dependencies (from
+`anvil` + its 6 skills, plus these auto-installed dependencies (from
 `superpowers-marketplace`, allow-listed via `allowCrossMarketplaceDependenciesOn`):
 
 - [`superpowers`](https://github.com/obra/superpowers) — the skills anvil reshapes
@@ -114,6 +115,8 @@ plugins/anvil/
     ux-audit/SKILL.md                    # post-build UX audit
     cross-model/SKILL.md                 # second-model review/research
     cross-model/references/backends.md   # pluggable model backends
+    ticket-update/SKILL.md               # tracker-agnostic ticket hygiene
+    ticket-update/references/            # trackers, templates, calibration, profile template
 ```
 
 ## Notes

@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: splits-plan-into-tickets
+expected_outcome: |
+  tickets.md proposes a feature/stream parent plus numbered children in build order under IND-214.
+  The 5-day S3 item is split so no ticket exceeds 3 points. Every child has assignee, estimate, due date
+  sequenced across the week, labels (area + type), priority, a checkable Done when, Not in scope naming
+  the sibling owner, and blocked-by/blocks relations. The parent has no estimate. Kamran's approval is
+  recorded as a dated comment. Nothing is sent to a tracker; the reply asks for a yes before creating.
+context:
+  scaffold_script: place-files.sh

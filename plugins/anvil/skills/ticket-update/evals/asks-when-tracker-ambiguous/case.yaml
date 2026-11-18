@@ -1,0 +1,7 @@
+schema_version: "1.1"
+name: asks-when-tracker-ambiguous
+expected_outcome: |
+  The response recognises two candidate trackers (Jira via ABC-xxx ids + MCP, GitHub via remote/#41 + gh),
+  does not pick one silently, and asks the user which one tracks work (offering both, ideally noting ABC-312
+  as the likely ticket). It proposes saving the answer to a ticketing profile, and drafts the completion
+  comment / stand-up line it will post once the tracker is confirmed.

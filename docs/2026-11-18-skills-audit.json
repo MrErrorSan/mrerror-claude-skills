@@ -1,0 +1,251 @@
+{
+ "audit": "2026-11-18-skills-audit.md",
+ "generated": "2026-11-18",
+ "repo_commit": "46b7535",
+ "probes": {
+  "agy_models": [
+   "gemini-3.8-flash-high",
+   "gemini-3.8-flash-medium",
+   "gemini-3.8-flash-low",
+   "claude-sonnet-4-6",
+   "claude-opus-4-6-thinking",
+   "gpt-oss-120b-medium"
+  ],
+  "gemini-3.1-pro-high": "rejected: not recognized as a known model",
+  "gpt-oss-120b-medium": "PROBE-OK in 6s",
+  "gemini-3.8-flash-medium": "PROBE-OK in 7s",
+  "gemini-3.8-flash-medium --mode plan": "PROBE-OK in 8s (trivial prompt, no --add-dir)",
+  "tmux": "missing"
+ },
+ "installed_plugins": [
+  "chrome-devtools-mcp",
+  "context7",
+  "frontend-design",
+  "railway",
+  "skill-creator",
+  "superpowers@claude-plugins-official 7.0.2",
+  "typescript-lsp"
+ ],
+ "anvil_plugin_installed": false,
+ "known_marketplaces": [
+  "claude-plugins-official"
+ ],
+ "copies": [
+  {
+   "skill": "anvil",
+   "location": "repo",
+   "path": "plugins\\anvil\\skills\\anvil\\SKILL.md",
+   "md5": "e817ace28710ae7b1bfe1ab6112b4d2b",
+   "lines": 327,
+   "modified": "2026-11-18",
+   "status": "general version; ahead"
+  },
+  {
+   "skill": "anvil",
+   "location": "user",
+   "path": "C:\\Users\\MrError\\.claude\\skills\\anvil\\SKILL.md",
+   "md5": "a132fece93a4733f420b5fc57d549776",
+   "lines": 339,
+   "modified": "2026-10-15",
+   "status": "React frontend version loaded in every project; behind"
+  },
+  {
+   "skill": "anvil",
+   "location": "project:Indus/frontend",
+   "path": "C:\\Users\\MrError\\Documents\\GitHub\\Indus Technologies\\Indus\\frontend\\.claude\\skills\\anvil\\SKILL.md",
+   "md5": "febcc4e43b81971b0db1fca45ac715ae",
+   "lines": 336,
+   "modified": "2026-09-21",
+   "status": "project copy, one edit behind the user copy; fine"
+  },
+  {
+   "skill": "afk",
+   "location": "repo",
+   "path": "plugins\\anvil\\skills\\afk\\SKILL.md",
+   "md5": "499411ccbfc64adcd54d48a08709a3e5",
+   "lines": 142,
+   "modified": "2026-11-18",
+   "status": "same (drops project-specific 'Rule 12')"
+  },
+  {
+   "skill": "afk",
+   "location": "user",
+   "path": "C:\\Users\\MrError\\.claude\\skills\\afk\\SKILL.md",
+   "md5": "1b22cc36de0c2dbbf0e3faa452c2bc08",
+   "lines": 143,
+   "modified": "2026-09-18",
+   "status": "same"
+  },
+  {
+   "skill": "afk",
+   "location": "project:Indus/frontend",
+   "path": "C:\\Users\\MrError\\Documents\\GitHub\\Indus Technologies\\Indus\\frontend\\.claude\\skills\\afk\\SKILL.md",
+   "md5": "1b22cc36de0c2dbbf0e3faa452c2bc08",
+   "lines": 143,
+   "modified": "2026-08-27",
+   "status": "same"
+  },
+  {
+   "skill": "cross-model",
+   "location": "repo",
+   "path": "plugins\\anvil\\skills\\cross-model\\SKILL.md",
+   "md5": "6c1f0955afac9b1099a93d230ec03ee2",
+   "lines": 141,
+   "modified": "2026-11-18",
+   "status": "current models; missing commands/scripts/anti-anchoring rule"
+  },
+  {
+   "skill": "cross-model",
+   "location": "repo",
+   "path": "plugins\\anvil\\skills\\cross-model\\references\\backends.md",
+   "md5": "9bf4fdf89c8b3de20e16ebf565c691b5",
+   "lines": 115,
+   "modified": "2026-11-18",
+   "status": "current models"
+  },
+  {
+   "skill": "cross-model-review",
+   "location": "user",
+   "path": "C:\\Users\\MrError\\.claude\\skills\\cross-model-review\\SKILL.md",
+   "md5": "353d280f58ecc08e614d0fb42515ca46",
+   "lines": 49,
+   "modified": "2026-09-20",
+   "status": "BROKEN: names removed model gemini-3.1-pro-high"
+  },
+  {
+   "skill": "gemini-ask",
+   "location": "user-command",
+   "path": "C:\\Users\\MrError\\.claude\\commands\\gemini-ask.md",
+   "md5": "f6f636952c85c4dcc1775869d55e7042",
+   "lines": 15,
+   "modified": "2026-09-20",
+   "status": "BROKEN: removed model"
+  },
+  {
+   "skill": "gemini-review",
+   "location": "user-command",
+   "path": "C:\\Users\\MrError\\.claude\\commands\\gemini-review.md",
+   "md5": "273f24369d1215dd97e25cf74a324534",
+   "lines": 19,
+   "modified": "2026-09-20",
+   "status": "BROKEN via agy-review"
+  },
+  {
+   "skill": "research",
+   "location": "user-command",
+   "path": "C:\\Users\\MrError\\.claude\\commands\\research.md",
+   "md5": "a79fa6226ae38602a365ce373e5db19a",
+   "lines": 34,
+   "modified": "2026-09-20",
+   "status": "BROKEN: removed model; has anti-anchoring rule missing from repo"
+  },
+  {
+   "skill": "agy-review",
+   "location": "script",
+   "path": "C:\\Users\\MrError\\.local\\bin\\agy-review",
+   "md5": "68596d3c6be2fcaad73127957efeb8bc",
+   "lines": 44,
+   "modified": "2026-09-20",
+   "status": "BROKEN: MODEL=gemini-3.1-pro-high"
+  },
+  {
+   "skill": "cross-model-review",
+   "location": "gemini-side",
+   "path": "C:\\Users\\MrError\\.gemini\\config\\skills\\cross-model-review\\SKILL.md",
+   "md5": "ac2ee2a5fc5e883ac02594ce7b1c262b",
+   "lines": 36,
+   "modified": "2026-09-20",
+   "status": "reverse direction (Gemini consults Claude); not in repo"
+  },
+  {
+   "skill": "cross-model-design",
+   "location": "doc",
+   "path": "C:\\Users\\MrError\\.claude\\docs\\cross-model-review-design.md",
+   "md5": "cd73c45dca8e717068498a822fa4d6b9",
+   "lines": 189,
+   "modified": "2026-09-20",
+   "status": "verified facts from 2026-09-20; model list now stale"
+  },
+  {
+   "skill": "ui-mockup",
+   "location": "repo",
+   "path": "plugins\\anvil\\skills\\ui-mockup\\SKILL.md",
+   "md5": "bab88d782eb135b622f6eeb7d0866b09",
+   "lines": 49,
+   "modified": "2026-11-18",
+   "status": "repo only; uses Artifacts against global rule; behind real practice"
+  },
+  {
+   "skill": "ux-audit",
+   "location": "repo",
+   "path": "plugins\\anvil\\skills\\ux-audit\\SKILL.md",
+   "md5": "1e04dea9295ae359330d5d7bb86dac0d",
+   "lines": 64,
+   "modified": "2026-11-18",
+   "status": "repo only; names uninstalled superpowers-chrome; behind real practice"
+  },
+  {
+   "skill": "ticket-update",
+   "location": "repo",
+   "path": "plugins\\anvil\\skills\\ticket-update\\SKILL.md",
+   "md5": "772058ae68990830edf3b9ec53b8d94b",
+   "lines": 286,
+   "modified": "2026-11-18",
+   "status": "new, current, uncommitted"
+  },
+  {
+   "skill": "graphify",
+   "location": "user",
+   "path": "C:\\Users\\MrError\\.claude\\skills\\graphify\\SKILL.md",
+   "md5": "48dd347e78b4632850a338e7655bcc69",
+   "lines": 742,
+   "modified": "2026-11-10",
+   "status": "third-party v0.9.92; keep out of repo"
+  },
+  {
+   "skill": "graphify",
+   "location": "project:Indus",
+   "path": "C:\\Users\\MrError\\Documents\\GitHub\\Indus Technologies\\Indus\\.claude\\skills\\graphify\\SKILL.md",
+   "md5": "48dd347e78b4632850a338e7655bcc69",
+   "lines": 742,
+   "modified": "2026-10-20",
+   "status": "v0.9.92"
+  },
+  {
+   "skill": "graphify",
+   "location": "project:Enteyoes",
+   "path": "C:\\Users\\MrError\\Documents\\GitHub\\Enteyoes\\.claude\\skills\\graphify\\SKILL.md",
+   "md5": "1656a8a8e4a05bbe69f32cd15de81e87",
+   "lines": 713,
+   "modified": "2026-09-13",
+   "status": "v0.9.53; behind"
+  },
+  {
+   "skill": "parser-debug",
+   "location": "project:Indus/platform",
+   "path": "C:\\Users\\MrError\\Documents\\GitHub\\Indus Technologies\\Indus\\platform\\.claude\\skills\\parser-debug\\SKILL.md",
+   "md5": "3fdbebe6b9c6031eded3dedb5e4b09c2",
+   "lines": 72,
+   "modified": "2026-08-27",
+   "status": "project-specific; keep out"
+  },
+  {
+   "skill": "pdf-parser-reviewer",
+   "location": "project-agent:Indus/platform",
+   "path": "C:\\Users\\MrError\\Documents\\GitHub\\Indus Technologies\\Indus\\platform\\.claude\\agents\\pdf-parser-reviewer.md",
+   "md5": "03b29da7fdee7b76e4ac24fbc6c353a7",
+   "lines": 70,
+   "modified": "2026-08-27",
+   "status": "project-specific; keep out"
+  },
+  {
+   "skill": "mw2-geometry-reviewer",
+   "location": "project-agent:PBS maker",
+   "path": "C:\\Users\\MrError\\Documents\\GitHub\\Indus Technologies\\PBS maker\\.claude\\agents\\mw2-geometry-reviewer.md",
+   "md5": "074d86573592902dbff0d4845ae3c96b",
+   "lines": 59,
+   "modified": "2026-11-11",
+   "status": "project-specific; keep out"
+  }
+ ]
+}
