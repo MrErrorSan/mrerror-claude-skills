@@ -77,7 +77,7 @@ The detailed evidence is in notes §2 and the research reports.
 - **Ceremony on a one-line change.** Plans, subagents and three test runs for a wording fix.
 - **Bloat.** Collecting every good idea makes a skill too long for the model to follow, and it gets cut off after compaction.
 - **Forceful wording** (MUST, IMPORTANT, ALL-CAPS). Current models over-apply it.
-- **Gates that live only in the prompt.** One sentence in a request shouldn't skip an approval.
+- **Gates that live only in the prompt.** The model must never be able to approve its own spec or plan, and a pre-approval tucked into the original request must not skip a stop. Saad saying "AFK" or "skip it" in his own message is the intended way to skip a stop, and is allowed.
 - **A parallel build that's slower end to end** once reconciling and fixing is counted, or one that silently damages lockfiles or migrations.
 - **Silent decisions,** or decisions buried in a log nobody reads.
 - **Asking questions the repo could answer.**
@@ -155,11 +155,19 @@ Brainstorm ─► Spec ─[STOP 1: approve spec]─► Plan ─[STOP 2: approve 
 
 - **The trivial path** applies to a single-file change with no new behavior, or when Saad says "just do it".
   - Anvil states the path it's taking in its first line, so it's visible and can be corrected. The model doesn't silently pick its own effort level. ([sentiment](research/2026-11-18-practitioner-sentiment.md) §3)
-- **Stops are recorded on disk.** Approving writes `Approved: <date>` into the spec or plan header. The build stage refuses to start without an approved plan, and the plan stage without an approved spec. This is enforced by `bin/anvil` and checked by the PreToolUse hook. **Claude's call.**
+- **Stops are recorded on disk, and only Saad can pass them.**
+  - A `UserPromptSubmit` hook records the time and text of each message Saad sends, to `.anvil/last-prompt`.
+  - `bin/anvil approve spec|plan` writes `Approved: <date>` only if a message from Saad arrived **after the document was last changed**. So the model can't approve its own document.
+  - Starting a stage checks for the approval:
+    - the plan stage needs an approved spec;
+    - the build stage needs an approved plan;
+    - a PreToolUse hook blocks agent dispatch, and edits outside `docs/`, while the plan is unapproved.
+  - **Claude's call** (builder check Q1).
 - **Skipping stops:**
   - "AFK" skips all stops.
   - "Skip it", said at one stop, skips that stop.
   - A skipped stop is recorded as `Approved: skipped (AFK) <date>`, and its decisions go into the decision log. **Saad's decision.**
+  - **AFK is turned on from Saad's own message.** `bin/anvil afk on` works only if the last recorded message contains an AFK phrase ("AFK", "I'm going to bed", "don't ask me", …). `afk` stays a skill the model can invoke, so plain chat starts it. **Claude's call.**
 - **Checkpoints** happen only when Saad asks for one, at a named point in the plan or build. **Saad's decision.**
 - **Fresh context for the build.** At stop 2, Anvil offers to start the build in a fresh session (`/clear`, then `/anvil:build <plan>`). This keeps old context from pulling the build back toward old code, and Anthropic's own flow recommends it. In AFK the build runs in subagents, which already have fresh context. **Claude's call.**
 
@@ -254,6 +262,13 @@ This stage starts from Superpowers 7.0.2 subagent-driven-development, which runs
   - Fix rounds are capped at 5.
   - The quality checklist includes the **over-building item**: abstractions nobody asked for, speculative options, helpers that duplicate existing ones, code with no S-line.
   - **A review is required for every task that changes behavior.** Only tasks whose content the plan fully specifies (config, renames) skip it. The rule is fixed, not the model's call. ([sentiment](research/2026-11-18-practitioner-sentiment.md) §3)
+- **A check after each merged wave.** After a wave's lanes are merged, before the next wave starts:
+  - type-check;
+  - the targeted tests of every task in the wave, run on the merged tree;
+  - one short review of the merged diff, looking for clean merges that are wrong together (semantic conflicts).
+  - The full suite also runs per wave only if it takes under about 2 minutes. Otherwise it waits for the final run.
+  - Results are recorded, so nothing reruns on an unchanged tree.
+  - **Claude's call** (builder check Q4). This follows Saad's principle: verification is fine, repeats on unchanged code are waste.
 - **Diff stays inside its write set.** After each lane, `bin/anvil lane-check` confirms the lane's diff touched only its declared files.
 - **Change flow-back,** when Saad changes direction mid-build or a task finds the spec wrong:
   1. Classify the change as a **change request or a new feature,** and name what it conflicts with. This is the pushback: "Earlier you decided X (S3, 2026-11-18). This replaces it. Cost: tasks T4 and T6 redo. Proceed?" In AFK, the choice is recorded instead of asked.
@@ -272,7 +287,7 @@ This stage starts from Superpowers 7.0.2 subagent-driven-development, which runs
    - Later steps reuse a **passing** result on an identical key: the reviewer, the commit step and finish.
    - Runs that used live services or the network, or ran no tests, are never reused.
    - A PreToolUse hook on test commands answers "fresh green result exists for this tree" instead of rerunning. ([test-run reuse](research/2026-11-18-test-run-reuse.md))
-2. **The full suite runs once, on the final merged state.** This is the only full run in the whole flow.
+2. **The full suite runs once, on the final merged state.** This is the only full run, unless the suite is fast enough to also run per wave (see §7.6).
 3. **The converge check** sorts every **live** S-line into **met / missing / partial / contradicts**, plus an **unrequested** list (code with no S-line).
    - "Met" needs **behavior evidence**: browser (chrome-devtools-mcp, then playwright-core), curl, or CLI output. "Tests pass" isn't enough on its own.
    - It loops through fixes until it's clean, or reports what's left.
@@ -293,7 +308,10 @@ This stage starts from Superpowers 7.0.2 subagent-driven-development, which runs
 
 ### 7.9 `bin/anvil`, the one script
 
-A small CLI using only the language's standard library. The language is **Python 3, called through a bash wrapper plus `.cmd`**, the same pattern as the hooks. **Claude's call.** The builder confirms Python is present on both machines, and otherwise picks Node.
+A small CLI using only the language's standard library. The language is **Python 3, called through a bash wrapper plus `.cmd`**, the same pattern as the hooks. **Claude's call.**
+- On this machine, `python3` is the broken Microsoft Store stub, while `python` (3.13) and Node 26 both work.
+- The wrapper tries `python`, then `py -3`, then `python3`.
+- The builder confirms the other machine.
 
 | Command | Does |
 |---|---|
@@ -401,7 +419,7 @@ Each phase is verified before the next starts.
 
 1. Approvals are recorded on disk, and the build refuses to start without them.
 2. Fresh session offered at stop 2.
-3. `afk` and `finish` can only be started by Saad (`disable-model-invocation`).
+3. Only Saad can pass a stop or turn on AFK, enforced by the UserPromptSubmit hook. `finish` has `disable-model-invocation`; `afk` stays model-invocable so plain chat starts it.
 4. The test-edit guard starts as a warning, not a block.
 5. `cross-model` runs before done only on large or expensive-to-reverse changes.
 6. Commits follow the project rule; with no rule, Anvil asks.
@@ -409,3 +427,4 @@ Each phase is verified before the next starts.
 8. Default file location is `docs/<topic>/`. Old `docs/superpowers/` paths are read but not used for new work.
 9. Upstream watch is triggered manually.
 10. Parallel is opted into at stop 2 (default 3 lanes), not on by default.
+11. A cheap check runs after each merged wave. The full suite runs per wave only when it takes under about 2 minutes.
