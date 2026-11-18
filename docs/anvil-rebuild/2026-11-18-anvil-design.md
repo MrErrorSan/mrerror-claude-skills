@@ -77,7 +77,8 @@ The detailed evidence is in notes §2 and the research reports.
 - **Ceremony on a one-line change.** Plans, subagents and three test runs for a wording fix.
 - **Bloat.** Collecting every good idea makes a skill too long for the model to follow, and it gets cut off after compaction.
 - **Forceful wording** (MUST, IMPORTANT, ALL-CAPS). Current models over-apply it.
-- **Gates that live only in the prompt.** The model must never be able to approve its own spec or plan, and a pre-approval tucked into the original request must not skip a stop. Saad saying "AFK" or "skip it" in his own message is the intended way to skip a stop, and is allowed.
+- **Self-approval.** The model must never pass a stop on its own say-so. Every approval has to trace back to words Saad actually typed.
+  - **Saad's pre-approvals are respected.** Examples: "approve the spec yourself", "go straight to the build", or "AFK" in the original request. A stop pre-approved this way is passed, and that stage runs with **AFK decision-making**: each choice is made on Saad's behalf and logged with its reason and confidence. **Saad's decision.**
 - **A parallel build that's slower end to end** once reconciling and fixing is counted, or one that silently damages lockfiles or migrations.
 - **Silent decisions,** or decisions buried in a log nobody reads.
 - **Asking questions the repo could answer.**
@@ -165,7 +166,7 @@ Brainstorm ─► Spec ─[STOP 1: approve spec]─► Plan ─[STOP 2: approve 
 - **The trivial path** applies to a single-file change with no new behavior, or when Saad says "just do it".
   - Anvil states the path it's taking in its first line, so it's visible and can be corrected. The model doesn't silently pick its own effort level. ([sentiment](research/2026-11-18-practitioner-sentiment.md) §3)
 - **Stops are recorded on disk, and only Saad can pass them.**
-  - A `UserPromptSubmit` hook records the time and text of each message Saad sends, to `.anvil/last-prompt`.
+  - A `UserPromptSubmit` hook records the time and text of each message Saad sends, appending it to `.anvil/prompts.log` (gitignored).
   - `bin/anvil approve spec|plan` writes `Approved: <date>` only if a message from Saad arrived **after the document was last changed**. So the model can't approve its own document.
   - Starting a stage checks for the approval:
     - the plan stage needs an approved spec;
@@ -175,7 +176,9 @@ Brainstorm ─► Spec ─[STOP 1: approve spec]─► Plan ─[STOP 2: approve 
 - **Skipping stops:**
   - "AFK" skips all stops.
   - "Skip it", said at one stop, skips that stop.
-  - A skipped stop is recorded as `Approved: skipped (AFK) <date>`, and its decisions go into the decision log. **Saad's decision.**
+  - **A pre-approval in Saad's own words** works the same way, including when it was given in the original request before the document existed. Examples: "approve the spec yourself", "go straight to the build", "don't stop for the plan". **Saad's decision.**
+  - A skipped or pre-approved stop is recorded with the quote that authorised it, for example `Approved: pre-approved by Saad 2026-11-18 ("approve the spec yourself")`. That stage then runs with AFK decision-making: decisions go into the decision log, ordered by what deserves review first.
+  - `bin/anvil approve --pre "<quote>"` accepts only a quote that appears verbatim in a recorded message from Saad, so the model can't invent one.
   - **AFK is turned on from Saad's own message.** `bin/anvil afk on` works only if the last recorded message contains an AFK phrase ("AFK", "I'm going to bed", "don't ask me", …). `afk` stays a skill the model can invoke, so plain chat starts it. **Claude's call.**
 - **Checkpoints** happen only when Saad asks for one, at a named point in the plan or build. **Saad's decision.**
 - **Fresh context for the build.** At stop 2, Anvil offers to start the build in a fresh session (`/clear`, then `/anvil:build <plan>`). This keeps old context from pulling the build back toward old code, and Anthropic's own flow recommends it. In AFK the build runs in subagents, which already have fresh context. **Claude's call.**
@@ -441,7 +444,7 @@ Each phase is verified before the next starts.
 
 ## 12. Claude's calls, for Saad to check
 
-1. Approvals are recorded on disk, and the build refuses to start without them.
+1. Approvals are recorded on disk, and the build refuses to start without them. A pre-approval must quote Saad's message verbatim, and the script checks that quote against the prompt log.
 2. Fresh session offered at stop 2.
 3. Only Saad can pass a stop or turn on AFK, enforced by the UserPromptSubmit hook. `finish` has `disable-model-invocation`; `afk` stays model-invocable so plain chat starts it.
 4. The test-edit guard starts as a warning, not a block.
