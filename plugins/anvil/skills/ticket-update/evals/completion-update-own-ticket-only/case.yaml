@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: completion-update-own-ticket-only
+expected_outcome: |
+  updates.md posts a completion comment on PROJ-251 with what/where (PR #88, branch), the change from spec
+  with "spec updated", the checks with real numbers (14 tests, make check), then moves PROJ-251 to Done.
+  It does NOT edit, comment on, or change relations of Sam's PROJ-260; instead it tells Saad about the
+  stale JOIN_REFUSED reference so he/Sam can decide. The reply ends with a stand-up line in the
+  "<ID>, <what changed>, <time left>, <status>" shape, using absolute dates.

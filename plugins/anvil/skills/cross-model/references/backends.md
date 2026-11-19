@@ -1,115 +1,98 @@
-# Cross-model backends
+# Finding and driving a second-model backend
 
-The `cross-model` skill is backend-agnostic. This file is the one place that
-knows *how* to reach an external model. Add a backend here and the skill picks it
-up without changing its logic. Detection order: **Antigravity CLI (`agy`)** →
-router gateway → Gemini API key → Claude-only fallback.
+The `cross-model` skill doesn't depend on any one provider. It uses whatever
+model from a family other than Claude this machine can reach today. This file
+says how to find one, how to drive an unfamiliar one, and what's been learned
+about the ones already met. When a new provider is added (a new subscription,
+a new CLI), it's found by the steps below. A note in "Known backends" is
+optional, and only worth adding once a quirk has cost time.
 
-## 1. Antigravity CLI — `agy` (PRIMARY, subscription-backed, no API key)
+## 1. Look for candidates
 
-`agy` is Google's Antigravity CLI, signed in with a Google **AI Pro/Ultra**
-account. It gives a real second model with **no API key and no per-token
-billing** — the cost is the subscription that's already paid for. This is the
-preferred backend.
+Check all of these, and keep every hit from a family other than Claude:
 
-**Important:** `agy` is an *agentic coding CLI*, not a plain inference endpoint.
-If you hand it a workspace (`--add-dir`) or put it in `--mode plan`, it tries to
-*act* — reach for shell tools (which headless auto-denies → **empty output**) or
-draft a plan and ask for confirmation (useless headless). To use it as a one-shot
-reviewer you must force a direct answer. The pattern below was **verified working
-on this machine (Nov 2026)**; keep to it.
+- **Model CLIs on the PATH.** Check with `command -v <name>` for the CLIs of
+  the major model providers, and for any CLI the user's CLAUDE.md or tool
+  folders (`~/.local/bin` and similar) mention.
+- **API keys that are configured.** Check whether the provider key variables
+  are set (`[ -n "$VAR" ]`). Never print, log or read the value.
+- **Local routers or model servers.** An OpenAI-compatible endpoint on
+  localhost, a local model server, or a gateway the user runs. A quick request
+  to its models endpoint shows whether it's up and what it serves.
 
-- **Detect:** `command -v agy` (and `agy --version`).
-- **List models on the current plan:** `agy models` — don't hardcode blindly.
-  Verified here:
-  **Review default → `gpt-oss-120b-medium`** — fast, reliable headless, and a
-  *different vendor* from the Claude running the review → true cross-model signal.
-  Verified cleanly in testing.
+## 2. Choose
 
-  **Research default → `gemini-3.8-flash-medium`** — a lower-cost Gemini tier
-  that's strong at research; the right default for most questions. **Scale the
-  model to the task, on the fly:** `gemini-3.8-flash-low` (quick lookups) ·
-  `gemini-3.8-flash-medium` (default) · `gemini-3.8-flash-high` (deep / high-stakes,
-  but noticeably slower headless — reserve it for when depth is worth the wait).
+1. The user's stated preference, if any (CLAUDE.md, a profile, or what they
+   said this session).
+2. Otherwise, **the cheapest model** any candidate offers. Ask the backend for
+   its current model list every time (`<cli> models`, `--list-models`, the
+   models endpoint). Don't rely on names from an earlier session: plans and
+   model lists change.
+3. If its answer isn't good enough for the question (empty, shallow or
+   off-target), move up to the next tier from the same backend, again if
+   needed, and say in the result which model gave the answer used.
 
-  **Other vendors:** `gpt-oss-120b-medium` (a third vendor, for research
-  triangulation) and `claude-sonnet-4-6` / `claude-opus-4-6-thinking` (same family
-  as the reviewer, so NOT a true cross-model check — use only for a stronger/fresh
-  *Claude* pass).
+If nothing is found, tell the user, suggest how they could add a second track
+(a model CLI with their subscription, or an API key), and offer to run the
+Claude track alone.
 
-  Headless `agy` cannot browse (tools are denied), so research answers are
-  **parametric** — pair them with Claude's own web research for live sources.
+## 3. Driving an unfamiliar CLI
 
-- **Invoke (verified one-shot review):**
+Read its `--help` (and the `--help` of any subcommand) before the first call,
+and find:
 
-  ```bash
-  read -r -d '' PROMPT <<'EOF'
-  Output ONLY the review findings now, in this message. Do NOT create a plan. Do
-  NOT write any files. Do NOT use tools. Do NOT ask questions. This is a one-shot
-  review; your entire response must be the findings and nothing else.
+- **non-interactive mode:** usually `-p`, `--print`, `--prompt` or `exec`;
+- **model selection,** and how to list models;
+- **a timeout** flag, or wrap the call in `timeout`;
+- **output format:** prefer plain text or JSON you can parse; when there's a
+  status field, check it rather than the exit code;
+- **flags to avoid:** anything that auto-approves tools or edits files.
 
-  Review this unified git diff; report real defects in the + lines, blockers
-  first, max 10, one per line as:
-  SEVERITY | file:line | what is wrong | the failure it causes | the fix
-  If none: NO-FINDINGS.
+Then send a one-line probe ("reply with the word READY") before the real
+brief. That confirms the call shape, the sign-in and the model in a few
+seconds.
 
-  --- DIFF ---
-  <PASTE `git diff HEAD` HERE>
-  EOF
-  agy --model gpt-oss-120b-medium -p "$PROMPT"
-  ```
+## 4. The one-shot shape
 
-- **Why this shape:**
-  - **Inline the content into the prompt** (paste the diff/question). Do **not**
-    use `--add-dir` for it — that makes the model reach for a file/shell tool that
-    headless denies. Inlining also means the reviewer has nothing in your repo to
-    touch → read-only by construction.
-  - **No `--mode plan`** — default print mode + the hardened preamble gives a
-    direct answer; plan mode triggers agentic planning.
-  - **The hardened preamble** ("Output ONLY … no plan, no files, no tools, no
-    questions") is what stops it acting. Keep it.
-  - **Never** pass `--dangerously-skip-permissions`.
-- **Timeout:** wrap in `timeout 120 agy …` so a slow/stuck model can't hang the
-  turn; `gpt-oss-120b-medium` returns in well under that.
-- **Large content** that won't fit a prompt: as a fallback, `--add-dir` a temp dir
-  holding just the file + `--sandbox`, and allow a read-only command — but inline
-  is strongly preferred; most reviews fit.
-- **Quota:** inside the TUI (`agy` with no `-p`), `/usage` shows remaining
-  subscription quota.
+```bash
+read -r -d '' PROMPT <<'EOF'
+Output ONLY your research answer now, in this message. Do NOT create a plan.
+Do NOT write any files. Do NOT use tools. Do NOT ask questions. Your entire
+response must be the answer and nothing else.
 
-## 2. Router gateway — omniroute / CCR (optional)
+<THE SELF-CONTAINED BRIEF: question, constraints, what is established,
+output shape. Cite every claim with a URL; say when you answer from memory.>
+EOF
+<cli> <non-interactive flag> <model flag> <cheapest model> "$PROMPT" \
+  > "<scratchpad>/second-track.txt" 2>&1
+```
 
-If a local OpenAI-compatible router is running, it can reach many models/APIs
-behind one endpoint — handy for polling several models or using providers `agy`
-doesn't expose. (Not installed by default here; set up only if wanted.)
+Put the content in the prompt argument. Don't pipe it through stdin unless
+you've confirmed the CLI reads stdin.
 
-- **omniroute:** endpoint `http://localhost:20128/v1`; check with
-  `curl -s http://localhost:20128/`.
-- **claude-code-router (`ccr`):** gateway `http://127.0.0.1:3456`.
-- Call the OpenAI-compatible `/v1/chat/completions` (or `/v1/messages`) with the
-  content in the request body. Treat each model you poll as an independent track.
+## 5. Known backends
 
-## 3. Gemini API key (optional, no subscription needed)
+Notes from real use on this machine. Model names are deliberately left out:
+list them from the tool each time.
 
-A direct Gemini CLI/API with an AI Studio key, if you prefer a keyed path over
-`agy`. Free tier is Flash-only and ~250 req/day (Nov 2026).
+### Antigravity CLI (`agy`)
 
-- Install: `npm install -g @google/gemini-cli`; set `GEMINI_API_KEY`.
-- Note: the consumer-subscription OAuth login was removed in June 2026 — a key is
-  required for this route. For subscription access use `agy` (backend 1) instead.
+- An agentic coding CLI with a Google subscription sign-in, so there's no API
+  key and no per-token cost. Models: `agy models`.
+- **stdin is ignored** by `agy -p`. Put the brief in the prompt.
+- **`--mode plan` or `--add-dir`** makes it reach for shell tools, which
+  headless mode auto-denies, so it returns nothing. Use plain `-p` with the
+  one-shot preamble above. If a file is unavoidable, `--add-dir` a temp folder
+  holding only that file, and tell it to use only its file-reading tool.
+- **`--effort` is rejected** for models whose tier is in the name. Leave it
+  off unless `agy --help` and the chosen model accept it.
+- **`--print-timeout <n>s`** sets the timeout.
+- **It can't browse when headless.** Its answers come partly from memory.
+- **Never** pass `--dangerously-skip-permissions`.
+- Remaining quota: `/usage` inside the interactive `agy`.
 
-## 4. Claude-only fallback (always available)
+### Claude-only fallback
 
-If no external backend is reachable, don't fail. Spawn a fresh Claude subagent
-with **no** context from the original reasoning and have it review/research
-independently. It shares model blind spots with you, so it's weaker than a true
-second model — say so in the report — but an unbiased fresh pass still catches
-real mistakes.
-
-## Adding a new backend
-
-1. Add a section here: how to detect it, how to call it, how to pass content
-   (never stdin unless proven safe), which model/tier to use.
-2. Slot it into the detection order in `SKILL.md` ("Pick a backend").
-3. Keep the universal rules (read-only, strong reasoning tier, verify the content
-   landed, constrained output) — they apply to every backend.
+When no second family is available: run the Claude track alone, and label the
+result as single-model research. Another Claude model isn't a second family.
+It shares Claude's blind spots, so it doesn't count as the second track.

@@ -1,146 +1,165 @@
 ---
 name: anvil
 description: >-
-  Anvil is the workflow governor — the override layer that sits on top of the
-  Superpowers skills and decides which of them apply, and how far. Read Anvil
-  FIRST, before any Superpowers process skill and at the start of any feature,
-  bugfix, refactor, migration, plan, or multi-step change to a codebase. Anvil
-  makes the calls Superpowers gets wrong for real product work: implement first
-  and test after (TDD is demoted, not deleted), fan independent work out to
-  parallel agents by default, write lean contract plans instead of full-code
-  transcripts, and verify once at the end instead of after every step. If you
-  are about to write a plan, dispatch subagents, apply test-driven development,
-  reach for brainstorming, or just start editing files — consult Anvil first; it
-  tells you which of those to actually run and how far to take them. Anvil
-  governs writing and changing code; it does not apply to explaining how
-  existing code works, reviewing or summarising a diff, git/rebase help, build
-  or dev-server troubleshooting, or authoring Claude skills — those keep their
-  usual handling.
+  Anvil is the workflow governor: the layer on top of the Superpowers skills
+  that decides which of them apply, and how far. Read Anvil first, before any
+  Superpowers process skill, at the start of any feature, bug fix, refactor,
+  migration, POC, plan, or multi-step change to a codebase. It picks one of
+  three paths: linear work is just done, with no ceremony; an open product
+  question gets one short spec-and-plan and one stop; large or risky work gets
+  the full flow with parallel agents, a check against the spec after each wave,
+  and one final verification that also ticks off everything that was asked. If
+  you are about to brainstorm, write a plan, dispatch subagents, apply
+  test-driven development, or just start editing files, consult Anvil first; it
+  tells you which of those to run and how far to take them. Not for explaining
+  how existing code works, reviewing or summarising a diff, git/rebase help,
+  build or dev-server troubleshooting, or authoring Claude skills; those keep
+  their usual handling.
 ---
 
-# Anvil — the workflow governor
+# Anvil: the workflow governor
 
-Superpowers is written for a generic codebase and applies its full ceremony to
-every change. Most real product work doesn't need that everywhere: red-green
-cycles around presentational or glue code, plans that restate the implementation
-as prose, and a full validate pass after every step mostly find nothing and burn
-the budget. Anvil is the correction layer.
+Superpowers applies its full ceremony to every change. Anvil sizes it to the
+work. Its rule for itself: **the lightest path that does the job well.** Speed
+comes from not doing work twice: no plan that restates the code, no second
+run of a suite on unchanged code, no subagents for linear work. It never comes
+from skipping the checks that catch a wrong build.
 
 **When Anvil and a Superpowers skill disagree, Anvil wins.**
 `superpowers:using-superpowers` says a matching skill is non-negotiable, and in
-general it's right — but the user's own workflow instructions outrank it, and
+general it's right. But the user's own workflow instructions outrank it, and
 Anvil is those instructions. Following Anvil is following the *more specific*
-rule, not rationalizing out of a skill. If the project ships its own workflow
-rule (a `.claude/rules/` file, a CLAUDE.md section), that rule is the binding
-version and wins over this recap; Anvil is the operating detail.
+rule, not rationalizing out of a skill.
 
-## Decision procedure
+**Project rules win over Anvil.** A `.claude/rules/` file or a CLAUDE.md section
+about workflow, tests, branches or doc locations is the binding version. The
+user's direct request in the conversation wins over both.
 
-Anvil is a controller, not a reading. Run these in order — two agents handed the
-same request should reach the same workflow, so don't improvise the sequence.
+If you were dispatched as a subagent to do one task, this skill doesn't apply
+to you: follow your brief.
 
-1. **Classify the tier** (Tier 0/1/2, below). Everything downstream keys off it.
-2. **Name the Superpowers skills the request would trigger** — typically some of
-   `brainstorming`, `writing-plans`, `test-driven-development`,
-   `dispatching-parallel-agents`, `executing-plans`, `systematic-debugging`.
-3. **Apply the override table** to each: dropped, reshaped, or kept. A skill not
-   in the table is kept as written.
-4. **Plan** — Tier 1/2 only. Tier 0 goes straight to step 5.
-5. **Implement**, fanning out to parallel agents wherever tasks are
-   parallel-safe (defined below — check it, don't eyeball it).
-6. **Reconcile** the agents' work and resolve conflicts before anything else.
-7. **Test, then verify — once**, using the fixed sequence in [Verification](#verification).
-8. **Report** with fresh evidence. No done/passing claim without it.
+**Local files only.** Specs, plans, reports and notes are files in the repo,
+on this machine. No Artifacts, hosted pages or shared links unless the user
+asks for one.
 
-At any step, if an [escalation trigger](#when-to-stop-and-escalate) fires, stop
-and reassess the tier and plan rather than pressing on.
+## Pick the path
 
-```mermaid
-flowchart TD
-  REQ[Request] --> TIER[1 · Classify tier]
-  TIER --> SK[2-3 · Trigger Superpowers skills<br/>apply Anvil overrides]
-  SK --> P[4 · Lean plan · Tier 1/2]
-  P --> I[5 · Implement · parallel agents]
-  TIER -. Tier 0 .-> I
-  I --> R[6 · Reconcile]
-  R --> V[7 · Test + validate ONCE]
-  V --> D[8 · Report with evidence]
-  I -. escalation trigger .-> TIER
-  R -. escalation trigger .-> TIER
-```
+State the path in your first line, with the reason, so the user can correct
+it: "Just doing it: one flag in one file."
+
+| Path | When | What happens |
+| --- | --- | --- |
+| **Just do it** (most work) | Linear work in one area: a bug fix, a small feature, a few related additions, a refactor of a few files, even with small edge cases to decide. AFK requests of this kind too | No documents, no stops, no subagents, no branch. [The steps below](#just-do-it) |
+| **Spec first** | The request leaves open a product question that changes what gets built, or the user asks to think it through, design or plan it first | One document holding a short spec and plan, **one stop**, then an inline build |
+| **Full** | 4+ tasks in separable areas where parallel agents pay off; a migration, data change, public API, auth, or anything expensive to reverse; work spanning sessions; or the user asks for the full flow | Spec, **stop**, plan, **stop**, then build in waves and verify with no further stops |
+
+**When in doubt, go lower.** An over-planned small change is the worse error.
+If the work turns out bigger than it looked (a design question, several areas,
+a risky change), stop at the first sign, say so in one line, and step up.
+
+Research and architecture questions end in a document the user reviews, with
+no plan or build. Demos and POCs are real work: size them like any other
+request. Only mocks are throwaway.
 
 ## What Anvil overrides
 
-| Superpowers skill | Its default | Anvil's ruling | Why |
-| --- | --- | --- | --- |
-| `test-driven-development` | Iron Law: no production code without a failing test first | **Implement first, then test the layers that earn it.** TDD demoted, not deleted — see [Non-negotiable floor](#non-negotiable-floor) | See the thing run before it's frozen by tests. Red-green on a thin wrapper tests the framework, not the code |
-| `writing-plans` | Comprehensive plan: full code, full tests, bite-sized tasks | **Lean contract plan** — files + intent + pinned contracts, never full code | Code written twice is code that drifts. The plan fixes decisions, it is not the diff |
-| `dispatching-parallel-agents` | Use when 2+ independent tasks exist | **Default to parallel; justify sequential** — against the parallel-safe test, not a vibe | Wall-clock is the scarce resource. Sequential-by-habit is the biggest waste |
-| `verification-before-completion` | Verify before claiming done | **Kept in full — but as one pass at the end**, owned by the orchestrator | N agents each running the full validate is N type-check+lint passes for one answer |
-| `brainstorming` | Required before creative work | **Tier-gated.** Skip at Tier 0/1; run it at Tier 2 | Interviewing the user about a one-file change costs more than the change |
-| `subagent-driven-development` / `executing-plans` | Sequential task-by-task with checkpoints | **Parallel fan-out where the plan allows**, checkpoints only at real dependencies | Same reason as parallel dispatch |
+| Superpowers skill | Anvil's ruling |
+| --- | --- |
+| `brainstorming` | Not on Just do it. On Spec first and Full: run it, reshaped by [Asking questions](#asking-questions) |
+| `writing-plans` | **Lean contract plan**, never full code. On Spec first, the spec and plan are one document |
+| `test-driven-development` | **Implement first**, except a bug fix, which always starts with a failing repro test. See [Tests](#tests) |
+| `dispatching-parallel-agents`, `subagent-driven-development`, `executing-plans` | Full path only: waves of at most 4 parallel-safe tasks, with a [spec check](#the-spec-check-after-each-wave) after each wave. Otherwise build inline |
+| `requesting-code-review` | Replaced by the spec check after each wave and one final review (Full path) |
+| `verification-before-completion` | Kept, as Anvil's [Verification](#verification): one run, plus ticking off what was asked |
+| `finishing-a-development-branch` | Replaced by [Landing](#landing) |
+| `using-git-worktrees` | The project's isolation rule first. Otherwise only for parallel waves on the Full path |
 
-Every other Superpowers skill is kept exactly as written — `systematic-debugging`,
-`requesting-code-review`, `receiving-code-review`, `using-git-worktrees`,
-`finishing-a-development-branch`. Not in the table → Anvil has no opinion; follow
-it as-is.
+`systematic-debugging` and `receiving-code-review` are kept as written.
 
-## Tiers
+Anvil carries its own short version of every check it relies on, so the
+workflow is the same whether or not a Superpowers skill fires.
 
-If the project defines its own tier triggers, prefer those. Otherwise:
+## Just do it
 
-- **Tier 0** — 1 file, no new logic → implement + run the project's validate/check
-  command. No plan, no tests.
-- **Tier 1** — a localized change, one coherent responsibility, ≤ ~5 files → one
-  lean plan. `## Key design decisions` is mandatory.
-- **Tier 2** — multiple responsibilities, a new architectural boundary, a
-  cross-module contract, a migration, or real design uncertainty → brainstorm the
-  decisions + lean plan. Fan out independent tasks at 3+.
+1. **Look first.** Read the code the change lands in and its tests. Don't ask
+   what the repo answers.
+2. **Decide the small things yourself** (edge cases, defaults, error messages)
+   and keep a list of them. Ask only when two readings would build different
+   things and the repo can't tell. Then send one message with all the
+   questions, each with your recommended answer.
+3. **Build it:** the smallest change that does it, using the repo's patterns. A
+   bug fix gets a repro test first, which you watch fail. New behaviour gets a
+   few focused tests for what would break.
+4. **Check once:** the targeted tests, then the full suite once at the end. If
+   the suite is slow, run the targeted tests and say so. Run the real command,
+   endpoint or screen once and look at its output. Even a typo fix runs the
+   tests that cover the file.
+5. **Report** in the [report shape](#report), briefly. Nothing is committed and
+   no branch is made unless the user or a project rule asks for it.
 
-**Tier is about coordination complexity, not counts.** File/module counts are a
-symptom, not the trigger. Two modules touched by one coherent, well-understood
-change is Tier 1; one module gaining a genuinely new architectural boundary can
-be Tier 2. Ask what has to be *coordinated*, not how many files are open.
+## Asking questions
 
-**When in doubt, go lower.** An over-planned small change is the worse error —
-the plan is pure overhead you can't recover. If a change brushes a Tier-2 clause
-but is one responsibility you can hold in your head, say so, pick the lower tier,
-and note why.
+On Spec first and Full, before writing the spec:
 
-## When to stop and escalate
+- **Look first**, then ask only what the code and docs can't answer.
+- **Concrete questions, grounded in the code**, batched into one message, each
+  with your recommended answer and why. No open "what are you trying to
+  achieve?" openers.
+- **When the picture is thin, show instead of interrogating:** 2 or 3 worked
+  variations (mocks, or options researched on the web), each
+  with what it costs and what it rules out. The user reacts, and the next round
+  changes only what they reacted to.
+- Brainstorming ends when no question is left that changes what gets built.
+  Small calls aren't questions: they go into the spec as decisions.
 
-Speed only helps if it's pointed the right way. These are where continuing
-confidently produces fast wrongness — stop, say what you found, reassess:
+## The spec
 
-- The requested behavior conflicts with an existing invariant or rule.
-- **A contract you need does not exist** — no endpoint, no DTO, no documented
-  shape — and you'd have to invent it to proceed.
-- Two modules offer competing sources of truth for the same data.
-- The change requires modifying a shared abstraction you didn't expect to touch.
-- The blast radius outgrows the tier you picked.
-- You discover undocumented behavior that materially changes the design.
+Plain words, for a person: **intent, goals, non-goals, anti-goals**, and a
+short explanation. Then:
 
-Escalating isn't failure and isn't asking permission to work — it's a short,
-specific statement of what's unknown and what you assumed, delivered while the
-work is still cheap to redirect. **Anything you had to invent is marked as an
-assumption everywhere it appears**, including in the plan's pinned contracts. An
-invented contract presented as settled is worse than none — the pin is what
-everyone downstream trusts.
+- **Acceptance lines**, numbered (A1, A2, …): each one a behaviour you can check.
+  Plan tasks, tests and the final check point at these numbers.
+- **Decisions:** the call, the reason, and the alternative not taken. Put the
+  ones that are genuinely the user's to make at the top.
+- **Mode:** *normal change* or *redesign*. A redesign lists what **stays** from
+  the existing code. Everything else is built as the spec describes, not
+  derived from the old code.
+- **Assumptions**, labelled as such, with who can settle each one.
+
+## Stops
+
+- **Spec first:** one document (spec, then plan), one stop before building.
+- **Full:** the spec, a stop, the plan, a stop. Then build and verify with no
+  stops until the result works.
+- **Nothing is built before its stop passes.** Code waits for the approved
+  plan (Full) or the approved spec-and-plan (Spec first).
+- **Write a document only if it will be shown at a stop,** or because the user
+  asked for it. Never write a plan after the code.
+- **At a stop:** give the path, a few lines on what it does, the calls the user
+  should check (each with what it costs to reverse), and what's waiting on
+  them. Then end the turn.
+- **Approval covers what they saw.** "Sounds good" about an idea doesn't
+  approve a document they haven't read. "Approved, one fix: …" approves it.
+  Make exactly those edits and go on, with no second stop.
+- **A pre-approval, or the user being away, passes a stop.** Examples:
+  "approve the spec yourself", "don't stop for the plan", "I'm AFK". Each call
+  you make for the user goes into the document's decision log: the choice, the
+  reason, and what would change it.
+- Extra checkpoints happen only when the user asks for one.
+
+Specs and plans go where the project's doc rule says. Otherwise use
+`docs/superpowers/specs/YYYY-MM-DD-<topic>.md` and
+`docs/superpowers/plans/YYYY-MM-DD-<topic>.md`.
 
 ## Lean plan template
 
 A plan is a **contract**, not a transcript. Code is written **once**, in the
-file. Shape = stable frontmatter + an invariant core + task-fitted optional
-sections — not one rigid heading order. Plans live where the project's doc rule
-says; default `docs/plans/YYYY-MM-DD-<topic>.md`.
+file. It is lean enough when it removes implementation ambiguity, not when it
+is short: about 90–180 lines, up to about 250 for large work. The test is
+whether another agent could build it without rediscovering your design. Cut
+restatement and code, never decisions.
 
-**A plan is lean enough when it removes implementation ambiguity — not when it is
-short.** ~90–180 lines typical, up to ~250 for large refactors. The test:
-could another agent implement it without rediscovering your design? "Update
-service / update hook / add tests" is short and useless — it pushes every real
-decision onto whoever picks it up. Cut restatement and code, never decisions.
-
-**Frontmatter (every plan):**
+**Frontmatter:**
 
 ```yaml
 ---
@@ -148,180 +167,216 @@ name: Short title
 overview: 1–2 sentence summary of what ships.
 todos:
   - id: stable-slug
-    content: One actionable task description.
+    content: One actionable task. Covers A2, A3.
     status: pending   # pending | in_progress | completed
-    parallel: true     # or: depends-on: <other-id>
+    wave: 1           # tasks in one wave are parallel-safe with each other
 ---
 ```
 
-`todos:` is the whole task tracker — it replaces any checkbox tree. Mark each one
-parallel-safe or name what it depends on; that annotation is what lets the
-implementation step fan out without re-deriving the dependency graph.
+`todos:` is the task tracker and the user's progress view. Keep each status
+current as tasks land, so the user never has to ask "done?".
 
-**Invariant core** (roughly this order; wording may vary):
+**Core sections:**
 
-- **Title** + **`## Goal`** — bulleted outcomes.
-- **File map** (`## Target Files`) — each file with a one-line responsibility, as
-  clickable repo-relative links.
-- **Implementation steps** — prose naming the **file(s)** and the **intent**.
-  Small illustrative snippets are fine (a signature, a docblock shape). No full
-  implementations, no full test bodies.
-- **A mermaid diagram** when it earns its place (data flow, delivery order, a
-  decision map). Omit if it adds nothing.
-- **`## Verification`** — exact commands + what to confirm. Tests appear as
-  described scenarios ("inside window + sufficient balance → 201"), never as code.
-- **`## Open questions`** — anything you assumed rather than confirmed, and who
-  can settle it. Omit only when there genuinely are none; an empty section is a
-  signal, not a formality.
+- **`## Goal`**: bulleted outcomes.
+- **`## Target Files`**: each file with a one-line responsibility, as clickable
+  repo-relative links.
+- **Implementation steps**: prose naming the file(s) and the intent. A
+  signature or shape is fine. No full implementations, no full test bodies.
+- **`## Execution`**: inline or parallel waves, and why. Name the contracts
+  pinned before the first wave.
+- **`## Tests`**: each test as a scenario ("inside window + enough balance →
+  201"). Mark it **keep** (with the acceptance line it guards and what breaks
+  if it fails) or **scaffold** (deleted before finishing). Say who writes it.
+- **`## Commit points`**: where commits happen, and the local work branch
+  name.
+- **`## Verification`**: the exact commands, and what to confirm when running
+  the real thing.
+- **`## Open questions`**: anything assumed rather than confirmed. Omit it only
+  when there genuinely are none.
 
-**Data-tier contracts — required even in a lean plan.** When a step touches the
-data/service/API layer, pin the contract, because that's where
-under-specification silently regresses caching and error handling:
+**Data-layer contracts, required even in a lean plan.** When a step touches the
+data, service or API layer, pin the exact input/output shape (validated at the
+boundary), the cache keys and what invalidates them, the fallback behaviour,
+and the error mapping. Mark any you inferred rather than confirmed.
 
-- exact **input/output (DTO) shape**, validated at the boundary
-- **cache key(s)** and what **invalidates** them
-- **fallback behavior** (offline/stub/feature-flag paths)
-- **error mapping** — which user-facing error category each failure maps to
+Optional, omit freely: `## Risks`, `## Out of scope`, `## Notes`, and a mermaid
+diagram when it earns its place.
 
-(These are the generic form of a web app's query-key / invalidate-keys /
-mapError contract; adapt to the stack.) Mark any you inferred rather than
-confirmed — see [escalation](#when-to-stop-and-escalate).
+**On Spec first,** the plan part is short: target files, steps, tests and
+verification. Leave out `## Execution` (it's inline) and `## Commit points`
+unless the user or a project rule wants commits.
 
-**Optional sections** — omit freely: `## Data Sources`, `## Routing Strategy`,
-`## Risks and Mitigations`, `## Out of scope`, `## Success criteria`, `## Notes`.
-Exception: `## Key design decisions` is **mandatory at Tier 1** — it stands in
-for the spec, so an empty one means the design was skipped, not compressed.
+## Build
 
-## What earns a test
+### Changes flow back
 
-Implement, then test, then verify. "Non-trivial logic" is **layer + logic
-content**, not a vibe: a unit earns a focused test when it has real branching,
-mapping, fallback, or cache-key/invalidation logic; it's exempt (verify-driven)
-when it's pure presentation, routing, layout, or config with no extracted logic.
+When the build departs from the spec or plan (A becomes A1), edit that line
+first, with the date and the reason, and then change the code. The spec, the
+plan, the code and the reviews must never disagree.
 
-| Example layer / artifact | Has branching / mapping / fallback / cache logic? | Treatment |
-| --- | --- | --- |
-| service / use-case function | yes | **Focused test required** |
-| API / data-access function | yes | **Focused test required** |
-| util / pure helper | yes | **Focused test required** |
-| hook / controller with selector or orchestration logic | yes | **Focused test required** |
-| pure-presentational component | no extracted logic | **Exempt — verify-driven** |
-| page / route / layout shell | no extracted logic | **Exempt — verify-driven** |
-| styling / theming / config | n/a | **Exempt — verify-driven** |
+### Push back on changed requirements
 
-"Verify-driven" = type-check + lint + build + run/visual, no unit test. A test on
-a service's error mapping catches real regressions; a test asserting a
-presentational component renders its props catches nothing the type-checker and a
-glance at the running app don't.
+When the user changes a requirement mid-work, say plainly before acting:
 
-## Parallel-safe
+- whether it's a change request or a new feature;
+- what earlier decision it conflicts with;
+- what it costs (rework, tests that change, risk).
+
+Check a proposed design change before applying it, and say where it's weak.
+Agreeing without checking is not help. Then follow the user's call.
+
+### Parallel-safe
 
 Two tasks are parallel-safe **only** when both hold:
 
-1. their **write sets are disjoint** — no file touched by both, and
+1. their **write sets are disjoint**: no file is touched by both; and
 2. neither depends on the other's **implementation decisions or generated
    artifacts**.
 
-Independence is about writes and decisions, not topic. Tasks that merely sound
-unrelated routinely fail both tests.
+Keep tasks sequential when they share a file (a barrel or constants file
+counts), when one sets a contract the other consumes, when ordering matters (a
+migration), or when they need a joint design decision. To make consumers
+parallel-safe, pin the contract in the plan first, or land it as a small
+blocking task.
 
-**Keep sequential when:** two tasks modify the same file (a shared barrel/export
-or a URL/constants file counts); one establishes a type or API contract the other
-consumes; both alter the same architectural boundary; ordering matters (a
-migration); one task's output determines how the other is implemented; or the two
-would need a coordinated design decision to agree.
+### Waves (Full path)
 
-The fix for a contract dependency is not to serialize everything: pin the contract
-in the plan first, or land it as a small blocking task, and the consumers become
-parallel-safe. That conversion is most of what a good decomposition does.
+- **At most 4 agents per wave,** dispatched in one turn with the `Agent` tool.
+- **Isolation** follows the project's rule (for example, branches rather than
+  folders). Agents never commit. The orchestrator commits at the plan's commit
+  points.
+- **Each brief** carries the task's files, intent, acceptance lines and pinned
+  contracts. It inherits none of your context. Include verbatim:
 
-**Actually executing the fan-out:** dispatch one subagent per parallel-safe task
-in a single turn via the `Agent` tool; for longer-lived workers use the
-`claude-session-driver` plugin, and for a structured multi-stage pipeline the
-`Workflow` tool (when the user has opted into orchestration). Describing
-parallelism you never execute is the thing Anvil exists to prevent.
+  ```text
+  Do only your task. Write the tests the plan assigns to it, and run only
+  those tests or the type-check. Do not run the full suite, and do not commit.
+  Report the files you changed, the acceptance lines your change covers, and
+  anything you had to assume.
+  ```
+
+- **After each wave,** reconcile the agents' work, give a one-line status, and
+  run the spec check.
+
+### The spec check after each wave
+
+One fresh reviewer agent reads the wave's diff against each task's acceptance
+lines. It runs no tests and skips style: a reviewer asked to find problems
+always finds something, and fixing style findings adds layers nobody asked
+for. It reports, per task:
+
+- **missing**: an acceptance line not met;
+- **extra**: code no acceptance line asks for;
+- **wrong**: a behaviour that differs from the line.
+
+One fixer gets the whole list at once. A fix that stays inside its finding
+gets no re-review: check it against the finding and rerun the tests that cover
+it. The next wave starts only when the spec check is clear. This check catches
+drift while it's still cheap. Skipping it moves the rework to the end.
+
+## Tests
+
+- **A bug fix starts with a repro test** that fails on the old code. Watch it
+  fail, and say so in the report.
+- **Test the core only:** logic where a change would break things elsewhere or
+  change how the system behaves. That means branching, mapping, fallbacks,
+  cache keys and invalidation, money and data handling, and contracts other
+  modules depend on.
+- **Don't test** pure presentation, layout, config, or thin wrappers that only
+  re-test the framework. The type-check, the build and running the real thing
+  cover those.
+- **Every kept test can say why it exists:** its name or docstring says what
+  breaks if it fails. Scaffold tests are deleted before finishing.
+- **Extend an existing test before adding a new file.**
+- **Never edit a test to make it pass** unless a requirement changed. When a
+  fix touches a test or the code, say which one and why.
 
 ## Verification
 
-One phase, at the end, owned by the orchestrator. The phases are distinct — this
-is what makes "only type-check mid-flight" and "run the narrow suite at the end"
-compatible rather than contradictory. Substitute your stack's commands for the
-examples:
+- **A test result stays valid until the code changes.** Don't rerun a suite on
+  an unchanged tree: not in a reviewer, not before a commit, not at the end.
+- **During the work:** only the narrowest tests that cover the change.
+- **One exception:** a change with an unknown blast radius (a shared token, a
+  router table, a code generator) is checked as soon as it lands.
+- **At the end, once, by the orchestrator:**
+  1. the full suite (cap its worker count), the type-check and lint, and the
+     build if files were added, moved or deleted;
+  2. **run the real thing:** the CLI path, the endpoint, or the UI in a browser
+     when UI changed;
+  3. **tick off what was asked:** each of the user's asks (or acceptance lines)
+     as *done* with its evidence, *not done*, or *changed* with the date. Check
+     that the spec and plan match the code;
+  4. **re-check what subagents claimed** before repeating it: rerun the test or
+     read the line;
+  5. **Full path only: one final review.** A fresh reviewer reads the whole
+     diff once, against the spec, for what the per-wave checks can't see (how
+     the waves fit together, duplicated logic, leftover scaffold tests). It
+     runs no tests and skips style. One fixer gets its findings.
+- **No done or passing claim without fresh evidence** from this run. "I didn't
+  run it" is never a substitute. Resolve the warnings that matter. Never hide
+  any.
 
-| Phase | Who | Commands (examples) |
-| --- | --- | --- |
-| Implementation | Each agent | type-check only (`npm run type-check`, `tsc --noEmit`, `mypy`, `go build`) — **and nothing else** |
-| Reconcile | Orchestrator | the same type-check after merging the agents' work |
-| Test + fix loop | Orchestrator | author the required tests, then run the **narrowest** suite that answers the question (`npx vitest run <module>`, `pytest <path>`), repeat until green |
-| Final | Orchestrator | full validate once (`npm run validate`); build if files were added/moved/deleted; run/visual check when UI changed |
+## Landing
 
-Agents never run a test suite or the full validate. The full suite runs only in
-the final pass. Interleaved verification costs far more wall-clock than the
-defects it catches, and catches none this pass would miss.
+- **Just do it:** nothing committed, no branch made, unless the user or a
+  project rule asks. Say "Nothing committed."
+- **Spec first and Full:** commits happen only at the commit points the
+  approved plan names (a Spec-first plan usually names none). Those commits go
+  on the local branch the plan names when you're on `main`/`master`. The
+  orchestrator makes them and pushes nothing.
+- **At the end,** offer the landing options in one message: merge into which
+  branch, push or not, PR or not, and which work branches to delete.
+- Never `git commit -a` while agents share a checkout. Never force-push or
+  rewrite history without being asked.
 
-**One early exception:** a change whose blast radius is unknown — a shared theme
-token, a router table, a code generator — gets verified as soon as it lands,
-because a failure found at the end would invalidate everything built on top.
+## Report
 
-## Speed levers
+Outcome first, in plain words, critical items before minor ones:
 
-- **Parallel agents — the biggest wall-clock win.** One agent per parallel-safe
-  task, all dispatched in a single turn. Each gets a focused, self-contained
-  brief (its files + its intent + expected output) and inherits none of your
-  history. **Every brief must say what NOT to do**, because a subagent inherits
-  none of this context and will otherwise run the full validate itself. Include
-  verbatim:
+1. **What changed**, in a line or two per deliverable.
+2. **How it was checked:** the commands, their exit codes, and the output lines
+   that matter. For a bug fix, also the repro test failing before the fix.
+3. **What was asked**, ticked (Spec first and Full).
+4. **Calls I made**, numbered, each with its reason and what it costs to
+   reverse.
+5. **What I didn't do**, and why.
+6. **The state:** what's committed, and on which branch, or "Nothing
+   committed."
 
-  ```text
-  Implement only. Do not author tests and do not run any test suite or the full
-  validate command — type-check is the only check you may run. The orchestrator
-  verifies once, after all agents land.
-  ```
+Write the report for someone who didn't watch the work: say what the behaviour
+is now, with no stage names, ids or leftover progress fragments ("Now the
+fix:"). Brief updates while you work, at natural milestones, are welcome.
 
-- **Cheapest capable model** for mechanical work (renames, config tweaks) —
-  reserve the strong model for design and judgment.
-- **File-based handoffs** — pass plans and findings as files to keep the
-  orchestrator's context small instead of inlining everything.
-- **On a large codebase, query the graph, don't re-read files** — if a
-  `graphify-out/` graph exists (the `graphify` skill), traverse it to locate code
-  instead of grepping/reading raw files; recall prior decisions via the
-  `episodic-memory` plugin rather than re-deriving them.
-- **Continuous execution** — run independent tasks back-to-back. Don't stop to
-  ask "should I continue?" between them.
-- **Batched fixes** — one fixer agent gets the full findings list at once, not
-  one agent per finding.
+## When to stop and escalate
 
-## Non-negotiable floor
+These are where continuing confidently produces fast wrongness. Stop, say what
+you found, and reassess the path:
 
-Anvil buys speed by cutting duplication and right-sizing ceremony. Never by
-skipping these:
+- The requested behaviour conflicts with an existing invariant or rule.
+- **A contract you need does not exist** (no endpoint, no shape), and you'd
+  have to invent it.
+- Two modules offer competing sources of truth for the same data.
+- The change needs a shared abstraction you didn't expect to touch.
+- The blast radius outgrows the path you picked.
+- You find undocumented behaviour that materially changes the design.
 
-- **Fresh verification evidence before any done/passing claim** — from the single
-  end-of-work pass, not a run per step. Deferring verification is not skipping it;
-  "I didn't run it" is never a substitute.
-- **TDD is demoted, not deleted.** Reach for a real red-green cycle when a test is
-  the cheapest way to pin down behavior you can't otherwise trust: a reported bug
-  you must reproduce before fixing, a gnarly pure function with many branches, or
-  a contract another module depends on. A real call, not a loophole — the default
-  is still implement-first.
-- **Assumptions are labelled**, in the plan and the report. Speed that hides what
-  you invented is not speed.
-- **Branch safety** — no work on `main`/`master` without consent.
-- **A review pass before merge.**
-- **Resolve the warnings that matter; never hide any.** No lint-disable to mask
-  output.
+Escalating is a short statement of what's unknown and what you assumed, made
+while the work is still cheap to redirect.
+**Anything you had to invent is marked as an assumption everywhere it
+appears**, including in the plan's pinned contracts.
 
-## Anti-slop posture
+## Simple code
 
-Binding on every change Anvil governs, at every tier, and in every subagent brief:
+Binding on every change and in every brief:
 
-1. **Preserve behavior.** Don't change unrequested visual styles or logic unless
-   explicitly instructed.
-2. **Minimize changes.** Keep diffs small, clean, tight. Avoid unnecessary
-   refactoring.
-3. **Reuse utilities.** Check existing architecture and patterns first. Don't
-   reinvent the wheel with redundant helpers.
-4. **Strip boilerplate.** Avoid over-defensive error handling at trusted internal
-   boundaries, verbose comments, or future-proofing abstractions.
-5. **Be concise and evidence-dense.** Provide the necessary fixes without
-   conversational fluff, throat-clearing, or over-explanation.
+- **Normal change:** the smallest diff that does it, using existing patterns
+  and utilities. Don't change unrequested behaviour or styles.
+- **Redesign:** build what the spec describes. Reuse existing code only where
+  the spec's *stays* list names it. Don't anchor on the old implementation.
+- **Nothing without a reason:** no module, option, limit or helper that no ask
+  or acceptance line needs. No over-defensive handling at trusted internal
+  boundaries, no future-proofing abstractions, no verbose comments.
+- **Edit files with the Edit and Write tools only,** never with `sed -i`, a
+  heredoc or a script. Keep each file's line endings.
+- **Don't kill processes you didn't start.**

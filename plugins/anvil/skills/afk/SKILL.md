@@ -8,10 +8,12 @@ description: >-
   plan", "run with it", "make the call yourself", "I'll review in the morning".
   AFK converts every question you would have asked into a documented assumption
   plus your best decision, and hands back one decision log at the end instead of
-  a stream of interruptions. It does NOT unlock commits, destructive actions,
-  work on main, or skipping verification — it removes the waiting, not the
-  safety floor. Pairs with the `anvil` skill, which still governs tiers, plans,
-  parallelism and verification.
+  a stream of interruptions. It leaves commits and branches to the workflow,
+  the project rules and the user, and it never unlocks destructive or outward
+  actions or skipping verification — it removes the waiting, not the safety
+  floor. It works with any workflow or skill in use: they still decide
+  how the work is done, and AFK only removes the waiting, including at their
+  own approval stops.
 ---
 
 # AFK — decide, don't wait
@@ -27,6 +29,10 @@ of stopping. Blocking on a question you could have answered yourself is the
 failure mode AFK exists to prevent; quietly burying a choice you knew was a coin
 flip is the failure mode that makes AFK untrustworthy. Avoid both.
 
+**Local files only.** The decision log, notes and reports are files on this
+machine, in the repo. No Artifacts, hosted pages or shared links unless the
+user asked for one.
+
 ## What changes
 
 | Normally | Under AFK |
@@ -34,24 +40,39 @@ flip is the failure mode that makes AFK untrustworthy. Avoid both.
 | Ask a clarifying question | Choose the best reading, record it as an assumption, continue |
 | "Should I continue?" between tasks | Continue. Never ask this |
 | Wait for approval on an approach | Take the approach, log why, flag it for review |
-| `anvil` escalation trigger → stop and reassess | Escalation still **fires**: reassess tier and plan, record the finding, pick the best option, continue |
+| A skill, workflow or plan stops to wait for the user | Pass it with [the ruling below](#passing-a-stop), unless it's one of the stops under "When to stop anyway" |
+| A "stop and reassess" trigger fires | It still **fires**: reassess the plan, record the finding, pick the best option, continue |
 | Present options and wait | Pick one; list the runners-up in the decision log |
 
-`anvil` still governs everything else — tier, plan shape, parallel fan-out, the
-verification phase table, the test-classification table. AFK only removes the
-waiting.
+Whatever workflow or skill is in use still governs everything else: how the
+work is planned, built, tested and verified. AFK only removes the waiting.
+
+## Passing a stop
+
+Any skill or workflow may stop to wait for the user. These stops are what end
+unattended nights early, so recognise them by what they ask for, not by which
+skill raised them, and rule on each one:
+
+| The stop asks for | Ruling |
+| --- | --- |
+| Approval of a document (a spec, design or plan) | Finish the document as you'd want it approved, approve it on the user's behalf, note that in the document, and go on. Keep the decision log in it |
+| A choice between options or approaches | Take the option the skill recommends. Without a recommendation, take the most reversible one |
+| A checkpoint ("review before I continue") | Continue if the work so far passes its own checks. If it doesn't, fix it first |
+| "Stop and ask" on something unclear | Resolve it as an assumption and log it, unless it's ambiguous at the root (see "When to stop anyway") |
+| What to do with finished work (merge, push, open a PR, discard) | Leave the work where it is and the choice for the user. Report it as waiting on them |
+| Anything in "What AFK never unlocks" | Don't pass it. Finish everything else first, then leave the note |
 
 ## What AFK never unlocks
 
 These are not interruptions to be optimized away; they are the reason unattended
 work is safe to hand back. AFK grants no permission it doesn't already have:
 
-- **Commits.** Never commit unless the user explicitly asked. "Finish the work"
-  is not "commit the work". Leave changes in the working tree.
+- **Commits and branches** — AFK changes nothing here. They happen where the
+  workflow, the project rules or the user say, and nowhere else. "Finish the
+  work" is not "commit the work".
 - **Destructive or irreversible actions** — `push --force`, history rewrites,
   deleting files you didn't create for this task, dropping or migrating data,
   anything that cannot be undone by `git checkout`.
-- **Branch safety** — no work on `main`/`master` without consent given in advance.
 - **Anything leaving the machine** — publishing, posting, sending, deploying,
   calling an external service with repo content.
 - **Verification.** The single end-of-work pass still runs, and no done/passing
@@ -77,6 +98,18 @@ thrown away, which costs the user far more than the wait:
 When you do stop, stop _late_: finish every part of the work that doesn't depend
 on the unknown first, then leave the note. A stop that still delivers 80% of the
 task is a good outcome; a stop at the first sign of doubt is what AFK forbids.
+
+## Ending too early
+
+Unattended runs on current models tend to end before the work is done, in four
+recognisable ways. None of them is a reason to end the turn:
+
+- a summary that announces the next step instead of taking it;
+- an offer to carry on ("want me to continue with…?");
+- a list of decisions that block nothing (make them and log them);
+- deciding that this is "a good place to report" while items are still open.
+
+End the turn when the work is finished, or when one of the stops above applies.
 
 ## Deciding well
 

@@ -1,22 +1,24 @@
 # MrError Claude Skills
 
 A personal [Claude Code](https://claude.com/claude-code) plugin marketplace. One
-bundle plugin — **anvil** — carries an opinionated engineering workflow and
-auto-installs the capability plugins it builds on.
+bundle plugin — **anvil** — carries an opinionated engineering workflow on top of
+[Superpowers](https://github.com/obra/superpowers).
 
 > Policy over capability: these skills encode *how work should flow* (when to
-> test, parallel vs sequential, mock-first UI, cross-model review) and orchestrate
-> the community capability plugins underneath instead of reinventing them.
+> test, parallel vs sequential, mock-first UI, cross-model research). Apart from
+> `anvil`, which governs Superpowers, each skill stands alone and uses whatever
+> tools the machine has when it runs.
 
 ## What's inside `anvil`
 
 | Skill | Fires when | Does |
 |---|---|---|
-| **anvil** | any non-trivial build / implement / plan task | Workflow governor over [Superpowers](https://github.com/obra/superpowers): tiered decision procedure, an override table, **parallel-agent plans** (not sequential), **implement-then-test** with a single end-of-work verification pass, lean contract plans. When it conflicts with a Superpowers skill, Anvil wins. |
-| **afk** | "afk", "work autonomously", "just finish it" | Runs a plan to completion unattended: turns every question into a documented assumption + decision, **hard-stops on commits / destructive / outward actions**, and hands back one decision log. |
-| **ui-mockup** | before any UI / screen / component / layout | Mock + align on structure (incl. empty / loading / error states) **before** writing production UI. |
-| **ux-audit** | after UI is built; "review the ux" | Audits the built UI against UX heuristics, reports ranked findings, applies fixes. |
-| **cross-model** | before calling work done, expensive-to-reverse decisions, a problem that failed twice, research | Backend-agnostic **second-model review/research** with AGREE / DISAGREE / NEEDS-CHECK triage. Uses Antigravity CLI (`agy`) on a Gemini subscription by default, or a router / API key, or falls back to Claude-only. |
+| **anvil** | any non-trivial build / implement / plan task | Workflow governor over [Superpowers](https://github.com/obra/superpowers). Picks one of three paths: **just do it** for linear work (no docs, stops or subagents), **spec first** (one short spec-and-plan, one stop) for open product questions, and **full** (spec stop, plan stop, parallel waves of at most 4 agents with a spec check after each) for large or risky work. Lean contract plans, implement-then-test (a bug fix always starts with a failing repro test), one final verification that also ticks off what was asked. When it conflicts with a Superpowers skill, Anvil wins. |
+| **afk** | "afk", "I'm going to bed", "just finish it" | Keeps working until the work is done. Any skill or workflow's stop (an approval, a choice, a checkpoint) is passed with a ruling and logged. **Leaves commits to the workflow and project rules, hard-stops on destructive / outward actions**, and hands back one decision log. Works with or without any other skill. |
+| **mockups** | after brainstorming or a spec, when the interface is still unclear; you ask for mocks; or an interactive mock to show a hard problem | 2–4 local HTML variants, each testing one idea (structure, navigation, density, visual direction), with built-in rules for type, color, light/dark theme, spacing and states. Web research first when the look is unknown. Compared side by side, in rounds. |
+| **web-audit** | a page or UI was built or changed; "audit this page"; or you name a category ("check SEO", "responsiveness on 390 and 768") | By default audits only UI and UX at one target screen size, against the spec and mock (missing, different, extra). Responsiveness, accessibility, SEO, performance, technical and content are categories it adds only when asked. Uses whatever browser tooling the machine has, and asks before installing any. Ranks findings P0/P1/P2 by user harm and reports; fixes are your call. |
+| **ticket-update** | a repo whose work is tracked; "update the tickets", "break this plan into tickets" | Detects whichever tracker the project uses (asks when unsure, offers a local `docs/tickets.md` when there's none), writes tickets an agent can build from, keeps status and evidence comments current, only touches your own tickets. |
+| **cross-model** | only when you ask ("use cross-model", "research this with another model too"); never on its own | **Two-track research**: Claude subagents and a model from another family that this machine can reach (any CLI, API key or local router you've set up; the cheapest model it offers) research the same question independently, then Claude compares and consolidates. Falls back to Claude-only, and says so. |
 
 Progressive disclosure keeps it cheap: ~1.2k tokens always-on; each skill's full
 body loads only when it triggers.
@@ -24,19 +26,20 @@ body loads only when it triggers.
 ## Prerequisites
 
 - **Claude Code** `>= 2.1.290`.
-- The **superpowers-marketplace** must be added first, because `anvil` declares
-  cross-marketplace dependencies on it. (Step 1 below.)
+- **Superpowers** from the official marketplace
+  (`superpowers@claude-plugins-official`). Anvil governs it and doesn't install
+  it for you.
 
 ## Install
 
 ```bash
-# 1. add the dependency marketplace FIRST (anvil depends on superpowers)
-claude plugin marketplace add obra/superpowers-marketplace
+# 1. Superpowers, if it isn't installed yet
+claude plugin install superpowers@claude-plugins-official
 
 # 2. add this marketplace
 claude plugin marketplace add MrErrorSan/mrerror-claude-skills
 
-# 3. install anvil — its dependencies install automatically
+# 3. install anvil at user scope
 claude plugin install anvil@mrerror-claude-skills
 ```
 
@@ -45,34 +48,26 @@ Then **restart Claude Code** (or `/reload-plugins`) so the skills load.
 Verify:
 
 ```bash
-claude plugin details anvil@mrerror-claude-skills   # should list 5 skills
+claude plugin details anvil@mrerror-claude-skills   # should list 6 skills
 ```
 
 ### What gets installed
 
-`anvil` + its 5 skills, plus these auto-installed dependencies (from
-`superpowers-marketplace`, allow-listed via `allowCrossMarketplaceDependenciesOn`):
+`anvil` and its 6 skills. Nothing else is installed automatically. Parallel
+work uses Claude Code's built-in `Agent` tool.
 
-- [`superpowers`](https://github.com/obra/superpowers) — the skills anvil reshapes
-- `claude-session-driver` — real parallel execution via tmux workers
-- `episodic-memory` — cross-session recall
+If you have loose copies in `~/.claude/skills/anvil` or `~/.claude/skills/afk`
+from before the plugin, move them out: otherwise both versions load.
 
 ## Optional: a second model for `cross-model`
 
-`cross-model` is backend-agnostic and falls back to Claude-only if nothing is set
-up. For a real independent second opinion, pick one (details in
-[`plugins/anvil/skills/cross-model/references/backends.md`](plugins/anvil/skills/cross-model/references/backends.md)):
-
-- **Antigravity CLI (`agy`) — recommended.** Google's terminal agent; signs in
-  with a **Google AI Pro / Ultra** subscription, so no API key and no per-token
-  cost. Install: `curl -fsSL https://antigravity.google/cli/install.sh | bash`,
-  then `agy` to log in. The skill drives it headless with
-  `agy --model gpt-oss-120b-medium -p "<prompt>"` (a different model family from
-  the Claude being reviewed → a true cross-check).
-- **Gemini API key** — `npm install -g @google/gemini-cli` + `GEMINI_API_KEY`
-  (free tier is Flash-only).
-- **A local router** (omniroute / claude-code-router) exposing an
-  OpenAI-compatible endpoint, to reach many models behind one key.
+`cross-model` uses whatever second model family the machine can reach when you
+ask for it: a model CLI signed in with your subscription, an API key in the
+environment, or a local OpenAI-compatible router. It lists the backend's models
+each time and picks the cheapest, so adding a new provider later needs no new
+skill. With nothing set up, it runs Claude-only and says so. How it finds and
+drives a backend, and the quirks already met, are in
+[`plugins/anvil/skills/cross-model/references/backends.md`](plugins/anvil/skills/cross-model/references/backends.md).
 
 ## Updating
 
@@ -110,17 +105,20 @@ plugins/anvil/
   skills/
     anvil/SKILL.md                       # workflow governor
     afk/SKILL.md                         # unattended mode
-    ui-mockup/SKILL.md                   # mock-first UI
-    ux-audit/SKILL.md                    # post-build UX audit
-    cross-model/SKILL.md                 # second-model review/research
+    mockups/SKILL.md                     # mock variants, in rounds
+    web-audit/SKILL.md                   # UI, UX, accessibility and SEO audit of web pages
+    cross-model/SKILL.md                 # two-model research, only when asked
     cross-model/references/backends.md   # pluggable model backends
+    ticket-update/SKILL.md               # tracker updates and ticket writing
+    ticket-update/references/            # trackers, templates, profile, calibration
+    ticket-update/evals/                 # claude plugin eval cases
 ```
 
 ## Notes
 
-The `anvil` and `afk` skills are generalized versions of project-specific
-originals — stack specifics (commands, rules, paths) are demoted to examples so
-they work across any project. `cross-model` is a Linux port of a prior Gemini
-cross-review rig, rebuilt to be provider-agnostic.
+`anvil` is the only skill tied to another plugin: it governs Superpowers and
+does nothing without it. Every other skill stands alone. It names no other
+skill, tool or model, finds what the machine has when it runs, and asks before
+installing anything.
 
 MIT. Personal tooling — use at your own discretion.
