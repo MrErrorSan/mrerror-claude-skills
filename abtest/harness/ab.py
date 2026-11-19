@@ -718,10 +718,11 @@ def report(suite: str, metas: list[dict] | None = None, out: Path | None = None)
             rank = " > ".join(m.get(l, l) for l in v.get("ranking", []))
             lines.append(f"### {key}: {rank}")
             lines.append("")
-            lines.append(re.sub(r"\b([XYZ])\b", lambda mm: m.get(mm.group(1), mm.group(1)), v.get("summary", "")))
+            lab_re = r"\b(" + "|".join(map(re.escape, m)) + r")\b"
+            lines.append(re.sub(lab_re, lambda mm: m.get(mm.group(1), mm.group(1)), v.get("summary", "")))
             lines.append("")
             for lab, s in sorted(v["scores"].items(), key=lambda kv: m.get(kv[0], kv[0])):
-                probs = "; ".join(re.sub(r"\b([XYZ])\b", lambda mm: m.get(mm.group(1), mm.group(1)), p)
+                probs = "; ".join(re.sub(lab_re, lambda mm: m.get(mm.group(1), mm.group(1)), p)
                                   for p in s.get("problems", []))
                 lines.append(f"- **{m.get(lab, lab)}** overall {s.get('overall')} (match {s.get('match')}, "
                              f"simplicity {s.get('simplicity')}, tests {s.get('tests')}, process {s.get('process_fit')}, "
