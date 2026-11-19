@@ -40,7 +40,11 @@ SP_DIR = Path(os.environ.get(
     "ABTEST_SP_DIR",
     Path.home() / ".claude/plugins/cache/claude-plugins-official/superpowers/7.0.2"))
 ANVIL_DIR = REPO / "plugins" / "anvil"
-ARMS = {"A": ANVIL_DIR, "S": SP_DIR, "V": None}
+# O: the original Anvil (main, 0.1.0: a text-only governor over Superpowers) loaded together
+# with Superpowers, as it ran. Snapshot made with `git archive main plugins/anvil`, with
+# plugin.json's marketplace dependencies removed (Superpowers is loaded directly instead).
+OG_DIR = RUN_ROOT / "_plugins" / "anvil-og-46b7535" / "plugins" / "anvil"
+ARMS = {"A": ANVIL_DIR, "S": SP_DIR, "V": None, "O": [OG_DIR, SP_DIR]}
 AGENT_MODEL = os.environ.get("ABTEST_MODEL", "claude-opus-5-5")
 AGENT_EFFORT = os.environ.get("ABTEST_EFFORT", "high")
 SIM_MODEL = os.environ.get("ABTEST_SIM_MODEL", "claude-sonnet-5-5")
@@ -223,8 +227,8 @@ def run_one(suite: str, case: dict, arm: str, k: int) -> dict:
     common = ["--setting-sources", "project", "--model", AGENT_MODEL, "--effort", AGENT_EFFORT,
               "--permission-mode", "bypassPermissions", "--disallowedTools", "AskUserQuestion",
               "--output-format", "stream-json", "--verbose"]
-    if plugin:
-        common += ["--plugin-dir", str(plugin)]
+    for pdir in (plugin if isinstance(plugin, list) else [plugin] if plugin else []):
+        common += ["--plugin-dir", str(pdir)]
     deadline = time.time() + case["timeout_min"] * 60
     history, turns, sims = [], [], []
     message = case["request"]
@@ -283,7 +287,8 @@ def run_one(suite: str, case: dict, arm: str, k: int) -> dict:
     meta = {
         "run_id": run_id, "suite": suite, "case": case["id"], "arm": arm, "replicate": k,
         "status": status, "end_reason": end_reason,
-        "plugin": str(plugin) if plugin else None, "plugin_rev": plugin_rev(arm),
+        "plugin": [str(x) for x in plugin] if isinstance(plugin, list) else (str(plugin) if plugin else None),
+        "plugin_rev": plugin_rev(arm),
         "model": AGENT_MODEL, "effort": AGENT_EFFORT,
         "loaded_plugins": (turns[0]["init"] or {}).get("plugins") if turns else None,
         "agent_time_s": round(agent_ms / 1000, 1), "wall_time_s": wall_s,
@@ -321,6 +326,8 @@ def plugin_rev(arm: str) -> str | None:
             rev = sh(["git", "rev-parse", "--short", "HEAD"], cwd=REPO).stdout.strip()
             dirty = sh(["git", "status", "--porcelain", "--", "plugins/anvil"], cwd=REPO).stdout.strip()
             _REV_CACHE[arm] = f"anvil@{rev}{'+dirty' if dirty else ''}"
+        elif arm == "O":
+            _REV_CACHE[arm] = f"anvil-og@main:46b7535 (0.1.0) + superpowers@{SP_DIR.name}"
         else:
             _REV_CACHE[arm] = f"superpowers@{SP_DIR.name}"
     return _REV_CACHE[arm]
