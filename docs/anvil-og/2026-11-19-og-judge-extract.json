@@ -1,0 +1,363 @@
+{
+ "source": "branch anvil-v2, abtest/results/six/judge/*.json (blind Opus judge, 16 of 21 replicate groups)",
+ "generated": "2026-11-19",
+ "dimension_means": {
+  "OG": {
+   "match": 4.38,
+   "simplicity": 4.31,
+   "tests": 3.88,
+   "process_fit": 3.69,
+   "communication": 3.88,
+   "rules": 4.5,
+   "overall": 3.69
+  },
+  "V2.2": {
+   "match": 4.44,
+   "simplicity": 4.62,
+   "tests": 3.56,
+   "process_fit": 4.12,
+   "communication": 4.31,
+   "rules": 4.69,
+   "overall": 3.88
+  },
+  "V1": {
+   "match": 4.0,
+   "simplicity": 3.75,
+   "tests": 3.75,
+   "process_fit": 2.38,
+   "communication": 3.12,
+   "rules": 4.0,
+   "overall": 3.0
+  },
+  "Plain": {
+   "match": 4.25,
+   "simplicity": 4.19,
+   "tests": 3.5,
+   "process_fit": 3.62,
+   "communication": 3.62,
+   "rules": 4.38,
+   "overall": 3.25
+  },
+  "V2.1": {
+   "match": 4.69,
+   "simplicity": 4.0,
+   "tests": 3.94,
+   "process_fit": 3.38,
+   "communication": 3.81,
+   "rules": 4.5,
+   "overall": 3.69
+  },
+  "SP": {
+   "match": 4.31,
+   "simplicity": 4.12,
+   "tests": 3.56,
+   "process_fit": 3.81,
+   "communication": 3.75,
+   "rules": 4.56,
+   "overall": 3.31
+  }
+ },
+ "og_per_group": [
+  {
+   "group": "c1-typo-r1",
+   "rank_of_6": 3,
+   "scores": {
+    "match": 5,
+    "simplicity": 5,
+    "tests": 5,
+    "process_fit": 4,
+    "communication": 4,
+    "rules": 5,
+    "overall": 4
+   },
+   "problems": [
+    "First edit via sed stripped the file's CRLF endings; the agent caught and fixed it, but this cost an extra round and narration on a one-word fix",
+    "Progress messages about the sed mishap add noise to an otherwise trivial task"
+   ]
+  },
+  {
+   "group": "c1-typo-r2",
+   "rank_of_6": 6,
+   "scores": {
+    "match": 5,
+    "simplicity": 5,
+    "tests": 2,
+    "process_fit": 4,
+    "communication": 3,
+    "rules": 5,
+    "overall": 3
+   },
+   "problems": [
+    "Did not run the existing tests (test-suite runs=0) and the report gives no test status at all",
+    "Verification is only a repo search for other 'recieve' misspellings, which does not show nothing broke"
+   ]
+  },
+  {
+   "group": "c1-typo-r3",
+   "rank_of_6": 4,
+   "scores": {
+    "match": 5,
+    "simplicity": 5,
+    "tests": 3,
+    "process_fit": 4,
+    "communication": 4,
+    "rules": 5,
+    "overall": 4
+   },
+   "problems": [
+    "Never ran the existing tests (runs=0); the ideal was one test run",
+    "Honestly says 'I haven't run anything', but leaves verification to the user"
+   ]
+  },
+  {
+   "group": "c2-top-n-r1",
+   "rank_of_6": 2,
+   "scores": {
+    "match": 5,
+    "simplicity": 5,
+    "tests": 4,
+    "process_fit": 4,
+    "communication": 4,
+    "rules": 5,
+    "overall": 4
+   },
+   "problems": [
+    "Created a `feature/top-n` branch without being asked and without giving a reason.",
+    "First version rejected `--top 0` without explaining why; decisions were listed but not justified.",
+    "`test_top_zero_prints_nothing_and_succeeds` copies the temp-file helper inline instead of making `run_main` return the exit code.",
+    "`test_top_limits_output` and the tie test overlap a little.",
+    "It did say clearly that the old 'zero is an error' test was removed and why: good."
+   ]
+  },
+  {
+   "group": "c2-top-n-r2",
+   "rank_of_6": 3,
+   "scores": {
+    "match": 4,
+    "simplicity": 4,
+    "tests": 4,
+    "process_fit": 4,
+    "communication": 4,
+    "rules": 4,
+    "overall": 4
+   },
+   "problems": [
+    "Created branch feature/top-n without asking ('I'm on main, so I'll put it on a branch first'); it was stated, but it is an unrequested action.",
+    "--top 0 as an error was flagged as 'A choice I made on my own', but with no reason beyond 'one-line change'.",
+    "README omits that N > word count prints all and that bad N exits 2.",
+    "Same `n = -1` sentinel trick; the non-numeric error message hides the real cause ('non-negative integer, got 'x'')."
+   ]
+  },
+  {
+   "group": "c2-top-n-r3",
+   "rank_of_6": 1,
+   "scores": {
+    "match": 5,
+    "simplicity": 5,
+    "tests": 4,
+    "process_fit": 4,
+    "communication": 5,
+    "rules": 5,
+    "overall": 4
+   },
+   "problems": [
+    "Rejected `--top 0` in the first pass; it was listed under 'Choices I made', but still needed a correction.",
+    "Created a `feature/top-n` branch unasked; it was stated, but adds a small step the trivial change didn't need.",
+    "`test_top_limits_output_ties_alphabetical` relies on a comment to explain intent; otherwise the 4 tests are focused and check exit codes, stderr and stdout."
+   ]
+  },
+  {
+   "group": "c3-ledger-three-r1",
+   "rank_of_6": 3,
+   "scores": {
+    "match": 4,
+    "simplicity": 3,
+    "tests": 4,
+    "process_fit": 3,
+    "communication": 4,
+    "rules": 4,
+    "overall": 4
+   },
+   "problems": [
+    "The plan doc docs/plans/2026-11-19-export-and-since.md was written but never offered for approval. It is after-the-fact ceremony, and its frontmatter says every todo is 'completed'.",
+    "The plan's Verification section cites INV-1002/INV-1003, but the tests use INV-1/2/3. The doc and the tests disagree.",
+    "Adds a new module, ledger/export.py, for about 20 lines. The sharing is good, but a separate file was not needed.",
+    "Allowing both flags is the right call, but it was decided without asking. It is stated clearly in the report, though."
+   ]
+  },
+  {
+   "group": "c3-ledger-three-r2",
+   "rank_of_6": 3,
+   "scores": {
+    "match": 4,
+    "simplicity": 3,
+    "tests": 4,
+    "process_fit": 3,
+    "communication": 4,
+    "rules": 4,
+    "overall": 4
+   },
+   "problems": [
+    "Adds a new ledger/export.py module and two new test files, which is slightly more structure than needed. rows() is also rebuilt for each format.",
+    "Wrote a plan doc but never asked for approval, so it is ceremony without a checkpoint.",
+    "--since uses a bare date.fromisoformat. The error text is argparse's 'invalid fromisoformat value', and compact forms are accepted on 3.11+ without this being noted.",
+    "Allowing both flags is presented as 'the cheap superset', a decision made without asking (it happens to match).",
+    "Good: the money fix was offered first and made only after Saad said 'your call', and the plan doc was updated to match."
+   ]
+  },
+  {
+   "group": "c3-ledger-three-r3",
+   "rank_of_6": 4,
+   "scores": {
+    "match": 3,
+    "simplicity": 3,
+    "tests": 4,
+    "process_fit": 3,
+    "communication": 4,
+    "rules": 5,
+    "overall": 3
+   },
+   "problems": [
+    "Both flags is an error (stated as a choice), which contradicts Saad's preference; it did not ask.",
+    "Created a new module, ledger/export.py, where cli.py would have sufficed; this is an extra file.",
+    "Wrote a plan document (docs/plans/2026-11-19-export-and-since.md) only after the work, never offering it for approval, so the document is ceremony with no review step.",
+    "test_bad_date_is_a_usage_error calls cli.main without --data. It works only because parsing fails before the data file loads, which is fragile."
+   ]
+  },
+  {
+   "group": "c4-refund-bug-r1",
+   "rank_of_6": 3,
+   "scores": {
+    "match": 5,
+    "simplicity": 5,
+    "tests": 5,
+    "process_fit": 5,
+    "communication": 4,
+    "rules": 5,
+    "overall": 4
+   },
+   "problems": [
+    "Never says the new test failed on the old code; there is no red-before evidence",
+    "Formatting choices for zero and sub-dollar amounts are made silently",
+    "The cause is explained twice, once in the progress text and again in the report, which is slightly repetitive"
+   ]
+  },
+  {
+   "group": "c4-refund-bug-r2",
+   "rank_of_6": 3,
+   "scores": {
+    "match": 5,
+    "simplicity": 5,
+    "tests": 4,
+    "process_fit": 4,
+    "communication": 4,
+    "rules": 5,
+    "overall": 4
+   },
+   "problems": [
+    "The report never says whether the new test was seen failing before the fix, even though the suite ran twice",
+    "Mid-task narration ('Let me check data and tests before fixing') appears in the visible text and adds noise for a trivial fix",
+    "The test mixes 0.00 and -1.00 cases into one method; this is fine but slightly broader than the negative-amount regression it is named for",
+    "Useful note that the refunds figure was off by 1.04 for anyone who used earlier reports, with no overreach beyond that"
+   ]
+  },
+  {
+   "group": "c4-refund-bug-r3",
+   "rank_of_6": 4,
+   "scores": {
+    "match": 5,
+    "simplicity": 5,
+    "tests": 4,
+    "process_fit": 3,
+    "communication": 4,
+    "rules": 4,
+    "overall": 4
+   },
+   "problems": [
+    "Created branch 'fix/negative-money-format' without being asked; reported, but an unrequested repository action",
+    "The test has no -1.00 or whole-dollar negative case",
+    "Opening fragments 'Reproduced. Now the fix:' are leaked progress narration"
+   ]
+  },
+  {
+   "group": "c5-notes-tags-r1",
+   "rank_of_6": 5,
+   "scores": {
+    "match": 3,
+    "simplicity": 4,
+    "tests": 3,
+    "process_fit": 2,
+    "communication": 3,
+    "rules": 4,
+    "overall": 2
+   },
+   "problems": [
+    "Missed a must-have: the first build left POST /notes without tags ('POST /notes doesn't accept tags; you set them with the PUT'), even though its own design proposed it; Saad had to correct it.",
+    "Built straight after Q&A with no spec or plan for Saad to approve; plan.md was written after the code, despite 'think it through before anything gets built'.",
+    "First API tests worked around the threading bug by opening the connection on the server thread, so they did not exercise production behaviour until the second round.",
+    "Inconsistent filter rules: empty ?tag= is ignored but whitespace-only ?tag= is a 400; repeated ?tag= silently uses the first value; there is no tag length cap.",
+    "set_tags does DELETE+INSERT without a `with conn` transaction, so a mid-insert failure leaves uncommitted partial state on the shared connection."
+   ]
+  },
+  {
+   "group": "c5-notes-tags-r2",
+   "rank_of_6": 3,
+   "scores": {
+    "match": 4,
+    "simplicity": 4,
+    "tests": 4,
+    "process_fit": 4,
+    "communication": 3,
+    "rules": 3,
+    "overall": 3
+   },
+   "problems": [
+    "Docs disagree with code: spec.md still says 'Not built yet' and lists 'Assumptions: Nobody has confirmed these' after build and approval",
+    "The per-request connection change is not recorded in decisions.md or the spec, and README was not updated with the new endpoints",
+    "Found the thread bug only after building and first shipped tests that work around it with check_same_thread=False",
+    "Proposed max 20 tags and AND multi-tag filtering, which Saad had to correct",
+    "Ran a broad taskkill on python.exe that could have killed Saad's other processes; disclosed afterwards"
+   ]
+  },
+  {
+   "group": "c5-notes-tags-r3",
+   "rank_of_6": 1,
+   "scores": {
+    "match": 4,
+    "simplicity": 4,
+    "tests": 4,
+    "process_fit": 4,
+    "communication": 4,
+    "rules": 5,
+    "overall": 4
+   },
+   "problems": [
+    "First turn asked only an open 'what's prompting this?'. No batched concrete questions with recommendations; Saad had to volunteer the whole interface.",
+    "Found the threading crash but surfaced it only after building, which cost an extra round-trip; it could have been raised with the spec.",
+    "PUT handler re-runs store.normalize_tags(data['tags']) for the response instead of using set_tags' result (redundant work, two sources of truth).",
+    "Wrote a separate plan.md with YAML todos for a small change; slight ceremony beyond the approved spec.",
+    "list_notes second query fetches all of the owner's tags for that archived state, not just the returned notes (minor inefficiency, unflagged)."
+   ]
+  },
+  {
+   "group": "c6-csv-change-r1",
+   "rank_of_6": 3,
+   "scores": {
+    "match": 4,
+    "simplicity": 4,
+    "tests": 4,
+    "process_fit": 4,
+    "communication": 4,
+    "rules": 4,
+    "overall": 4
+   },
+   "problems": [
+    "It wrote a plan doc with todo frontmatter ('parallel: true', 'depends-on') for a tier-1 change and never asked for approval. That is ceremony without purpose.",
+    "The first-round question ('Should I commit… and fix the negative totals?') has no explicit recommendation.",
+    "The conversation doesn't say which tests changed for the new format or why. It only says the README and plan were updated.",
+    "It adds a separate export.py module, and sort logic is duplicated between export.py and cli.py.",
+    "The money() fix is test-first and well explained, and the plan records the format change ('changed 2026-11-19 from , / 12.50')."
+   ]
+  }
+ ]
+}
