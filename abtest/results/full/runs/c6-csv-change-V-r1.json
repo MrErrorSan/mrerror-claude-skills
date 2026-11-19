@@ -111,7 +111,8 @@
    "main"
   ],
   "worktrees": 1,
-  "doc_rule": null
+  "doc_rule": null,
+  "eol_changes": []
  },
  "run_dir": "C:\\Users\\MrError\\AppData\\Local\\Temp\\anvil-abtest\\full\\c6-csv-change-V-r1"
 }

@@ -123,7 +123,12 @@
   "doc_rule": {
    "new_docs_outside_rule": [],
    "decisions_md_updated": true
-  }
+  },
+  "eol_changes": [
+   "docs/decisions.md crlf->mixed",
+   "notes/api.py crlf->lf",
+   "notes/store.py crlf->lf"
+  ]
  },
  "run_dir": "C:\\Users\\MrError\\AppData\\Local\\Temp\\anvil-abtest\\full\\c5-notes-tags-V-r3"
 }

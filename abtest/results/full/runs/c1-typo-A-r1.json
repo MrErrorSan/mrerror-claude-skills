@@ -111,7 +111,10 @@
    "main"
   ],
   "worktrees": 1,
-  "doc_rule": null
+  "doc_rule": null,
+  "eol_changes": [
+   "shelf/messages.py crlf->lf"
+  ]
  },
  "run_dir": "C:\\Users\\MrError\\AppData\\Local\\Temp\\anvil-abtest\\full\\c1-typo-A-r1"
 }

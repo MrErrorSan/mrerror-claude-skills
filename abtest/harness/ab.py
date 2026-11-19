@@ -233,10 +233,12 @@ def run_one(suite: str, case: dict, arm: str, k: int) -> dict:
     wall0 = time.time()
     log(f"start {run_id}")
     for n in range(case["max_user_turns"] + 1):
-        args = ["-p", message, *(["--session-id", sid] if n == 0 else ["--resume", sid]), *common]
+        # The message goes on stdin: as an argument, a reply starting with "--top" was parsed
+        # as a CLI option and crashed the turn (c2, S and V arms, suite "full").
+        args = ["-p", *(["--session-id", sid] if n == 0 else ["--resume", sid]), *common]
         t0 = time.time()
         rc, out, timed_out = run_claude(args, cwd=repo, out_path=run_dir / f"turn-{n}.jsonl",
-                                        timeout_s=deadline - time.time())
+                                        timeout_s=deadline - time.time(), stdin_text=message)
         d = parse_stream(out)
         d["wall_s"] = round(time.time() - t0, 1)
         d["rc"] = rc
@@ -429,6 +431,25 @@ def tree_files(root: Path) -> dict[str, str]:
     return out
 
 
+def eol_style(data: bytes) -> str | None:
+    crlf = data.count(b"\r\n")
+    lf = data.count(b"\n") - crlf
+    return None if not (crlf or lf) else ("crlf" if crlf and not lf else "lf" if lf and not crlf else "mixed")
+
+
+def eol_changes(fixture: Path, tree: Path) -> list[str]:
+    """Files present in both whose line-ending style changed (read_text hides this)."""
+    out = []
+    for f in fixture.rglob("*"):
+        if f.is_file() and not any(p in IGNORE_DIRS for p in f.relative_to(fixture).parts):
+            g = tree / f.relative_to(fixture)
+            if g.is_file():
+                a, b = eol_style(f.read_bytes()), eol_style(g.read_bytes())
+                if a and b and a != b:
+                    out.append(f"{f.relative_to(fixture).as_posix()} {a}->{b}")
+    return sorted(out)
+
+
 def diff_stats(before: dict, after: dict) -> tuple[dict, str]:
     stats = {k: {"files": 0, "added": 0, "removed": 0} for k in ("code", "tests", "docs", "other")}
     chunks = []
@@ -486,6 +507,7 @@ def grade_run(case: dict, repo: Path, base: str, run_dir: Path) -> dict:
     if anvil_state.exists():
         shutil.copytree(anvil_state, run_dir / "anvil-state", dirs_exist_ok=True)
     return {
+        "eol_changes": eol_changes(case_dir / "files", best["tree"]),
         "result_location": best["name"],
         "hidden": {k: best["hidden"][k] for k in ("passed", "total", "by_category")},
         "hidden_failures": [t["id"].rsplit(".", 1)[-1] for t in best["hidden"]["tests"] if t["outcome"] != "pass"],
@@ -541,9 +563,9 @@ def run_bundle(meta: dict, label: str) -> str:
     return scrub("\n".join(parts))
 
 
-def judge(suite: str) -> None:
-    metas = load_metas(suite)
-    out_dir = RESULTS / suite / "judge"
+def judge(suite: str, metas: list[dict] | None = None, out_dir: Path | None = None) -> None:
+    metas = load_metas(suite) if metas is None else metas
+    out_dir = out_dir or RESULTS / suite / "judge"
     out_dir.mkdir(parents=True, exist_ok=True)
     groups: dict[tuple[str, int], list[dict]] = {}
     for m in metas:
@@ -558,7 +580,7 @@ def judge(suite: str) -> None:
         rng = random.Random(f"{cid}-{k}")
         ms = sorted(ms, key=lambda m: m["arm"])
         rng.shuffle(ms)
-        labels = [chr(ord("X") + i) if i < 3 else f"R{i}" for i in range(len(ms))]
+        labels = list("XYZ")[:len(ms)] if len(ms) <= 3 else list("WXYZ")[:len(ms)]
         prompt = (tmpl.replace("{n}", str(len(ms))).replace("{labels}", ", ".join(labels))
                   .replace("{judge_notes}", case["judge_notes"]).replace("{request}", case["request"])
                   .replace("{brief}", case["brief"])
@@ -601,10 +623,12 @@ def med(xs):
     return xs[n // 2] if n % 2 else round((xs[n // 2 - 1] + xs[n // 2]) / 2, 2)
 
 
-def report(suite: str) -> None:
-    metas = load_metas(suite)
+def report(suite: str, metas: list[dict] | None = None, out: Path | None = None) -> None:
+    metas = load_metas(suite) if metas is None else metas
+    out = out or RESULTS / suite
+    jdir = out / "judge"
     verdicts = {p.stem: json.loads(p.read_text(encoding="utf-8"))
-                for p in (RESULTS / suite / "judge").glob("*.json")} if (RESULTS / suite / "judge").exists() else {}
+                for p in jdir.glob("*.json")} if jdir.exists() else {}
     rows = []
     for m in metas:
         g = m["grade"]
@@ -632,15 +656,15 @@ def report(suite: str) -> None:
             "judge_overall": (js or {}).get("overall"), "judge_rank": rank if jv else None,
             "skills": m["tools"]["skills"],
             "failures": g["hidden_failures"],
+            "eol_changes": len(g.get("eol_changes", [])),
         })
-    out = RESULTS / suite
     (out / "summary.json").write_text(json.dumps({"rows": rows, "verdicts": verdicts}, indent=1), encoding="utf-8")
     lines = [f"# A/B results: suite `{suite}`", "",
              f"Generated {time.strftime('%Y-%m-%d %H:%M')}. Arms: A = Anvil, S = Superpowers 7.0.2, V = no plugin. "
              f"Agent model {AGENT_MODEL} at effort {AGENT_EFFORT}.", "",
              "## Per case (median over replicates)", "",
-             "| Case | Arm | Hidden pass % | Agent time s | Cost $ | User turns | Suite runs | Subagents | Code lines | Test lines | Docs | Judge (1-5) | Judge rank |",
-             "|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
+             "| Case | Arm | Hidden pass % | Agent time s | Cost $ | User turns | Suite runs | Subagents | Code lines | Test lines | Docs | EOL rewrites | Judge (1-5) | Judge rank |",
+             "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
     by: dict[tuple[str, str], list[dict]] = {}
     for r in rows:
         by.setdefault((r["case"], r["arm"]), []).append(r)
@@ -649,7 +673,24 @@ def report(suite: str) -> None:
             c, a, med([r["hidden_pct"] for r in rs]), med([r["agent_s"] for r in rs]), med([r["cost"] for r in rs]),
             med([r["user_turns"] for r in rs]), med([r["test_runs"] for r in rs]), med([r["subagents"] for r in rs]),
             med([r["code_lines"] for r in rs]), med([r["test_lines"] for r in rs]), med([r["docs"] for r in rs]),
+            med([r["eol_changes"] for r in rs]),
             med([r["judge_overall"] for r in rs]), med([r["judge_rank"] for r in rs])]) + " |")
+    lines += ["", "## Totals per arm", "", "| Arm | Runs | Hidden passed | Perfect runs | Agent min | Cost $ | User turns | Suite runs | EOL rewrites | Judge mean | First places |",
+              "|---|---|---|---|---|---|---|---|---|---|---|"]
+    first = {}
+    for v in verdicts.values():
+        if v.get("ranking"):
+            a = v["label_to_arm"].get(v["ranking"][0])
+            first[a] = first.get(a, 0) + 1
+    for a in sorted({r["arm"] for r in rows}):
+        rs = [r for r in rows if r["arm"] == a]
+        hp = sum(int(r["hidden"].split("/")[0]) for r in rs)
+        ht = sum(int(r["hidden"].split("/")[1]) for r in rs)
+        js = [r["judge_overall"] for r in rs if r["judge_overall"] is not None]
+        lines.append("| " + " | ".join(str(x) for x in [
+            a, len(rs), f"{hp}/{ht}", sum(r["hidden_pct"] == 100 for r in rs), round(sum(r["agent_s"] for r in rs) / 60),
+            round(sum(r["cost"] for r in rs), 2), sum(r["user_turns"] for r in rs), sum(r["test_runs"] for r in rs),
+            sum(r["eol_changes"] for r in rs), round(sum(js) / len(js), 2) if js else None, first.get(a, 0)]) + " |")
     lines += ["", "## Every run", "",
               "| Run | Status | End | Hidden | core | edge | brief | regr | Agent s | Wall s | $ | User turns | Suite runs | Own tests | Trailers | Result in | Skills |",
               "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
@@ -685,6 +726,29 @@ def report(suite: str) -> None:
 
 # ----------------------------------------------------------------------------- main
 
+def set_metas(sets: str) -> list[dict]:
+    """--sets "full:A=A1,full:S=S,v2:A=A2": runs from several suites, arms relabelled."""
+    out = []
+    for spec in sets.split(","):
+        src, label = spec.split("=")
+        suite, arm = src.split(":")
+        for m in load_metas(suite):
+            if m["arm"] == arm:
+                out.append({**m, "arm": label, "source_suite": suite})
+    return out
+
+
+def backfill_eol(suite: str) -> None:
+    for p in sorted((RESULTS / suite / "runs").glob("*.json")):
+        m = json.loads(p.read_text(encoding="utf-8"))
+        repo = Path(m["run_dir"]) / m["run_id"]
+        if "eol_changes" in m["grade"] or not repo.exists():
+            continue
+        m["grade"]["eol_changes"] = eol_changes(CASES / m["case"] / "files", repo)
+        p.write_text(json.dumps(m, indent=1), encoding="utf-8")
+    log(f"eol backfilled for {suite}")
+
+
 def selftest() -> bool:
     """Hidden tests must fail on the untouched fixture (except regression) and pass on reference/."""
     import tempfile
@@ -713,7 +777,8 @@ def selftest() -> bool:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["run", "judge", "report", "selftest"])
+    ap.add_argument("cmd", choices=["run", "judge", "report", "selftest", "compare", "eol"])
+    ap.add_argument("--sets", help='compare: "suite:arm=label,..."')
     ap.add_argument("--suite", required=True)
     ap.add_argument("--cases", default="all")
     ap.add_argument("--arms", default="A,S,V")
@@ -722,6 +787,12 @@ def main() -> None:
     a = ap.parse_args()
     if a.cmd == "selftest":
         raise SystemExit(0 if selftest() else 1)
+    if a.cmd == "eol":
+        return backfill_eol(a.suite)
+    if a.cmd == "compare":
+        metas, out = set_metas(a.sets), RESULTS / a.suite
+        judge(a.suite, metas, out / "judge")
+        return report(a.suite, metas, out)
     if a.cmd == "judge":
         return judge(a.suite)
     if a.cmd == "report":

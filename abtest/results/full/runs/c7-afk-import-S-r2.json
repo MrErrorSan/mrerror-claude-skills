@@ -117,7 +117,10 @@
    "main"
   ],
   "worktrees": 1,
-  "doc_rule": null
+  "doc_rule": null,
+  "eol_changes": [
+   "README.md lf->crlf"
+  ]
  },
  "run_dir": "C:\\Users\\MrError\\AppData\\Local\\Temp\\anvil-abtest\\full\\c7-afk-import-S-r2"
 }
