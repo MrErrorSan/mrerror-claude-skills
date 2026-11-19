@@ -1,0 +1,128 @@
+{
+ "run_id": "c6-csv-change-A-r2",
+ "suite": "v22",
+ "case": "c6-csv-change",
+ "arm": "A",
+ "replicate": 2,
+ "status": "complete",
+ "end_reason": "done",
+ "plugin": "C:\\Users\\MrError\\Documents\\GitHub\\Mine\\mrerror-claude-skills\\plugins\\anvil",
+ "plugin_rev": "anvil@bdd3db8",
+ "model": "claude-opus-5-5",
+ "effort": "high",
+ "loaded_plugins": [
+  "anvil",
+  "cc-plugin-agents-md",
+  "cc-plugin-telemetry",
+  "cc-plugin-privacy",
+  "cc-plugin-plugin-authoring"
+ ],
+ "agent_time_s": 117.5,
+ "wall_time_s": 130.6,
+ "agent_invocations": 2,
+ "user_turns": 1,
+ "agent_num_turns": 21,
+ "cost_usd": 0.5166,
+ "cost_by_model": {
+  "claude-opus-5-5": 0.5166
+ },
+ "sim_cost_usd": 0.0316,
+ "tokens": {
+  "input": 30,
+  "output": 8340,
+  "cache_read": 500492,
+  "cache_write": 31194
+ },
+ "sim_kinds": [
+  "progress",
+  "done"
+ ],
+ "change_delivered_after_turn": 0,
+ "tools": {
+  "tool_calls": 18,
+  "tool_calls_subagents": 0,
+  "by_tool": {
+   "Skill": 1,
+   "Bash": 5,
+   "Read": 4,
+   "Edit": 7,
+   "Write": 1
+  },
+  "test_runs": 3,
+  "test_runs_main": 3,
+  "skills": [
+   "anvil:anvil"
+  ],
+  "subagents": 0,
+  "subagent_types": [],
+  "tool_errors": 0,
+  "ask_user_question": 0
+ },
+ "hooks_fired": [
+  "SessionStart:startup"
+ ],
+ "grade": {
+  "eol_changes": [],
+  "result_location": "worktree:c6-csv-change-A-r2",
+  "hidden": {
+   "passed": 6,
+   "total": 6,
+   "by_category": {
+    "regression": {
+     "passed": 2,
+     "total": 2
+    },
+    "core": {
+     "passed": 3,
+     "total": 3
+    },
+    "edge": {
+     "passed": 1,
+     "total": 1
+    }
+   }
+  },
+  "hidden_failures": [],
+  "own_suite": {
+   "ran": 4,
+   "ok": true,
+   "seconds": 0.2,
+   "tail": ""
+  },
+  "diff": {
+   "code": {
+    "files": 2,
+    "added": 19,
+    "removed": 4
+   },
+   "tests": {
+    "files": 2,
+    "added": 37,
+    "removed": 0
+   },
+   "docs": {
+    "files": 1,
+    "added": 3,
+    "removed": 0
+   },
+   "other": {
+    "files": 0,
+    "added": 0,
+    "removed": 0
+   }
+  },
+  "new_docs": [],
+  "changed_docs": [
+   "README.md"
+  ],
+  "commits": 0,
+  "claude_trailers": 0,
+  "uncommitted_in_main": true,
+  "branches": [
+   "main"
+  ],
+  "worktrees": 1,
+  "doc_rule": null
+ },
+ "run_dir": "C:\\Users\\MrError\\AppData\\Local\\Temp\\anvil-abtest\\v22\\c6-csv-change-A-r2"
+}

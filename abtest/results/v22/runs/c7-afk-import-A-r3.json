@@ -1,0 +1,126 @@
+{
+ "run_id": "c7-afk-import-A-r3",
+ "suite": "v22",
+ "case": "c7-afk-import",
+ "arm": "A",
+ "replicate": 3,
+ "status": "complete",
+ "end_reason": "done",
+ "plugin": "C:\\Users\\MrError\\Documents\\GitHub\\Mine\\mrerror-claude-skills\\plugins\\anvil",
+ "plugin_rev": "anvil@bdd3db8",
+ "model": "claude-opus-5-5",
+ "effort": "high",
+ "loaded_plugins": [
+  "anvil",
+  "cc-plugin-agents-md",
+  "cc-plugin-telemetry",
+  "cc-plugin-privacy",
+  "cc-plugin-plugin-authoring"
+ ],
+ "agent_time_s": 128.7,
+ "wall_time_s": 135.1,
+ "agent_invocations": 1,
+ "user_turns": 0,
+ "agent_num_turns": 13,
+ "cost_usd": 0.5786,
+ "cost_by_model": {
+  "claude-opus-5-5": 0.5786
+ },
+ "sim_cost_usd": 0.02,
+ "tokens": {
+  "input": 26,
+  "output": 11177,
+  "cache_read": 456336,
+  "cache_write": 32963
+ },
+ "sim_kinds": [
+  "done"
+ ],
+ "change_delivered_after_turn": null,
+ "tools": {
+  "tool_calls": 11,
+  "tool_calls_subagents": 0,
+  "by_tool": {
+   "Skill": 1,
+   "Bash": 9,
+   "Write": 1
+  },
+  "test_runs": 2,
+  "test_runs_main": 2,
+  "skills": [
+   "anvil:afk"
+  ],
+  "subagents": 0,
+  "subagent_types": [],
+  "tool_errors": 0,
+  "ask_user_question": 0
+ },
+ "hooks_fired": [
+  "SessionStart:startup"
+ ],
+ "grade": {
+  "eol_changes": [],
+  "result_location": "worktree:c7-afk-import-A-r3",
+  "hidden": {
+   "passed": 10,
+   "total": 10,
+   "by_category": {
+    "regression": {
+     "passed": 3,
+     "total": 3
+    },
+    "core": {
+     "passed": 4,
+     "total": 4
+    },
+    "edge": {
+     "passed": 3,
+     "total": 3
+    }
+   }
+  },
+  "hidden_failures": [],
+  "own_suite": {
+   "ran": 12,
+   "ok": true,
+   "seconds": 0.3,
+   "tail": ""
+  },
+  "diff": {
+   "code": {
+    "files": 3,
+    "added": 104,
+    "removed": 1
+   },
+   "tests": {
+    "files": 1,
+    "added": 129,
+    "removed": 1
+   },
+   "docs": {
+    "files": 1,
+    "added": 1,
+    "removed": 0
+   },
+   "other": {
+    "files": 0,
+    "added": 0,
+    "removed": 0
+   }
+  },
+  "new_docs": [],
+  "changed_docs": [
+   "README.md"
+  ],
+  "commits": 1,
+  "claude_trailers": 0,
+  "uncommitted_in_main": false,
+  "branches": [
+   "feat/import-bookmarks",
+   "main"
+  ],
+  "worktrees": 1,
+  "doc_rule": null
+ },
+ "run_dir": "C:\\Users\\MrError\\AppData\\Local\\Temp\\anvil-abtest\\v22\\c7-afk-import-A-r3"
+}

@@ -1,0 +1,99 @@
+{
+ "scores": {
+  "K": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 5,
+   "process_fit": 4,
+   "communication": 4,
+   "rules": 5,
+   "overall": 4,
+   "problems": [
+    "First edit via sed stripped the file's CRLF endings; the agent caught and fixed it, but this cost an extra round and narration on a one-word fix",
+    "Progress messages about the sed mishap add noise to an otherwise trivial task"
+   ]
+  },
+  "L": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 3,
+   "process_fit": 4,
+   "communication": 4,
+   "rules": 5,
+   "overall": 3,
+   "problems": [
+    "Never ran the test suite (test-suite runs=0), so the fix is unverified",
+    "Final report says no tests check the old wording but does not say the tests were not run",
+    "Same sed CRLF slip as K, caught and corrected"
+   ]
+  },
+  "M": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 5,
+   "process_fit": 5,
+   "communication": 5,
+   "rules": 5,
+   "overall": 5,
+   "problems": [
+    "Opening 'Size: trivial' label is minor visible ceremony, though harmless"
+   ]
+  },
+  "N": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 2,
+   "process_fit": 4,
+   "communication": 3,
+   "rules": 5,
+   "overall": 3,
+   "problems": [
+    "Never ran the test suite and the report says nothing about verification or tests",
+    "Same sed CRLF slip; the final report spends half its length on the agent's own line-ending mistake instead of verification"
+   ]
+  },
+  "P": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 5,
+   "process_fit": 5,
+   "communication": 5,
+   "rules": 5,
+   "overall": 5,
+   "problems": [
+    "'Size: trivial' label is minor visible ceremony",
+    "Doesn't mention checking docs or README for the old spelling (M did)"
+   ]
+  },
+  "Q": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 2,
+   "process_fit": 4,
+   "communication": 3,
+   "rules": 5,
+   "overall": 3,
+   "problems": [
+    "Never ran the existing tests (runs=0) and the report gives no verification",
+    "Report omits whether tests reference the message, leaving Saad to check"
+   ]
+  }
+ },
+ "ranking": [
+  "M",
+  "P",
+  "K",
+  "L",
+  "Q",
+  "N"
+ ],
+ "summary": "All six produced the identical correct one-line diff with no commits or extra files, so the deciding factor is whether the run ran the existing tests once and reported that briefly. M and P did this cleanly, and K did too after recovering from a sed line-ending slip; L, Q and N never ran the tests, and N's report focuses on its own mistake rather than on verification.",
+ "label_to_arm": {
+  "K": "OG",
+  "L": "V2.2",
+  "M": "V1",
+  "N": "Plain",
+  "P": "V2.1",
+  "Q": "SP"
+ }
+}
