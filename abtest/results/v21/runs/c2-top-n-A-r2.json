@@ -1,0 +1,143 @@
+{
+ "run_id": "c2-top-n-A-r2",
+ "suite": "v21",
+ "case": "c2-top-n",
+ "arm": "A",
+ "replicate": 2,
+ "status": "complete",
+ "end_reason": "done",
+ "plugin": "C:\\Users\\MrError\\Documents\\GitHub\\Mine\\mrerror-claude-skills\\plugins\\anvil",
+ "plugin_rev": "anvil@0d385ee",
+ "model": "claude-opus-5-5",
+ "effort": "high",
+ "loaded_plugins": [
+  "anvil",
+  "cc-plugin-agents-md",
+  "cc-plugin-telemetry",
+  "cc-plugin-privacy",
+  "cc-plugin-plugin-authoring"
+ ],
+ "agent_time_s": 293.4,
+ "wall_time_s": 308.4,
+ "agent_invocations": 2,
+ "user_turns": 1,
+ "agent_num_turns": 50,
+ "cost_usd": 1.3993,
+ "cost_by_model": {
+  "claude-opus-5-5": 1.3318,
+  "claude-sonnet-5-5": 0.0674
+ },
+ "sim_cost_usd": 0.0325,
+ "tokens": {
+  "input": 66,
+  "output": 22591,
+  "cache_read": 1606601,
+  "cache_write": 93425
+ },
+ "sim_kinds": [
+  "approval_request",
+  "done"
+ ],
+ "change_delivered_after_turn": null,
+ "tools": {
+  "tool_calls": 47,
+  "tool_calls_subagents": 3,
+  "by_tool": {
+   "Skill": 4,
+   "Bash": 18,
+   "Write": 4,
+   "Edit": 17,
+   "Agent": 1,
+   "Read": 3
+  },
+  "test_runs": 4,
+  "test_runs_main": 4,
+  "skills": [
+   "anvil:anvil",
+   "anvil:brainstorm",
+   "anvil:build",
+   "anvil:verify"
+  ],
+  "subagents": 1,
+  "subagent_types": [
+   "general-purpose"
+  ],
+  "tool_errors": 1,
+  "ask_user_question": 0
+ },
+ "hooks_fired": [
+  "SessionStart:startup"
+ ],
+ "grade": {
+  "eol_changes": [],
+  "result_location": "worktree:c2-top-n-A-r2",
+  "hidden": {
+   "passed": 11,
+   "total": 11,
+   "by_category": {
+    "regression": {
+     "passed": 3,
+     "total": 3
+    },
+    "brief": {
+     "passed": 2,
+     "total": 2
+    },
+    "core": {
+     "passed": 4,
+     "total": 4
+    },
+    "edge": {
+     "passed": 2,
+     "total": 2
+    }
+   }
+  },
+  "hidden_failures": [],
+  "own_suite": {
+   "ran": 8,
+   "ok": true,
+   "seconds": 0.3,
+   "tail": ""
+  },
+  "diff": {
+   "code": {
+    "files": 1,
+    "added": 17,
+    "removed": 1
+   },
+   "tests": {
+    "files": 1,
+    "added": 36,
+    "removed": 0
+   },
+   "docs": {
+    "files": 3,
+    "added": 126,
+    "removed": 0
+   },
+   "other": {
+    "files": 0,
+    "added": 0,
+    "removed": 0
+   }
+  },
+  "new_docs": [
+   "docs/top-n/plan.md",
+   "docs/top-n/progress.md"
+  ],
+  "changed_docs": [
+   "README.md"
+  ],
+  "commits": 1,
+  "claude_trailers": 0,
+  "uncommitted_in_main": false,
+  "branches": [
+   "anvil/top-n/work",
+   "main"
+  ],
+  "worktrees": 1,
+  "doc_rule": null
+ },
+ "run_dir": "C:\\Users\\MrError\\AppData\\Local\\Temp\\anvil-abtest\\v21\\c2-top-n-A-r2"
+}

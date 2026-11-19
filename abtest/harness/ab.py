@@ -587,7 +587,7 @@ def judge(suite: str, metas: list[dict] | None = None, out_dir: Path | None = No
         rng = random.Random(f"{cid}-{k}")
         ms = sorted(ms, key=lambda m: m["arm"])
         rng.shuffle(ms)
-        labels = list("XYZ")[:len(ms)] if len(ms) <= 3 else list("WXYZ")[:len(ms)]
+        labels = (list("XYZ") if len(ms) <= 3 else list("WXYZ") if len(ms) == 4 else list("KLMNPQRT"))[:len(ms)]
         prompt = (tmpl.replace("{n}", str(len(ms))).replace("{labels}", ", ".join(labels))
                   .replace("{judge_notes}", case["judge_notes"]).replace("{request}", case["request"])
                   .replace("{brief}", case["brief"])
