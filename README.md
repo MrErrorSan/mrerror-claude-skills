@@ -6,6 +6,16 @@ stop → plan → stop → parallel build → verify → finish, with the gates,
 results and progress kept on disk. Anvil is self-contained: it doesn't need
 Superpowers or any other plugin.
 
+## What's new in 2.2: dormant by default
+
+Measured on the A/B suite: plain Opus 5.5 matched every workflow's accuracy at a quarter of Anvil 1.0's cost, and the original text-only Anvil (0.1.0) ran at Superpowers speed. Most of 1.0's cost was ceremony on work that didn't need it. 2.2 picks a path first, and **"when in doubt, go lower"**:
+
+- **Just do it** (most work): linear work in one area. No topic, no documents, no stops, no subagents: build, check once, and report the evidence and the calls made.
+- **Spec first:** open product questions, or Saad asks to think it through. One `plan.md`, one stop, an inline build.
+- **Full:** large, parallelisable or hard-to-reverse work. The whole flow.
+
+The hooks skip Python when no topic is active (384 ms → 130 ms per tool call), and the startup note no longer pushes the full flow.
+
 ## What's new in 2.0
 
 2.0 comes from an A/B test of 1.0 against Superpowers 7.0.2 and plain Claude: 63 runs on Opus 5.5. The results are in [docs/anvil-ab/](docs/anvil-ab/2026-11-18-ab-results.md) and the plan is in [docs/anvil-v2/](docs/anvil-v2/2026-11-19-v2-plan.md). All three were equally correct; 1.0 was 2.4× slower. 2.0 keeps the stops, the docs and the gates and cuts the waiting:

@@ -1,6 +1,8 @@
 import contextlib
 import io
 import shlex
+import shutil
+import subprocess
 import sys
 import tempfile
 import time
@@ -51,6 +53,18 @@ def deny_reason(out):
     return hso.get("permissionDecisionReason") if hso.get("permissionDecision") == "deny" else None
 
 
+def git_bash():
+    """A bash that can read Windows paths: never WSL's launcher (System32, WindowsApps)."""
+    if sys.platform != "win32":
+        return shutil.which("bash")
+    git = shutil.which("git")
+    for cand in ([Path(git).resolve().parents[1] / "bin" / "bash.exe"] if git else []):
+        if cand.exists():
+            return str(cand)
+    found = shutil.which("bash")
+    return found if found and "system32" not in found.lower() and "windowsapps" not in found.lower() else None
+
+
 class HookTests(unittest.TestCase):
     def setUp(self):
         self._tmp = tempfile.TemporaryDirectory(ignore_cleanup_errors=True)
@@ -75,6 +89,19 @@ class HookTests(unittest.TestCase):
 
     def bash(self, command):
         return self.tool("Bash", command=command)
+
+    @unittest.skipUnless(git_bash(), "needs Git Bash (or bash on a POSIX system)")
+    def test_hook_scripts_skip_python_without_a_topic(self):
+        hooks_dir = Path(hooks.__file__).resolve().parents[2] / "hooks"
+        event = '{"tool_name": "Bash", "tool_input": {"command": "ls"}}'
+        run = lambda name: subprocess.run([git_bash(), (hooks_dir / name).as_posix()], cwd=self.repo,
+                                          input=event, capture_output=True, text=True, timeout=60)
+        for name in ("pre-tool-use", "stop"):
+            r = run(name)
+            self.assertEqual((r.returncode, r.stdout.strip()), (0, "{}"), r.stderr)
+        # After topic end the file holds null: still the fast path.
+        state.save(self.repo, "active.json", None)
+        self.assertEqual(run("pre-tool-use").stdout.strip(), "{}")
 
     def test_pretool_allows_without_active_topic(self):
         self.assertEqual(self.tool("Agent", prompt="go", subagent_type="general-purpose"), {})

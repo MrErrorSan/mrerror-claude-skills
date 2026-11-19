@@ -49,10 +49,10 @@ def session_start(event: dict) -> dict:
     anvil = (Path(__file__).resolve().parent.parent / "anvil").as_posix()
     facts = [
         f"Anvil is installed. Its CLI is on PATH as `anvil` ({anvil}).",
-        "Anvil's flow: brainstorm → spec → stop 1 (spec approval) → plan → stop 2 (plan "
-        "approval) → build → verify → finish.",
-        "Sizes: trivial has no documents and no stops; direct has one spec-and-plan document "
-        "and one stop; full has a separate spec and plan and two stops.",
+        "Anvil's paths: most linear work is done directly, with no documents or stops; "
+        "\"spec first\" (one plan.md, one stop) is for open product questions or when Saad "
+        "asks to think it through; the full flow (spec, plan, two stops, waves, verify) is "
+        "for large, parallelisable or hard-to-reverse work. The `anvil` skill picks the path.",
         "A stop is passed only by Saad's own words: `anvil approve` writes the Approved line "
         "after checking his quote against his recorded messages.",
         f"When Superpowers is also installed, Anvil's skills ({SKILLS}) cover brainstorming, "

@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "anvil",
-  "version": "2.0.0",
+  "version": "2.2.0",
   "description": "Saad's development workflow: brainstorm, spec, plan, parallel build, verify, finish. Also bundles afk, debug, ui-mockup, ux-audit, cross-model and ticket-update.",
   "author": {
     "name": "MrError"
