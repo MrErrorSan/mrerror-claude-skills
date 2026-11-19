@@ -17,7 +17,8 @@ AFK_PHRASES = ("afk", "going to bed", "don't ask", "dont ask", "no approvals", "
                "run with it", "work through the plan", "i'll review", "make the call yourself")
 
 APPROVED_RE = re.compile(r'^(\d{4}-\d{2}-\d{2} by Saad|pre-approved by Saad \d{4}-\d{2}-\d{2}'
-                         r'|skipped \(AFK\) \d{4}-\d{2}-\d{2}) \(".*"\)$')
+                         r'|skipped \(AFK\) \d{4}-\d{2}-\d{2}) \(".*"\)'
+                         r'(, with the edits he asked for)?$')
 _QUOTES = str.maketrans({"“": '"', "”": '"', "‘": "'", "’": "'"})
 
 

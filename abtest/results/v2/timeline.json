@@ -1,0 +1,654 @@
+{
+ "c1-typo-A-r1": {
+  "case": "c1-typo",
+  "arm": "A",
+  "agent_time_s": 28.5,
+  "main": {
+   "active_s": 29.7,
+   "by_kind": {
+    "model": 22.1,
+    "bash:git": 5.0,
+    "bash:tests": 1.8,
+    "edit": 0.5,
+    "read": 0.3,
+    "skill-load": 0.0
+   },
+   "by_phase": {
+    "anvil": 23.2,
+    "router/none": 6.5
+   }
+  },
+  "subagents": {
+   "count": 0,
+   "total_s": 0,
+   "wall_s": 0.0,
+   "parallelism": null
+  }
+ },
+ "c1-typo-A-r2": {
+  "case": "c1-typo",
+  "arm": "A",
+  "agent_time_s": 31.4,
+  "main": {
+   "active_s": 32.7,
+   "by_kind": {
+    "model": 25.7,
+    "bash:git": 3.8,
+    "bash:tests": 2.0,
+    "bash:other": 1.1,
+    "read": 0.1,
+    "skill-load": 0.0
+   },
+   "by_phase": {
+    "anvil": 25.7,
+    "router/none": 7.0
+   }
+  },
+  "subagents": {
+   "count": 0,
+   "total_s": 0,
+   "wall_s": 0.0,
+   "parallelism": null
+  }
+ },
+ "c1-typo-A-r3": {
+  "case": "c1-typo",
+  "arm": "A",
+  "agent_time_s": 26.5,
+  "main": {
+   "active_s": 27.8,
+   "by_kind": {
+    "model": 22.4,
+    "bash:tests": 4.6,
+    "edit": 0.5,
+    "read": 0.3,
+    "skill-load": 0.0
+   },
+   "by_phase": {
+    "anvil": 20.8,
+    "router/none": 7.0
+   }
+  },
+  "subagents": {
+   "count": 0,
+   "total_s": 0,
+   "wall_s": 0.0,
+   "parallelism": null
+  }
+ },
+ "c2-top-n-A-r1": {
+  "case": "c2-top-n",
+  "arm": "A",
+  "agent_time_s": 370.4,
+  "main": {
+   "active_s": 371.5,
+   "by_kind": {
+    "model": 292.9,
+    "bash:anvil-cli": 37.7,
+    "agent:foreground": 19.4,
+    "bash:tests": 11.7,
+    "edit": 5.9,
+    "bash:other": 2.9,
+    "bash:git": 0.8,
+    "skill-load": 0.2,
+    "read": 0.1
+   },
+   "by_phase": {
+    "build": 179.3,
+    "plan": 99.9,
+    "verify": 53.1,
+    "brainstorm": 18.5,
+    "anvil": 15.1,
+    "router/none": 5.6
+   }
+  },
+  "subagents": {
+   "count": 1,
+   "total_s": 19.3,
+   "wall_s": 19.3,
+   "parallelism": 1.0
+  }
+ },
+ "c2-top-n-A-r2": {
+  "case": "c2-top-n",
+  "arm": "A",
+  "agent_time_s": 332.8,
+  "main": {
+   "active_s": 334.3,
+   "by_kind": {
+    "model": 271.7,
+    "bash:anvil-cli": 24.7,
+    "agent:foreground": 14.5,
+    "edit": 12.5,
+    "bash:tests": 8.4,
+    "bash:git": 1.2,
+    "bash:other": 1.0,
+    "skill-load": 0.2,
+    "read": 0.2
+   },
+   "by_phase": {
+    "plan": 139.5,
+    "build": 101.4,
+    "verify": 49.8,
+    "brainstorm": 19.1,
+    "anvil": 17.1,
+    "router/none": 7.4
+   }
+  },
+  "subagents": {
+   "count": 1,
+   "total_s": 14.5,
+   "wall_s": 14.5,
+   "parallelism": 1.0
+  }
+ },
+ "c2-top-n-A-r3": {
+  "case": "c2-top-n",
+  "arm": "A",
+  "agent_time_s": 342.3,
+  "main": {
+   "active_s": 356.2,
+   "by_kind": {
+    "model": 288.3,
+    "bash:anvil-cli": 32.0,
+    "agent:foreground": 16.2,
+    "edit": 10.4,
+    "bash:tests": 6.3,
+    "bash:other": 2.8,
+    "read": 0.2,
+    "skill-load": 0.1
+   },
+   "by_phase": {
+    "build": 157.5,
+    "plan": 102.5,
+    "verify": 52.7,
+    "brainstorm": 19.7,
+    "anvil": 17.9,
+    "router/none": 5.9
+   }
+  },
+  "subagents": {
+   "count": 1,
+   "total_s": 16.2,
+   "wall_s": 16.2,
+   "parallelism": 1.0
+  }
+ },
+ "c3-ledger-three-A-r1": {
+  "case": "c3-ledger-three",
+  "arm": "A",
+  "agent_time_s": 414.8,
+  "main": {
+   "active_s": 416.0,
+   "by_kind": {
+    "model": 323.2,
+    "bash:anvil-cli": 26.3,
+    "bash:tests": 23.1,
+    "agent:foreground": 22.8,
+    "edit": 13.5,
+    "bash:other": 5.8,
+    "bash:git": 1.0,
+    "skill-load": 0.2,
+    "read": 0.1
+   },
+   "by_phase": {
+    "build": 155.3,
+    "plan": 121.4,
+    "verify": 80.6,
+    "brainstorm": 32.7,
+    "anvil": 20.8,
+    "router/none": 5.1
+   }
+  },
+  "subagents": {
+   "count": 1,
+   "total_s": 22.7,
+   "wall_s": 22.7,
+   "parallelism": 1.0
+  }
+ },
+ "c3-ledger-three-A-r2": {
+  "case": "c3-ledger-three",
+  "arm": "A",
+  "agent_time_s": 554.8,
+  "main": {
+   "active_s": 563.7,
+   "by_kind": {
+    "model": 432.7,
+    "bash:tests": 47.3,
+    "bash:anvil-cli": 34.6,
+    "edit": 22.8,
+    "agent:foreground": 21.5,
+    "bash:other": 4.1,
+    "read": 0.5,
+    "skill-load": 0.2
+   },
+   "by_phase": {
+    "verify": 251.4,
+    "build": 158.9,
+    "plan": 99.4,
+    "brainstorm": 30.3,
+    "anvil": 17.4,
+    "router/none": 6.2
+   }
+  },
+  "subagents": {
+   "count": 2,
+   "total_s": 32.0,
+   "wall_s": 32.0,
+   "parallelism": 1.0
+  }
+ },
+ "c3-ledger-three-A-r3": {
+  "case": "c3-ledger-three",
+  "arm": "A",
+  "agent_time_s": 368.8,
+  "main": {
+   "active_s": 370.7,
+   "by_kind": {
+    "model": 281.5,
+    "bash:tests": 29.1,
+    "bash:anvil-cli": 26.4,
+    "agent:foreground": 18.7,
+    "edit": 12.4,
+    "bash:git": 1.5,
+    "bash:other": 0.7,
+    "skill-load": 0.3,
+    "read": 0.2
+   },
+   "by_phase": {
+    "build": 164.9,
+    "verify": 91.2,
+    "plan": 69.2,
+    "brainstorm": 25.1,
+    "anvil": 14.1,
+    "router/none": 6.2
+   }
+  },
+  "subagents": {
+   "count": 1,
+   "total_s": 18.7,
+   "wall_s": 18.7,
+   "parallelism": 1.0
+  }
+ },
+ "c4-refund-bug-A-r1": {
+  "case": "c4-refund-bug",
+  "arm": "A",
+  "agent_time_s": 39.7,
+  "main": {
+   "active_s": 41.8,
+   "by_kind": {
+    "model": 32.7,
+    "bash:anvil-cli": 4.7,
+    "bash:tests": 2.3,
+    "edit": 1.1,
+    "bash:other": 0.9,
+    "skill-load": 0.0
+   },
+   "by_phase": {
+    "anvil": 35.5,
+    "router/none": 6.3
+   }
+  },
+  "subagents": {
+   "count": 0,
+   "total_s": 0,
+   "wall_s": 0.0,
+   "parallelism": null
+  }
+ },
+ "c4-refund-bug-A-r2": {
+  "case": "c4-refund-bug",
+  "arm": "A",
+  "agent_time_s": 38.4,
+  "main": {
+   "active_s": 39.7,
+   "by_kind": {
+    "model": 31.9,
+    "bash:anvil-cli": 4.1,
+    "bash:tests": 1.9,
+    "edit": 1.2,
+    "bash:other": 0.6,
+    "skill-load": 0.0
+   },
+   "by_phase": {
+    "anvil": 34.4,
+    "router/none": 5.4
+   }
+  },
+  "subagents": {
+   "count": 0,
+   "total_s": 0,
+   "wall_s": 0.0,
+   "parallelism": null
+  }
+ },
+ "c4-refund-bug-A-r3": {
+  "case": "c4-refund-bug",
+  "arm": "A",
+  "agent_time_s": 37.7,
+  "main": {
+   "active_s": 39.2,
+   "by_kind": {
+    "model": 30.7,
+    "bash:anvil-cli": 4.5,
+    "bash:tests": 2.0,
+    "edit": 1.2,
+    "bash:other": 0.8,
+    "skill-load": 0.0
+   },
+   "by_phase": {
+    "anvil": 34.1,
+    "router/none": 5.1
+   }
+  },
+  "subagents": {
+   "count": 0,
+   "total_s": 0,
+   "wall_s": 0.0,
+   "parallelism": null
+  }
+ },
+ "c5-notes-tags-A-r1": {
+  "case": "c5-notes-tags",
+  "arm": "A",
+  "agent_time_s": 1104.7,
+  "main": {
+   "active_s": 1116.0,
+   "by_kind": {
+    "model": 742.6,
+    "bash:anvil-cli": 155.0,
+    "agent:foreground": 108.1,
+    "bash:other": 48.9,
+    "bash:tests": 43.7,
+    "edit": 16.2,
+    "bash:git": 1.0,
+    "read": 0.3,
+    "skill-load": 0.2,
+    "tool:TaskStop": 0.0,
+    "tool:ToolSearch": 0.0
+   },
+   "by_phase": {
+    "build": 324.6,
+    "brainstorm": 275.5,
+    "verify": 192.9,
+    "cross-model": 155.8,
+    "plan": 147.8,
+    "anvil": 12.4,
+    "router/none": 6.9
+   }
+  },
+  "subagents": {
+   "count": 2,
+   "total_s": 107.9,
+   "wall_s": 107.9,
+   "parallelism": 1.0
+  }
+ },
+ "c5-notes-tags-A-r2": {
+  "case": "c5-notes-tags",
+  "arm": "A",
+  "agent_time_s": 1045.5,
+  "main": {
+   "active_s": 1051.9,
+   "by_kind": {
+    "model": 700.4,
+    "bash:anvil-cli": 133.4,
+    "agent:foreground": 122.4,
+    "bash:tests": 42.9,
+    "bash:other": 39.1,
+    "edit": 13.3,
+    "skill-load": 0.2,
+    "read": 0.1,
+    "tool:TaskStop": 0.0,
+    "tool:ToolSearch": 0.0
+   },
+   "by_phase": {
+    "build": 310.4,
+    "brainstorm": 303.7,
+    "verify": 162.1,
+    "plan": 135.3,
+    "cross-model": 122.7,
+    "anvil": 11.9,
+    "router/none": 5.8
+   }
+  },
+  "subagents": {
+   "count": 2,
+   "total_s": 122.3,
+   "wall_s": 122.3,
+   "parallelism": 1.0
+  }
+ },
+ "c5-notes-tags-A-r3": {
+  "case": "c5-notes-tags",
+  "arm": "A",
+  "agent_time_s": 799.0,
+  "main": {
+   "active_s": 810.7,
+   "by_kind": {
+    "model": 606.2,
+    "agent:foreground": 106.8,
+    "bash:anvil-cli": 44.7,
+    "edit": 24.4,
+    "bash:tests": 15.1,
+    "bash:other": 7.8,
+    "tool:PowerShell": 3.1,
+    "bash:git": 2.2,
+    "skill-load": 0.3,
+    "read": 0.2
+   },
+   "by_phase": {
+    "brainstorm": 286.3,
+    "build": 249.8,
+    "plan": 155.0,
+    "verify": 94.9,
+    "anvil": 19.5,
+    "router/none": 5.2
+   }
+  },
+  "subagents": {
+   "count": 2,
+   "total_s": 106.6,
+   "wall_s": 106.6,
+   "parallelism": 1.0
+  }
+ },
+ "c6-csv-change-A-r1": {
+  "case": "c6-csv-change",
+  "arm": "A",
+  "agent_time_s": 497.7,
+  "main": {
+   "active_s": 503.9,
+   "by_kind": {
+    "model": 396.4,
+    "agent:foreground": 36.4,
+    "bash:anvil-cli": 28.8,
+    "bash:tests": 19.6,
+    "edit": 16.6,
+    "bash:git": 3.0,
+    "bash:other": 2.7,
+    "skill-load": 0.2,
+    "read": 0.2
+   },
+   "by_phase": {
+    "verify": 256.2,
+    "build": 104.8,
+    "plan": 90.6,
+    "brainstorm": 30.1,
+    "anvil": 17.1,
+    "router/none": 5.2
+   }
+  },
+  "subagents": {
+   "count": 2,
+   "total_s": 36.2,
+   "wall_s": 36.2,
+   "parallelism": 1.0
+  }
+ },
+ "c6-csv-change-A-r2": {
+  "case": "c6-csv-change",
+  "arm": "A",
+  "agent_time_s": 532.5,
+  "main": {
+   "active_s": 533.6,
+   "by_kind": {
+    "model": 418.0,
+    "agent:foreground": 39.8,
+    "bash:anvil-cli": 34.6,
+    "bash:tests": 25.6,
+    "edit": 12.8,
+    "bash:other": 2.5,
+    "skill-load": 0.2,
+    "read": 0.2
+   },
+   "by_phase": {
+    "verify": 288.0,
+    "build": 129.6,
+    "plan": 69.3,
+    "brainstorm": 25.6,
+    "anvil": 15.0,
+    "router/none": 6.1
+   }
+  },
+  "subagents": {
+   "count": 2,
+   "total_s": 39.7,
+   "wall_s": 39.7,
+   "parallelism": 1.0
+  }
+ },
+ "c6-csv-change-A-r3": {
+  "case": "c6-csv-change",
+  "arm": "A",
+  "agent_time_s": 508.6,
+  "main": {
+   "active_s": 509.5,
+   "by_kind": {
+    "model": 382.0,
+    "agent:foreground": 37.5,
+    "bash:anvil-cli": 35.4,
+    "bash:tests": 30.4,
+    "edit": 18.9,
+    "bash:other": 4.8,
+    "skill-load": 0.4,
+    "read": 0.1
+   },
+   "by_phase": {
+    "verify": 277.4,
+    "build": 121.9,
+    "plan": 60.3,
+    "brainstorm": 26.2,
+    "anvil": 19.0,
+    "router/none": 4.7
+   }
+  },
+  "subagents": {
+   "count": 2,
+   "total_s": 37.4,
+   "wall_s": 37.4,
+   "parallelism": 1.0
+  }
+ },
+ "c7-afk-import-A-r1": {
+  "case": "c7-afk-import",
+  "arm": "A",
+  "agent_time_s": 571.1,
+  "main": {
+   "active_s": 578.9,
+   "by_kind": {
+    "model": 455.6,
+    "agent:foreground": 44.8,
+    "bash:tests": 26.5,
+    "bash:anvil-cli": 24.8,
+    "edit": 22.1,
+    "bash:git": 3.1,
+    "bash:other": 1.5,
+    "read": 0.2,
+    "skill-load": 0.2
+   },
+   "by_phase": {
+    "verify": 302.5,
+    "build": 153.2,
+    "plan": 50.9,
+    "brainstorm": 43.0,
+    "afk": 17.1,
+    "anvil": 7.2,
+    "router/none": 5.1
+   }
+  },
+  "subagents": {
+   "count": 2,
+   "total_s": 44.6,
+   "wall_s": 44.6,
+   "parallelism": 1.0
+  }
+ },
+ "c7-afk-import-A-r2": {
+  "case": "c7-afk-import",
+  "arm": "A",
+  "agent_time_s": 650.2,
+  "main": {
+   "active_s": 679.2,
+   "by_kind": {
+    "model": 513.2,
+    "agent:foreground": 98.1,
+    "bash:anvil-cli": 26.8,
+    "bash:tests": 18.6,
+    "edit": 14.1,
+    "bash:other": 5.1,
+    "bash:git": 3.0,
+    "read": 0.2,
+    "skill-load": 0.1
+   },
+   "by_phase": {
+    "verify": 222.8,
+    "build": 180.9,
+    "brainstorm": 168.8,
+    "plan": 73.6,
+    "anvil": 23.7,
+    "router/none": 5.4,
+    "afk": 4.1
+   }
+  },
+  "subagents": {
+   "count": 2,
+   "total_s": 98.0,
+   "wall_s": 98.0,
+   "parallelism": 1.0
+  }
+ },
+ "c7-afk-import-A-r3": {
+  "case": "c7-afk-import",
+  "arm": "A",
+  "agent_time_s": 792.3,
+  "main": {
+   "active_s": 801.2,
+   "by_kind": {
+    "model": 629.4,
+    "agent:foreground": 51.5,
+    "bash:tests": 48.7,
+    "bash:anvil-cli": 34.3,
+    "edit": 23.0,
+    "bash:other": 9.0,
+    "bash:git": 4.7,
+    "read": 0.6,
+    "skill-load": 0.1
+   },
+   "by_phase": {
+    "brainstorm": 762.2,
+    "anvil": 29.2,
+    "router/none": 6.0,
+    "afk": 3.7
+   }
+  },
+  "subagents": {
+   "count": 2,
+   "total_s": 51.3,
+   "wall_s": 51.3,
+   "parallelism": 1.0
+  }
+ }
+}

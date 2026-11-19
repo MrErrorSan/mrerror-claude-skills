@@ -76,6 +76,8 @@ class GateTests(unittest.TestCase):
         self.assertEqual(value, f'{self.today} by Saad ("approved, go ahead"), '
                                 "with the edits he asked for")
         self.assertEqual(self.approved(d / "plan.md"), value)
+        # The gate recognises the amended line: the build may start.
+        self.assertEqual(gate.check(self.repo, "build")[0], True)
 
     def test_approve_amended_still_needs_words_after_present(self):
         d = self.topic()

@@ -120,6 +120,14 @@ anvil run --scope check -- <cmd>     # only if fresh says no
 
 Resolve the warnings that matter; never hide one (no lint-disable comment or config change to mask the output). Put the summary lines in `verify.md`. A failure goes through the fix loop, and then the suite runs again on the new tree: a green result only proves the tree it ran on.
 
+## Short form: an inline build
+
+For an inline build (3 tasks or fewer), verify is a few calls, not a ceremony:
+1. One Bash call: `anvil stale`, each smoke path through `anvil run --scope smoke`, and the full suite (`anvil fresh --scope full -- <cmd> || anvil run --scope full -- <cmd>`).
+2. One Write of `verify.md`: the converge table (each S-line met, partial, missing or contradicts, with the smoke output as evidence) and the unrequested list.
+3. Fix anything that isn't met (you are the fixer), rechecking only what the fix touched.
+4. The exit below, with the done markers and the squash in one Bash call: set the Status and Stage lines and the `C1 (this commit)` line with Edits first, then `git add <topic folder> && git commit -m "docs(<slug>): done markers" && git switch <synced> && git merge --squash anvil/<slug>/work && git commit -m "<message>" && git branch -f anvil/<slug>/work <synced> && anvil topic stage finish`. You don't need to open `finish`: these are its sections 2 to 5 for this case (an inline build has no scaffold tests unless the plan lists some).
+
 ## Exit: land the work
 
 Verify lands the last commit point itself, in every mode, so the work is on the synced branch when Saad reads the report. `/anvil:finish` stays for what needs him: pushing or merging beyond the plan's commit points, a PR, the ticket, deleting branches. Nobody has to run it for the work to be in.

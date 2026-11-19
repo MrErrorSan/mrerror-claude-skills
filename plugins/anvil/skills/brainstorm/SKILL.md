@@ -147,6 +147,8 @@ Direct size skips the builder check: the plan's own checks cover the merged docu
 
 Once the spec part is written, invoke `anvil:plan` and carry on in the same `plan.md`. Don't present or stop here; Saad reviews the spec part and the plan together at stop 2.
 
+**Fast path (3 tasks or fewer, no shared surface).** Most direct work is one or two tasks in one or two files. Then write the whole `plan.md` in one Write: the spec part, and underneath it the plan part, from the direct-size example in [plan-template.md](../plan/references/plan-template.md) (task table, test strategy, one commit point, `Mode: inline`, per-task sections with signatures and test names). Then one Bash call: `anvil topic stage plan && anvil plan-check && anvil present plan`. Then stop 2 as `anvil:plan` describes it ("Stop 2" and "On his reply"), without loading the rest of that skill. Its rules still hold: signatures not bodies, each S-line with a test or smoke path, no piece without an S-line.
+
 ## Traps
 
 | Thought | Reality |

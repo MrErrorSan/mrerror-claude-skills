@@ -1,0 +1,147 @@
+{
+ "run_id": "c3-ledger-three-A-r1",
+ "suite": "v2",
+ "case": "c3-ledger-three",
+ "arm": "A",
+ "replicate": 1,
+ "status": "complete",
+ "end_reason": "done",
+ "plugin": "C:\\Users\\MrError\\Documents\\GitHub\\Mine\\mrerror-claude-skills\\plugins\\anvil",
+ "plugin_rev": "anvil@935f297",
+ "model": "claude-opus-5-5",
+ "effort": "high",
+ "loaded_plugins": [
+  "anvil",
+  "cc-plugin-agents-md",
+  "cc-plugin-telemetry",
+  "cc-plugin-privacy",
+  "cc-plugin-plugin-authoring"
+ ],
+ "agent_time_s": 414.8,
+ "wall_time_s": 430.5,
+ "agent_invocations": 2,
+ "user_turns": 1,
+ "agent_num_turns": 62,
+ "cost_usd": 2.0147,
+ "cost_by_model": {
+  "claude-opus-5-5": 1.9181,
+  "claude-sonnet-5-5": 0.0966
+ },
+ "sim_cost_usd": 0.0386,
+ "tokens": {
+  "input": 88,
+  "output": 33775,
+  "cache_read": 2701135,
+  "cache_write": 121606
+ },
+ "sim_kinds": [
+  "approval_request",
+  "done"
+ ],
+ "change_delivered_after_turn": null,
+ "tools": {
+  "tool_calls": 59,
+  "tool_calls_subagents": 4,
+  "by_tool": {
+   "Skill": 5,
+   "Bash": 23,
+   "Write": 6,
+   "Edit": 18,
+   "Read": 6,
+   "Agent": 1
+  },
+  "test_runs": 4,
+  "test_runs_main": 4,
+  "skills": [
+   "anvil:anvil",
+   "anvil:brainstorm",
+   "anvil:plan",
+   "anvil:build",
+   "anvil:verify"
+  ],
+  "subagents": 1,
+  "subagent_types": [
+   "general-purpose"
+  ],
+  "tool_errors": 2,
+  "ask_user_question": 0
+ },
+ "hooks_fired": [
+  "SessionStart:startup"
+ ],
+ "grade": {
+  "eol_changes": [],
+  "result_location": "worktree:c3-ledger-three-A-r1",
+  "hidden": {
+   "passed": 11,
+   "total": 12,
+   "by_category": {
+    "regression": {
+     "passed": 3,
+     "total": 3
+    },
+    "brief": {
+     "passed": 1,
+     "total": 2
+    },
+    "core": {
+     "passed": 4,
+     "total": 4
+    },
+    "edge": {
+     "passed": 3,
+     "total": 3
+    }
+   }
+  },
+  "hidden_failures": [
+   "test_brief_export_both_formats_at_once"
+  ],
+  "own_suite": {
+   "ran": 8,
+   "ok": true,
+   "seconds": 15.4,
+   "tail": ""
+  },
+  "diff": {
+   "code": {
+    "files": 1,
+    "added": 38,
+    "removed": 1
+   },
+   "tests": {
+    "files": 1,
+    "added": 97,
+    "removed": 0
+   },
+   "docs": {
+    "files": 3,
+    "added": 186,
+    "removed": 1
+   },
+   "other": {
+    "files": 0,
+    "added": 0,
+    "removed": 0
+   }
+  },
+  "new_docs": [
+   "docs/ledger-export-since/plan.md",
+   "docs/ledger-export-since/progress.md"
+  ],
+  "changed_docs": [
+   "README.md"
+  ],
+  "commits": 1,
+  "claude_trailers": 0,
+  "uncommitted_in_main": false,
+  "branches": [
+   "anvil/ledger-export-since/work",
+   "ledger-export-since",
+   "main"
+  ],
+  "worktrees": 1,
+  "doc_rule": null
+ },
+ "run_dir": "C:\\Users\\MrError\\AppData\\Local\\Temp\\anvil-abtest\\v2\\c3-ledger-three-A-r1"
+}

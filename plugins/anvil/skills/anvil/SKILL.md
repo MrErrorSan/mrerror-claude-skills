@@ -94,7 +94,7 @@ Plain words, outcome first. Ids like S3, T1 and C1 belong in the docs; in chat, 
 - Research: `docs/research/YYYY-MM-DD-<topic>.md`.
 - Repos with `docs/superpowers/specs|plans` keep them: read those; new work goes to the default unless a project rule names a place.
 - Status lives in `progress.md`, not in todo tools. Anvil's state is never committed.
-- Edit topic docs with the edit and write tools. Shell heredocs, `sed -i` and `cat >>` mangle Markdown and have emptied a spec before.
+- Edit docs and code with the Edit and Write tools only: never with a script (`python - <<EOF`, a shell heredoc, `sed -i`, `cat >>`). Scripts mangle Markdown, have emptied a spec before, and each costs a round trip to debug. Several changes to one file go in one Edit or one Write.
 
 ## The other skills
 

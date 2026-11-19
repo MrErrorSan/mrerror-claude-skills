@@ -14,6 +14,7 @@ Every skill and every CLI module uses exactly these.
 - **Approved:** no
 - **Approved:** 2026-11-18 by Saad ("<quote>")
 - **Approved:** pre-approved by Saad 2026-11-18 ("<quote>")
+- **Approved:** 2026-11-18 by Saad ("<quote>"), with the edits he asked for
 - **Approved:** skipped (AFK) 2026-11-18 ("<quote>")
 - **Mode:** normal | redesign            (spec, or the spec part of a direct-size plan)
 - **Size:** trivial | direct | full

@@ -1,0 +1,148 @@
+{
+ "run_id": "c7-afk-import-A-r2",
+ "suite": "v2",
+ "case": "c7-afk-import",
+ "arm": "A",
+ "replicate": 2,
+ "status": "complete",
+ "end_reason": "max_user_turns",
+ "plugin": "C:\\Users\\MrError\\Documents\\GitHub\\Mine\\mrerror-claude-skills\\plugins\\anvil",
+ "plugin_rev": "anvil@935f297",
+ "model": "claude-opus-5-5",
+ "effort": "high",
+ "loaded_plugins": [
+  "anvil",
+  "cc-plugin-agents-md",
+  "cc-plugin-telemetry",
+  "cc-plugin-privacy",
+  "cc-plugin-plugin-authoring"
+ ],
+ "agent_time_s": 650.2,
+ "wall_time_s": 688.0,
+ "agent_invocations": 7,
+ "user_turns": 6,
+ "agent_num_turns": 79,
+ "cost_usd": 3.3519,
+ "cost_by_model": {
+  "claude-opus-5-5": 3.236,
+  "claude-sonnet-5-5": 0.1159
+ },
+ "sim_cost_usd": 0.1065,
+ "tokens": {
+  "input": 120,
+  "output": 56198,
+  "cache_read": 4818141,
+  "cache_write": 194473
+ },
+ "sim_kinds": [
+  "done",
+  "other",
+  "other",
+  "other",
+  "other",
+  "other"
+ ],
+ "change_delivered_after_turn": null,
+ "tools": {
+  "tool_calls": 73,
+  "tool_calls_subagents": 7,
+  "by_tool": {
+   "Skill": 6,
+   "Bash": 30,
+   "Write": 5,
+   "Agent": 2,
+   "Read": 9,
+   "Edit": 21
+  },
+  "test_runs": 9,
+  "test_runs_main": 9,
+  "skills": [
+   "anvil:afk",
+   "anvil:anvil",
+   "anvil:brainstorm",
+   "anvil:plan",
+   "anvil:build",
+   "anvil:verify"
+  ],
+  "subagents": 2,
+  "subagent_types": [
+   "general-purpose",
+   "general-purpose"
+  ],
+  "tool_errors": 0,
+  "ask_user_question": 0
+ },
+ "hooks_fired": [
+  "SessionStart:startup"
+ ],
+ "grade": {
+  "eol_changes": [],
+  "result_location": "worktree:c7-afk-import-A-r2",
+  "hidden": {
+   "passed": 10,
+   "total": 10,
+   "by_category": {
+    "regression": {
+     "passed": 3,
+     "total": 3
+    },
+    "core": {
+     "passed": 4,
+     "total": 4
+    },
+    "edge": {
+     "passed": 3,
+     "total": 3
+    }
+   }
+  },
+  "hidden_failures": [],
+  "own_suite": {
+   "ran": 11,
+   "ok": true,
+   "seconds": 0.2,
+   "tail": ""
+  },
+  "diff": {
+   "code": {
+    "files": 3,
+    "added": 80,
+    "removed": 0
+   },
+   "tests": {
+    "files": 2,
+    "added": 161,
+    "removed": 4
+   },
+   "docs": {
+    "files": 4,
+    "added": 247,
+    "removed": 0
+   },
+   "other": {
+    "files": 0,
+    "added": 0,
+    "removed": 0
+   }
+  },
+  "new_docs": [
+   "docs/bookmark-import/plan.md",
+   "docs/bookmark-import/progress.md",
+   "docs/bookmark-import/spec.md"
+  ],
+  "changed_docs": [
+   "README.md"
+  ],
+  "commits": 2,
+  "claude_trailers": 0,
+  "uncommitted_in_main": false,
+  "branches": [
+   "anvil/bookmark-import/work",
+   "feature/bookmark-import",
+   "main"
+  ],
+  "worktrees": 1,
+  "doc_rule": null
+ },
+ "run_dir": "C:\\Users\\MrError\\AppData\\Local\\Temp\\anvil-abtest\\v2\\c7-afk-import-A-r2"
+}

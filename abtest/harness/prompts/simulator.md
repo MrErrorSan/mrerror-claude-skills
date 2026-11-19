@@ -30,7 +30,9 @@ Rules, in order:
    Do not deliver it earlier.
 8. Set "done": true only when the agent reports the requested work is finished, nothing is
    waiting on you, and (if there is a CHANGE) the change was delivered and the agent has
-   reported it done. When done, the reply can be empty.
+   reported it done. When done, the reply can be empty. Under AFK, choices or options the
+   agent leaves "for when you're back" don't count as waiting: if it says the work is
+   finished (or that nothing cheap and in scope is left), set "done": true.
 
 Reply with ONLY a JSON object, no code fence:
 {"kind": "question|approval_request|choice|progress|done|other", "reply": "<Saad's reply>",
