@@ -1,0 +1,106 @@
+{
+ "scores": {
+  "N": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 4,
+   "process_fit": 5,
+   "communication": 5,
+   "rules": 5,
+   "overall": 5,
+   "problems": [
+    "Opening line calls it 'a single bug fix in the report code', but the bug was in model.money(), not report.py",
+    "Test omits a whole-dollar negative such as -100 -> '-1.00', the form the user named as expected",
+    "Otherwise strong: test shown failing first, verification steps listed, and the zero/sub-dollar formatting decision stated with how to change it"
+   ]
+  },
+  "M": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 5,
+   "process_fit": 5,
+   "communication": 4,
+   "rules": 5,
+   "overall": 4,
+   "problems": [
+    "The 0 and sub-dollar formatting choice is made without saying it was a decision, though it matches the user's intent",
+    "Opening fragment 'The test fails the same way the report does. Now the fix:' is mid-process narration left in the final message",
+    "Best test set: -19.99, -52.48, -0.07, -1.00 and 0, with failure before the fix confirmed"
+   ]
+  },
+  "Q": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 5,
+   "process_fit": 5,
+   "communication": 4,
+   "rules": 5,
+   "overall": 4,
+   "problems": [
+    "Never says the new test failed on the old code; there is no red-before evidence",
+    "Formatting choices for zero and sub-dollar amounts are made silently",
+    "The cause is explained twice, once in the progress text and again in the report, which is slightly repetitive"
+   ]
+  },
+  "L": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 4,
+   "process_fit": 4,
+   "communication": 4,
+   "rules": 5,
+   "overall": 4,
+   "problems": [
+    "Final message opens with a line-ending rewrite incident; it is good that it was fixed, but this is noise for the user",
+    "Test lacks the -1.00 case, so the whole-dollar negative form is not covered",
+    "Never shows the test failing before the fix"
+   ]
+  },
+  "K": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 4,
+   "process_fit": 4,
+   "communication": 3,
+   "rules": 5,
+   "overall": 3,
+   "problems": [
+    "Only one test-suite run: no evidence the regression test failed on the old code",
+    "No report output shown after the fix; the -19.99 claim is not backed by visible verification",
+    "The phrase 'Any negative amount that wasn't a whole number of dollars' is imprecise, since whole-dollar negatives like -1.00 also broke (-100 -> '-1.00' was fine, but e.g. -150 was not)"
+   ]
+  },
+  "P": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 3,
+   "process_fit": 4,
+   "communication": 4,
+   "rules": 5,
+   "overall": 3,
+   "problems": [
+    "Test asserts money(-5352) == '-53.52', reusing the old wrong Refunds figure rather than the real -52.48, a confusing test choice",
+    "Test does not cover -1.00, so the whole-dollar negative form is untested",
+    "The 'Size: trivial' classification line is ceremony the user does not need",
+    "No red-before evidence for the regression test"
+   ]
+  }
+ },
+ "ranking": [
+  "N",
+  "M",
+  "Q",
+  "L",
+  "K",
+  "P"
+ ],
+ "summary": "All six runs made the same correct root-cause fix in money(), so the ranking comes down to test quality, red-green evidence and plain reporting. N and M lead because they show the test failing first and give clear verification, and N also states its formatting decision explicitly; K gives the least verification and P's test reuses the old buggy number.",
+ "label_to_arm": {
+  "K": "Plain",
+  "L": "V1",
+  "M": "SP",
+  "N": "V2.2",
+  "P": "V2.1",
+  "Q": "OG"
+ }
+}

@@ -1,0 +1,101 @@
+{
+ "scores": {
+  "K": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 5,
+   "process_fit": 5,
+   "communication": 5,
+   "rules": 5,
+   "overall": 5,
+   "problems": [
+    "Leading 'Size: trivial...' line is minor visible ceremony, though harmless",
+    "Change left uncommitted; this is stated clearly, so acceptable"
+   ]
+  },
+  "N": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 4,
+   "process_fit": 5,
+   "communication": 4,
+   "rules": 5,
+   "overall": 4,
+   "problems": [
+    "Reports 'CLI tests pass (3 of 3)' without noting that no test checks the SAVED string, so the pass reads like more verification than it is",
+    "Leading 'Size: trivial' line is minor ceremony"
+   ]
+  },
+  "P": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 3,
+   "process_fit": 4,
+   "communication": 4,
+   "rules": 5,
+   "overall": 4,
+   "problems": [
+    "Never ran the existing test suite (test-suite runs=0)",
+    "The report does not say that tests were not run",
+    "First sed edit stripped CRLF and had to be redone; this was caught and disclosed openly, which is good"
+   ]
+  },
+  "M": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 3,
+   "process_fit": 4,
+   "communication": 4,
+   "rules": 5,
+   "overall": 4,
+   "problems": [
+    "Never ran the existing tests (runs=0); the ideal was one test run",
+    "Honestly says 'I haven't run anything', but leaves verification to the user"
+   ]
+  },
+  "L": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 3,
+   "process_fit": 4,
+   "communication": 3,
+   "rules": 5,
+   "overall": 3,
+   "problems": [
+    "Never ran the test suite (runs=0), yet claims 'no tests... relied on the old spelling' based only on a search",
+    "The final report does not disclose that tests were not run",
+    "Caught and fixed the CRLF line endings that sed had stripped, which is good care"
+   ]
+  },
+  "Q": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 3,
+   "process_fit": 4,
+   "communication": 3,
+   "rules": 5,
+   "overall": 3,
+   "problems": [
+    "Never ran the test suite (runs=0)",
+    "Says 'no tests... needed changing' without saying tests were not run, so the verification status is unclear"
+   ]
+  }
+ },
+ "ranking": [
+  "K",
+  "N",
+  "P",
+  "M",
+  "L",
+  "Q"
+ ],
+ "summary": "All six runs produced the identical correct one-line diff, so the differences come down to verification and reporting: K and N ran the existing tests once as the ideal suggests, and only K also pointed out that no test covers the changed string. Among the runs that skipped tests, P and M were most transparent (P about the line-ending slip, M about running nothing), while L and Q left their verification status implied rather than stated.",
+ "label_to_arm": {
+  "K": "V1",
+  "L": "Plain",
+  "M": "OG",
+  "N": "V2.1",
+  "P": "V2.2",
+  "Q": "SP"
+ }
+}

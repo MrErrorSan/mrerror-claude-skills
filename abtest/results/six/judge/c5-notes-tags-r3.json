@@ -1,0 +1,117 @@
+{
+ "scores": {
+  "K": {
+   "match": 4,
+   "simplicity": 4,
+   "tests": 3,
+   "process_fit": 3,
+   "communication": 4,
+   "rules": 5,
+   "overall": 4,
+   "problems": [
+    "Built the feature straight after Saad's answers, with no spec he could approve first, although he asked to 'think it through before anything gets built'.",
+    "22 new tests across test_tags.py and test_api.py overlap heavily: archived and filter combos are tested at both the store and HTTP layers.",
+    "Q4 ('who calls the API') did not change the design; its only purpose was to confirm the 'no UI' non-goal.",
+    "Opening sketch proposed about 20 tags and an AND multi-tag filter before asking, so it built assumptions into the proposal (corrected after the answers).",
+    "32-char limit, dedupe-before-count and 'empty ?tag= ignored' were stated and logged; good, but the 32-char line is folded into a decisions.md line presented as Saad's decision."
+   ]
+  },
+  "L": {
+   "match": 4,
+   "simplicity": 4,
+   "tests": 4,
+   "process_fit": 4,
+   "communication": 4,
+   "rules": 5,
+   "overall": 4,
+   "problems": [
+    "First turn asked only an open 'what's prompting this?'. No batched concrete questions with recommendations; Saad had to volunteer the whole interface.",
+    "Found the threading crash but surfaced it only after building, which cost an extra round-trip; it could have been raised with the spec.",
+    "PUT handler re-runs store.normalize_tags(data['tags']) for the response instead of using set_tags' result (redundant work, two sources of truth).",
+    "Wrote a separate plan.md with YAML todos for a small change; slight ceremony beyond the approved spec.",
+    "list_notes second query fetches all of the owner's tags for that archived state, not just the returned notes (minor inefficiency, unflagged)."
+   ]
+  },
+  "M": {
+   "match": 4,
+   "simplicity": 4,
+   "tests": 3,
+   "process_fit": 2,
+   "communication": 3,
+   "rules": 4,
+   "overall": 3,
+   "problems": [
+    "Heavy ceremony for a small feature: progress.md with waves and commit points, an independent review subagent, verify notes, 12 suite runs.",
+    "Committed twice directly on main (c8c7470, ddaca5a) after saying 'Nothing is committed' at plan time; Saad never asked for commits on main.",
+    "Switched to a single-threaded HTTPServer as the crash fix: a behavioural change justified only as 'plenty for a personal service'.",
+    "Plan Shared surface says add_note(tags=None) but the code uses tags=(); the drift is recorded only in progress.md, not in the plan.",
+    "New test_api.py left with LF endings while the repo is CRLF; flagged but not fixed."
+   ]
+  },
+  "N": {
+   "match": 4,
+   "simplicity": 3,
+   "tests": 4,
+   "process_fit": 2,
+   "communication": 3,
+   "rules": 4,
+   "overall": 3,
+   "problems": [
+    "Refused Saad's explicit 'yes to both, spec and plan' because of its own approval gate, forcing an extra round-trip.",
+    "Classified the change 'Size: full' and produced spec, plan, progress docs plus a reviewer subagent: ceremony out of proportion.",
+    "Re-opened the approved spec mid-plan for the threading bug instead of raising it alongside the plan.",
+    "Each handler opens its own `closing(store.connect(...))` block, so the connection setup is repeated three times rather than done once per request.",
+    "Left work on a separate `tags` branch plus a leftover work branch, needing a '/finish' step."
+   ]
+  },
+  "P": {
+   "match": 3,
+   "simplicity": 2,
+   "tests": 2,
+   "process_fit": 1,
+   "communication": 3,
+   "rules": 3,
+   "overall": 2,
+   "problems": [
+    "Massive over-process: 12 subagents, 12 commits, 30 suite runs, multiple fix rounds for a small tags feature.",
+    "Over-built code: lone-surrogate UTF-8 checks, MAX_SQLITE_INT, isascii plus len<=19 id guards, and double normalization on POST.",
+    "Docs disagree with the code: spec and plan Status are still 'draft', and S22 still says '(Waiting on Q1)' after the work is done.",
+    "A doc-edit script emptied spec.md and commit b5bd326 recorded the empty file; restored later.",
+    "Test bloat on exotic cases (5000-digit ids, surrogates, rollback mocks); list_notes runs an N+1 tag query per note."
+   ]
+  },
+  "Q": {
+   "match": 4,
+   "simplicity": 3,
+   "tests": 2,
+   "process_fit": 2,
+   "communication": 3,
+   "rules": 4,
+   "overall": 2,
+   "problems": [
+    "Asked Saad to choose a storage approach (A vs B) after he had said 'storage is your call, keep it simple'.",
+    "Asked Saad to pick subagent-driven vs native execution, a process question he shouldn't have to answer.",
+    "Ran `git checkout -- notes/api.py`, which discarded uncommitted Task 4 work; recovered, but it was a destructive mistake.",
+    "35 tests (32 new), with many tiny TagRulesTest cases, plus a sleep-based stalled-client test that may be flaky.",
+    "Final report lists 14 'calls', several made silently during the build (for example, a repeated ?tag= silently uses the first tag)."
+   ]
+  }
+ },
+ "ranking": [
+  "L",
+  "K",
+  "M",
+  "N",
+  "Q",
+  "P"
+ ],
+ "summary": "L and K delivered the requested interface with simple code, logged decisions, and process roughly sized to the change: L gated on a spec, while K asked sharper batched questions but skipped approval and over-tested. M, N, Q and P buried a small feature under workflow ceremony; P was worst, with over-engineered edge-case code, stale draft docs and a corrupted spec commit.",
+ "label_to_arm": {
+  "K": "Plain",
+  "L": "OG",
+  "M": "V2.2",
+  "N": "V2.1",
+  "P": "V1",
+  "Q": "SP"
+ }
+}

@@ -1,0 +1,116 @@
+{
+ "scores": {
+  "K": {
+   "match": 4,
+   "simplicity": 5,
+   "tests": 4,
+   "process_fit": 5,
+   "communication": 4,
+   "rules": 5,
+   "overall": 4,
+   "problems": [
+    "On the change it says only 'two small changes' and 'the test and the README line are updated to match'. It never names this as a replacement of the comma format or says what it costs.",
+    "A single test asserts header, order, formatting and quoting together, so a failure doesn't pinpoint the broken behaviour.",
+    "The known money() negative bug is left unfixed. It is flagged twice, so it is not silent, but credit notes would export wrong.",
+    "No empty-ledger case is tested.",
+    "The default BOM and CRLF choices are stated with reasons, but the UTF-8/overwrite questions were never asked. Acceptable, since the calls are disclosed."
+   ]
+  },
+  "L": {
+   "match": 4,
+   "simplicity": 4,
+   "tests": 4,
+   "process_fit": 1,
+   "communication": 2,
+   "rules": 3,
+   "overall": 2,
+   "problems": [
+    "Ceremony is far beyond the change size: plan approval, 8 subagents, 6 commits and 17 suite runs for a ~10-line subcommand.",
+    "Docs disagree with the code: progress.md still logs 'Keep comma delimiter, no locale handling \u2014 S2 pins a comma-delimited header', and plan.md Status is still 'draft' after approval.",
+    "The user-facing text is full of workflow jargon ('S-lines', 'T2 passed its re-review', 'hand over to verify', '/[workflow]:finish').",
+    "The work is never landed. Both times it ends by telling Saad to run a workflow command instead of finishing.",
+    "The test-change rationale lives only in progress.md. The conversation never says which tests changed and why."
+   ]
+  },
+  "M": {
+   "match": 4,
+   "simplicity": 4,
+   "tests": 4,
+   "process_fit": 4,
+   "communication": 4,
+   "rules": 5,
+   "overall": 3,
+   "problems": [
+    "It doesn't name the change as a change or say it replaces the comma/quoted-comma behaviour it built an hour earlier; it just reports the new state.",
+    "It adds a separate ledger/export.py with a CSV_HEADER constant, and sorting moves inside write_csv while list sorts in cli. That is a mild split for one function.",
+    "The money() negative bug is left unfixed and now leaks into the German export (-1,99). It is flagged but not offered as a recommendation.",
+    "It says 'I updated the expected values' without listing which tests encoded the old format.",
+    "No empty-ledger test."
+   ]
+  },
+  "N": {
+   "match": 5,
+   "simplicity": 4,
+   "tests": 3,
+   "process_fit": 3,
+   "communication": 4,
+   "rules": 4,
+   "overall": 4,
+   "problems": [
+    "Requiring a plan with approval, plus two reviewer subagents, is heavier than this small feature needs.",
+    "It committed the change-request work straight to main (c772c9f) without fresh confirmation. The original approval didn't clearly cover a second landing.",
+    "test_export_requires_csv contains an assertion that can never fail (it admits this) and mostly tests argparse. That is test bloat.",
+    "On the plus side, the change is handled well: S2/S3/S6/S8 are retired and replaced by S11\u2013S14, the decision log names the conflicting lines, and progress records which tests changed."
+   ]
+  },
+  "P": {
+   "match": 4,
+   "simplicity": 4,
+   "tests": 4,
+   "process_fit": 4,
+   "communication": 4,
+   "rules": 4,
+   "overall": 4,
+   "problems": [
+    "It wrote a plan doc with todo frontmatter ('parallel: true', 'depends-on') for a tier-1 change and never asked for approval. That is ceremony without purpose.",
+    "The first-round question ('Should I commit\u2026 and fix the negative totals?') has no explicit recommendation.",
+    "The conversation doesn't say which tests changed for the new format or why. It only says the README and plan were updated.",
+    "It adds a separate export.py module, and sort logic is duplicated between export.py and cli.py.",
+    "The money() fix is test-first and well explained, and the plan records the format change ('changed 2026-11-19 from , / 12.50')."
+   ]
+  },
+  "Q": {
+   "match": 4,
+   "simplicity": 2,
+   "tests": 4,
+   "process_fit": 3,
+   "communication": 3,
+   "rules": 4,
+   "overall": 3,
+   "problems": [
+    "Over-built: it adds an unrequested oldest_first() refactor in model.py, a german_money() helper, and CSV_HEADER/CSV_DELIMITER constants.",
+    "Visible flailing over line endings (convert, over-correct, restore) and a mangled heredoc fix add noise to progress.",
+    "It says only 'Tests: updated for the new format', without naming which tests encoded the comma format or why.",
+    "The README says only 'UTF-8' and omits the BOM the code writes, so docs and code don't fully agree.",
+    "The money() negative bug is left unfixed and is now exported as -1,99. It is flagged only."
+   ]
+  }
+ },
+ "ranking": [
+  "K",
+  "N",
+  "P",
+  "M",
+  "Q",
+  "L"
+ ],
+ "summary": "K delivered the change with the least code and ceremony and disclosed every call, but it names the requirement change only weakly. N handled the change best in its docs (retired spec lines, conflicts logged, test changes recorded) at the cost of heavier process and an unconfirmed commit to main. L buried a small feature under subagents and workflow jargon and left a stale 'keep comma delimiter' decision in its docs, and Q over-built with unrequested refactors.",
+ "label_to_arm": {
+  "K": "V2.2",
+  "L": "V1",
+  "M": "Plain",
+  "N": "V2.1",
+  "P": "OG",
+  "Q": "SP"
+ }
+}

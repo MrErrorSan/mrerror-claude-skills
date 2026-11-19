@@ -1,0 +1,98 @@
+{
+ "scores": {
+  "P": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 5,
+   "process_fit": 5,
+   "communication": 5,
+   "rules": 5,
+   "overall": 5,
+   "problems": [
+    "None significant: one-line fix, existing suite run once (3 pass), brief report stating the change, how it was verified and that nothing was committed"
+   ]
+  },
+  "M": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 5,
+   "process_fit": 4,
+   "communication": 4,
+   "rules": 5,
+   "overall": 4,
+   "problems": [
+    "Opens with a 'Size: trivial...' classification line, a small piece of ceremony the user did not need",
+    "Otherwise matches the ideal: one-line diff, tests run once (3 passed), not committed"
+   ]
+  },
+  "K": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 5,
+   "process_fit": 4,
+   "communication": 4,
+   "rules": 5,
+   "overall": 4,
+   "problems": [
+    "Opens with a 'Size: trivial...' classification line, which is ceremony on a typo fix",
+    "Report is slightly wordier than needed ('Tell me if you want me to' commit offer); otherwise ideal, with tests run once (3 of 3)"
+   ]
+  },
+  "Q": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 3,
+   "process_fit": 4,
+   "communication": 4,
+   "rules": 5,
+   "overall": 3,
+   "problems": [
+    "Never ran the existing test suite (test-suite runs=0); 'nothing (tests included) checks for the old wording' is a grep claim, not verification",
+    "Report does not say that tests were not run, so verification status is implicit"
+   ]
+  },
+  "L": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 3,
+   "process_fit": 4,
+   "communication": 4,
+   "rules": 5,
+   "overall": 3,
+   "problems": [
+    "Did not run the existing tests (test-suite runs=0); relied on a search showing 'no tests check the old spelling'",
+    "Does not state plainly that the suite was not run"
+   ]
+  },
+  "N": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 2,
+   "process_fit": 4,
+   "communication": 3,
+   "rules": 5,
+   "overall": 3,
+   "problems": [
+    "Did not run the existing tests (test-suite runs=0) and the report gives no test status at all",
+    "Verification is only a repo search for other 'recieve' misspellings, which does not show nothing broke"
+   ]
+  }
+ },
+ "ranking": [
+  "P",
+  "M",
+  "K",
+  "Q",
+  "L",
+  "N"
+ ],
+ "summary": "All six runs made the identical correct one-line change with no over-building and no commit, so the deciding factor is whether they ran the existing tests once; P, M and K did, and L, N and Q did not. P edges out M and K by skipping the 'Size: trivial' preamble, and among the untested runs, N says the least about verification.",
+ "label_to_arm": {
+  "K": "V2.1",
+  "L": "V2.2",
+  "M": "V1",
+  "N": "OG",
+  "P": "SP",
+  "Q": "Plain"
+ }
+}

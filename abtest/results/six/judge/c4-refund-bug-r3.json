@@ -1,0 +1,103 @@
+{
+ "scores": {
+  "Q": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 4,
+   "process_fit": 5,
+   "communication": 5,
+   "rules": 5,
+   "overall": 5,
+   "problems": [
+    "Opening line 'Just doing it: a single report bug fix in one area' is process narration with little value to the user",
+    "The test has no -1.00 case, which was the user's own example; -50.00 covers whole dollars only partly"
+   ]
+  },
+  "P": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 5,
+   "process_fit": 5,
+   "communication": 4,
+   "rules": 5,
+   "overall": 4,
+   "problems": [
+    "Does not show the full report output after the fix, only Blue Harbor's line and the Refunds and Net figures in prose",
+    "Does not state that fixing money() changes every negative display in the CLI (e.g. other commands); it calls out Refunds only"
+   ]
+  },
+  "L": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 5,
+   "process_fit": 4,
+   "communication": 4,
+   "rules": 5,
+   "overall": 4,
+   "problems": [
+    "Only one test-suite run, so it never showed the new test failing before the fix",
+    "Gives no separate verification step; 'All 5 tests pass' is folded into the fix paragraph"
+   ]
+  },
+  "K": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 4,
+   "process_fit": 3,
+   "communication": 4,
+   "rules": 4,
+   "overall": 4,
+   "problems": [
+    "Created branch 'fix/negative-money-format' without being asked; reported, but an unrequested repository action",
+    "The test has no -1.00 or whole-dollar negative case",
+    "Opening fragments 'Reproduced. Now the fix:' are leaked progress narration"
+   ]
+  },
+  "N": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 4,
+   "process_fit": 4,
+   "communication": 4,
+   "rules": 5,
+   "overall": 4,
+   "problems": [
+    "Only one test-suite run, so there is no evidence the test failed before the fix",
+    "Opening line 'That's the same bug again' is mid-investigation narration that reached the user",
+    "Does not show the final report output; the result is only stated",
+    "The test has no whole-dollar negative case (-1.00)"
+   ]
+  },
+  "M": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 4,
+   "process_fit": 4,
+   "communication": 3,
+   "rules": 5,
+   "overall": 3,
+   "problems": [
+    "The reply opens with leaked internal tooling chatter: 'The tests dir has no __init__.py, so discover without -t'",
+    "Does not say whether the new test failed before the fix",
+    "The test has no whole-dollar negative case (-1.00)"
+   ]
+  }
+ },
+ "ranking": [
+  "Q",
+  "P",
+  "L",
+  "K",
+  "N",
+  "M"
+ ],
+ "summary": "All six made the same correct root-cause fix in money(), so the differences are in verification and reporting. Q stated its scope decision explicitly and showed fail-before and fail-after evidence; P and L covered the user's -1.00 case; K added an unrequested branch, and N and M let investigation narration leak into the reply with thinner verification.",
+ "label_to_arm": {
+  "K": "OG",
+  "L": "Plain",
+  "M": "V2.1",
+  "N": "V1",
+  "P": "SP",
+  "Q": "V2.2"
+ }
+}

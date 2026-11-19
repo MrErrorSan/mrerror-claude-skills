@@ -1,0 +1,111 @@
+{
+ "scores": {
+  "K": {
+   "match": 4,
+   "simplicity": 4,
+   "tests": 3,
+   "process_fit": 4,
+   "communication": 3,
+   "rules": 4,
+   "overall": 3,
+   "problems": [
+    "Rejected `--top 0` in the first pass; this was stated as a decision but was wrong and needed a user correction.",
+    "`test_top_rejects_negative_and_non_numbers` only asserts SystemExit. It never checks exit code 2, that stderr names --top, or that stdout is empty, which the user explicitly required.",
+    "README was not updated after the change and still says nothing about `--top 0` printing nothing, so docs lag the new behaviour.",
+    "Refactored the existing `test_main_prints_count_then_word` into a helper (an unrequested edit to an existing test), then `test_top_zero_prints_nothing` re-duplicates the temp-file setup anyway.",
+    "Visible text spends a lot of words on line-ending churn and is thin on naming the 0-change as a requirement change."
+   ]
+  },
+  "L": {
+   "match": 2,
+   "simplicity": 3,
+   "tests": 3,
+   "process_fit": 1,
+   "communication": 3,
+   "rules": 4,
+   "overall": 2,
+   "problems": [
+    "Final behaviour rejects `--top 0` with exit 2, while the user wants it to print nothing and exit 0. The user approved the plan, but the call was buried as 'nobody needs them'.",
+    "Heavy ceremony for a one-line feature: plan.md and progress.md, 3 subagents, a fix round, 3 commits on a `[workflow]/top-n/work` branch, and a required `/finish` step to land it.",
+    "`docs/top-n/plan.md` still says `Status: draft` although it was approved and built, so the docs disagree with reality.",
+    "Rejection test does not check that stderr names --top, and it duplicates temp-file setup (a reviewer flagged this and it was deferred).",
+    "Final report is cluttered with process meta ('No separate whole-branch review\u2026 high confidence') instead of plain results."
+   ]
+  },
+  "M": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 4,
+   "process_fit": 5,
+   "communication": 5,
+   "rules": 5,
+   "overall": 4,
+   "problems": [
+    "Rejected `--top 0` in the first pass; it was clearly listed as call #2 with the alternative, but still needed a correction round.",
+    "`test_top_zero_prints_nothing` checks only the output and not that the exit status is 0.",
+    "Small leftover `counts` local variable where a direct slice would do; cosmetic."
+   ]
+  },
+  "N": {
+   "match": 4,
+   "simplicity": 4,
+   "tests": 3,
+   "process_fit": 4,
+   "communication": 4,
+   "rules": 4,
+   "overall": 3,
+   "problems": [
+    "Rejected `--top 0` in the first pass; it was stated, but needed a correction.",
+    "README was not updated for `--top 0` after the change, so docs and code disagree on the new edge case.",
+    "5 new tests (8 total), with separate tests for 'limits output' and 'cuts ties' that overlap, despite the light-tests preference.",
+    "First report spends a lot of space on CRLF/LF repair narration."
+   ]
+  },
+  "P": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 4,
+   "process_fit": 4,
+   "communication": 5,
+   "rules": 5,
+   "overall": 4,
+   "problems": [
+    "Rejected `--top 0` in the first pass; it was listed under 'Choices I made', but still needed a correction.",
+    "Created a `feature/top-n` branch unasked; it was stated, but adds a small step the trivial change didn't need.",
+    "`test_top_limits_output_ties_alphabetical` relies on a comment to explain intent; otherwise the 4 tests are focused and check exit codes, stderr and stdout."
+   ]
+  },
+  "Q": {
+   "match": 5,
+   "simplicity": 4,
+   "tests": 4,
+   "process_fit": 3,
+   "communication": 4,
+   "rules": 4,
+   "overall": 4,
+   "problems": [
+    "Ceremony is heavy for a trivial flag: plan.md, progress.md, a reviewer subagent, a work branch left behind, and a `/finish` suggestion.",
+    "Committed directly on `main` while also creating a `[workflow]/top-n/work` branch that still exists; the branch story is confusing.",
+    "`test_top_rejects_bad_values` passes even without the option, because argparse rejects an unknown flag. The run disclosed this honestly but left it as is.",
+    "Positive: it asked about edge cases before writing code, logged the change as a CR that conflicts with D2, and retired S4 into S7/S8, so the docs match the code."
+   ]
+  }
+ },
+ "ranking": [
+  "P",
+  "M",
+  "Q",
+  "N",
+  "K",
+  "L"
+ ],
+ "summary": "P and M delivered the exact requested behaviour with minimal code, focused tests and clear reports, and Q got it right first time with good change tracking but too much workflow ceremony for a one-line feature. L shipped `--top 0` as an error under a heavyweight multi-agent process, while K and N left weak rejection assertions or a README that lags the corrected 0 behaviour.",
+ "label_to_arm": {
+  "K": "Plain",
+  "L": "V1",
+  "M": "V2.2",
+  "N": "SP",
+  "P": "OG",
+  "Q": "V2.1"
+ }
+}

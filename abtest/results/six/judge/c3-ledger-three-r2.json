@@ -1,0 +1,117 @@
+{
+ "scores": {
+  "K": {
+   "match": 3,
+   "simplicity": 4,
+   "tests": 4,
+   "process_fit": 2,
+   "communication": 3,
+   "rules": 4,
+   "overall": 3,
+   "problems": [
+    "Both flags at once is made an error (mutually exclusive group, D4). The brief wants both files written; the call was stated and approved, but it rests on the guess 'you didn't ask for it' rather than a question.",
+    "Heavy ceremony for a small change: 6 subagents, 15 test-suite runs, 4 commits on a workflow branch, a fix round and a re-review.",
+    "The plan said the full suite would run after each task. The progress log admits it was skipped after wave 1, so the plan and the practice diverged.",
+    "Final report is long and buries the outcome under workflow jargon (S-lines, D-numbers, lanes, /finish).",
+    "Strict regex plus fromisoformat for --since is good, but a calendar-invalid date like 2026-02-30 is left untested (deferred minor)."
+   ]
+  },
+  "L": {
+   "match": 4,
+   "simplicity": 4,
+   "tests": 3,
+   "process_fit": 3,
+   "communication": 4,
+   "rules": 4,
+   "overall": 3,
+   "problems": [
+    "Changed the money() behaviour in model.py without being asked. It was disclosed as a fix, but it is scope creep that was decided for Saad.",
+    "export_rows is placed in model.py, which mixes export formatting into the data model.",
+    "Error tests use assertNotEqual(code, 0) rather than asserting exit code 2.",
+    "date.fromisoformat accepts compact forms like 20261002 on Python 3.11+, and this is not mentioned.",
+    "No plan or questions for a three-part change. Allowing both flags happened to match the brief, but it was a silent judgement presented after the fact."
+   ]
+  },
+  "M": {
+   "match": 2,
+   "simplicity": 5,
+   "tests": 3,
+   "process_fit": 3,
+   "communication": 4,
+   "rules": 4,
+   "overall": 3,
+   "problems": [
+    "Both flags is an error (mutually exclusive group), contradicting the brief. It is mentioned as how the command works, not as a decision with a reason.",
+    "No plan or question for a three-part change, so the both-flags behaviour was never checked with Saad.",
+    "test_export_needs_exactly_one_format does not assert exit code 2, and the bad-date test does not check the exit code either.",
+    "Report says '5 tests' but lists six bullet items. The counts are loose.",
+    "Good: names the test fix explicitly ('the failure is in my test', switched to read_bytes)."
+   ]
+  },
+  "N": {
+   "match": 4,
+   "simplicity": 3,
+   "tests": 4,
+   "process_fit": 3,
+   "communication": 4,
+   "rules": 4,
+   "overall": 4,
+   "problems": [
+    "Adds a new ledger/export.py module and two new test files, which is slightly more structure than needed. rows() is also rebuilt for each format.",
+    "Wrote a plan doc but never asked for approval, so it is ceremony without a checkpoint.",
+    "--since uses a bare date.fromisoformat. The error text is argparse's 'invalid fromisoformat value', and compact forms are accepted on 3.11+ without this being noted.",
+    "Allowing both flags is presented as 'the cheap superset', a decision made without asking (it happens to match).",
+    "Good: the money fix was offered first and made only after Saad said 'your call', and the plan doc was updated to match."
+   ]
+  },
+  "P": {
+   "match": 4,
+   "simplicity": 4,
+   "tests": 4,
+   "process_fit": 3,
+   "communication": 4,
+   "rules": 4,
+   "overall": 4,
+   "problems": [
+    "No plan or questions for a three-part change. The both-flags behaviour was decided silently, though it is clearly flagged afterwards.",
+    "write_csv and write_json each call _export_rows, so rows are rebuilt for each format. This is minor.",
+    "fromisoformat accepts compact dates on 3.11+, and this is not mentioned.",
+    "The test for writing both files only checks that the files exist, not their content.",
+    "Good: stays in scope and leaves money() unchanged, with the bug flagged."
+   ]
+  },
+  "Q": {
+   "match": 5,
+   "simplicity": 4,
+   "tests": 4,
+   "process_fit": 4,
+   "communication": 5,
+   "rules": 5,
+   "overall": 4,
+   "problems": [
+    "The test file is somewhat long (11 tests). The both-flags and JSON-matches-CSV tests overlap.",
+    "fromisoformat accepts 20261002 on 3.11+. This is disclosed but left loose.",
+    "Landed directly on main. The plan said 'commit once, locally', but going to main was not explicitly confirmed.",
+    "test_csv_name_with_a_newline_reads_back writes the data file without encoding=utf-8. This is minor.",
+    "Good: the change request is handled cleanly, with D1 struck, D9 and D10 added, a change-log entry, and the integration test left untouched."
+   ]
+  }
+ },
+ "ranking": [
+  "Q",
+  "P",
+  "N",
+  "L",
+  "K",
+  "M"
+ ],
+ "summary": "Q is the only run that surfaced the both-flags decision in a plan, took Saad's change, recorded it as a change in the docs, and reported verification clearly. K and M made both flags an error, which contradicts what Saad wanted, and K also over-engineered the process with 6 subagents and 15 suite runs.",
+ "label_to_arm": {
+  "K": "V1",
+  "L": "SP",
+  "M": "V2.2",
+  "N": "OG",
+  "P": "Plain",
+  "Q": "V2.1"
+ }
+}

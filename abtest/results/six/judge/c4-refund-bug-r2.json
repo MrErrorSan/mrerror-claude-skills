@@ -1,0 +1,107 @@
+{
+ "scores": {
+  "K": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 4,
+   "process_fit": 4,
+   "communication": 4,
+   "rules": 5,
+   "overall": 4,
+   "problems": [
+    "The report never says whether the new test was seen failing before the fix, even though the suite ran twice",
+    "Mid-task narration ('Let me check data and tests before fixing') appears in the visible text and adds noise for a trivial fix",
+    "The test mixes 0.00 and -1.00 cases into one method; this is fine but slightly broader than the negative-amount regression it is named for",
+    "Useful note that the refunds figure was off by 1.04 for anyone who used earlier reports, with no overreach beyond that"
+   ]
+  },
+  "L": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 4,
+   "process_fit": 4,
+   "communication": 4,
+   "rules": 5,
+   "overall": 4,
+   "problems": [
+    "Only one test run, so there is no evidence the new test reproduced the bug before the fix",
+    "The test covers -1999, -5248 and -7 but no whole-unit negative like -1.00, which the user's expected format implies",
+    "No stated decision on how negative amounts should be formatted generally; the choice is implicit but reasonable"
+   ]
+  },
+  "M": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 4,
+   "process_fit": 4,
+   "communication": 3,
+   "rules": 5,
+   "overall": 4,
+   "problems": [
+    "The report output is not shown; the agent only asserts the new figures",
+    "One test run and no red-before-green evidence",
+    "Verification is thin: 'all 5 tests pass' is the only check named, with no mention of re-running `python -m ledger report`"
+   ]
+  },
+  "N": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 5,
+   "process_fit": 4,
+   "communication": 5,
+   "rules": 5,
+   "overall": 5,
+   "problems": [
+    "Claims the `list` command was also affected without showing it was checked",
+    "The 'Reverting it is one line' remark under Calls I made is odd and adds no value",
+    "The opening 'Just doing it' line is unnecessary meta-commentary, though harmless"
+   ]
+  },
+  "P": {
+   "match": 5,
+   "simplicity": 4,
+   "tests": 4,
+   "process_fit": 4,
+   "communication": 3,
+   "rules": 5,
+   "overall": 4,
+   "problems": [
+    "Reassigns the `cents` parameter inside `money()`; this works but is slightly less clear than a divmod on abs()",
+    "Report output is not shown, only a claim that the agent ran it",
+    "One test run, so there is no evidence the new test failed before the fix",
+    "No 0 or -1.00 case in the test"
+   ]
+  },
+  "Q": {
+   "match": 5,
+   "simplicity": 5,
+   "tests": 5,
+   "process_fit": 4,
+   "communication": 4,
+   "rules": 5,
+   "overall": 4,
+   "problems": [
+    "The opening 'The test fails with exactly the bug. Now the fix:' leaks working narration into the final message",
+    "No explicit statement of decisions made, such as the negative-format convention",
+    "Otherwise strong: red-before-green evidence, full report output, and a -12.00 case covering whole-unit negatives"
+   ]
+  }
+ },
+ "ranking": [
+  "N",
+  "Q",
+  "K",
+  "L",
+  "M",
+  "P"
+ ],
+ "summary": "All six fixed the root cause in money() with near-identical minimal code and a single focused regression test, so they differ only in verification evidence and reporting. N and Q showed the test failing before the fix and the resulting report output, with N also stating its decisions; M and P gave the thinnest evidence of verification.",
+ "label_to_arm": {
+  "K": "OG",
+  "L": "V1",
+  "M": "Plain",
+  "N": "V2.2",
+  "P": "V2.1",
+  "Q": "SP"
+ }
+}

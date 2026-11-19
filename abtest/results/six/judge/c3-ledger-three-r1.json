@@ -1,0 +1,113 @@
+{
+ "scores": {
+  "K": {
+   "match": 3,
+   "simplicity": 4,
+   "tests": 4,
+   "process_fit": 3,
+   "communication": 4,
+   "rules": 4,
+   "overall": 3,
+   "problems": [
+    "Mutually exclusive group makes `--csv` plus `--json` an error. The brief wants both files written, and the report never states this choice or gives a reason.",
+    "Never asked the one real open question (neither or both flags), so the choice was made for Saad without telling him.",
+    "Expanded scope into model.money() after the user said 'your call'. Acceptable and reported, but a test file outside the feature grew.",
+    "No plan or spec for a three-part change, so Saad saw nothing before the build.",
+    "Says 'full suite passes' twice, which implies the slow suite ran each time, including after a one-line money() change."
+   ]
+  },
+  "L": {
+   "match": 4,
+   "simplicity": 3,
+   "tests": 4,
+   "process_fit": 3,
+   "communication": 4,
+   "rules": 4,
+   "overall": 4,
+   "problems": [
+    "The plan doc docs/plans/2026-11-19-export-and-since.md was written but never offered for approval. It is after-the-fact ceremony, and its frontmatter says every todo is 'completed'.",
+    "The plan's Verification section cites INV-1002/INV-1003, but the tests use INV-1/2/3. The doc and the tests disagree.",
+    "Adds a new module, ledger/export.py, for about 20 lines. The sharing is good, but a separate file was not needed.",
+    "Allowing both flags is the right call, but it was decided without asking. It is stated clearly in the report, though."
+   ]
+  },
+  "M": {
+   "match": 3,
+   "simplicity": 3,
+   "tests": 3,
+   "process_fit": 1,
+   "communication": 2,
+   "rules": 3,
+   "overall": 2,
+   "problems": [
+    "Massive ceremony for a small CLI change: 7 subagents, 14 test-suite runs, 5 commits, workflow branches, and a progress log full of deferred 'minors'.",
+    "Makes `--csv` plus `--json` a usage error, which contradicts the brief. The choice was approved via the plan, but it was presented as settled rather than asked.",
+    "Not finished. The work sits on a `[workflow]` branch and still needs `/[workflow]:finish`. The plan.md Status still says 'draft'.",
+    "The report is long and jargon-heavy ('rulings', 'waves', 'S-lines', 'fix round 1/5'), which makes it hard for Saad to see what is done.",
+    "The fixture is duplicated in tests/test_export.py and tests/test_list.py. CSV rows depend on dict `values()` order."
+   ]
+  },
+  "N": {
+   "match": 4,
+   "simplicity": 3,
+   "tests": 3,
+   "process_fit": 3,
+   "communication": 5,
+   "rules": 4,
+   "overall": 4,
+   "problems": [
+    "Over-building: an OSError handler with exit 1, a regex for a strict date format, and an empty-ledger decision D8. None were requested, though all are stated with reasons.",
+    "Test bloat: 16 tests, including two subprocess tests and a near-duplicate pair (filters older vs boundary). The 5-value bad-date subTest is more than needed.",
+    "6 test-suite runs is a lot for a slow suite. The plan promised the full suite 'once at the end'.",
+    "The plan asked for approval but not batched questions. Saad volunteered the answers, and the agent folded them in correctly."
+   ]
+  },
+  "P": {
+   "match": 3,
+   "simplicity": 4,
+   "tests": 3,
+   "process_fit": 3,
+   "communication": 3,
+   "rules": 4,
+   "overall": 3,
+   "problems": [
+    "Mutually exclusive group makes both flags an error, which contradicts the brief. The report mentions it as fact, not as a decision with a reason.",
+    "Changed model.money() without asking. This is scope creep, though it is disclosed.",
+    "The bad-date test only checks for 'YYYY-MM-DD' in the message, not exit code 2. test_requires_exactly_one_format doesn't check the exit code either.",
+    "No plan or questions for a three-part change. It reads as 'requirements are clear' when one real ambiguity existed."
+   ]
+  },
+  "Q": {
+   "match": 4,
+   "simplicity": 5,
+   "tests": 3,
+   "process_fit": 4,
+   "communication": 5,
+   "rules": 4,
+   "overall": 4,
+   "problems": [
+    "First version made both flags an error. It was stated as decision #1 with a reason and fixed when Saad changed it, but the question could have been asked up front.",
+    "No test for plain `list` without `--since`, so the existing behaviour has no regression test.",
+    "Negative-total formatting bug in money() is never mentioned, while other runs flagged it.",
+    "Same-path overwrite for `--csv` and `--json` is noted but untested. That is fine, but the edge was introduced by the change."
+   ]
+  }
+ },
+ "ranking": [
+  "Q",
+  "N",
+  "L",
+  "K",
+  "P",
+  "M"
+ ],
+ "summary": "Q and L ended with the brief's both-flags behaviour. Q stands out for minimal code, clear statements of its decisions, and a cleanly handled requirement change that updated the tests and README together. N had the best plan, approval step and report, but over-built and bloated its tests; M buried a small change under heavy workflow ceremony and left it unfinished, while K and P silently or flatly made both flags an error.",
+ "label_to_arm": {
+  "K": "Plain",
+  "L": "OG",
+  "M": "V1",
+  "N": "V2.1",
+  "P": "SP",
+  "Q": "V2.2"
+ }
+}

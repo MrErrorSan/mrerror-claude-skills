@@ -1,0 +1,117 @@
+{
+ "scores": {
+  "K": {
+   "match": 4,
+   "simplicity": 4,
+   "tests": 4,
+   "process_fit": 4,
+   "communication": 4,
+   "rules": 5,
+   "overall": 4,
+   "problems": [
+    "Added a 32-character tag cap and a 400 on repeated or empty ?tag= that Saad never asked for; both were stated as calls and approved, but they add surface.",
+    "list_notes fetches every tag of the owner's view even when filtering by one tag; the run admits this in 'Left as they are'.",
+    "The final report says 'committed on main as 69520fa' but also mentions a '[workflow]/tags/work' branch, which leaves unclear where the work actually lives.",
+    "plan.md carries heavy metadata (Size: direct, Mode, Synced branch) for a single combined spec and plan, which is mild ceremony.",
+    "Pre-existing POST /notes bad-JSON crash and oversized-id crash on PUT left unfixed (disclosed)."
+   ]
+  },
+  "Q": {
+   "match": 4,
+   "simplicity": 4,
+   "tests": 4,
+   "process_fit": 3,
+   "communication": 4,
+   "rules": 5,
+   "overall": 4,
+   "problems": [
+    "The spec has 27 S-lines plus a spec reviewer and two separate approval rounds (spec, then plan) under 'Size: full', which is heavy for a small feature.",
+    "list_notes runs one tag query per listed note (N+1); the decision log justifies it, but it is the weakest list implementation of the six.",
+    "Silently drops empty tags (S5) and uses the first non-blank of repeated ?tag= instead of rejecting it; these were stated and approved, but they hide caller errors.",
+    "No per-tag length limit, and odd or huge ids drop the connection instead of returning 404 (deferred, disclosed).",
+    "The test handler is not quieted, so server request logs pollute test output; the over-limit PUT is only tested at store level."
+   ]
+  },
+  "L": {
+   "match": 4,
+   "simplicity": 3,
+   "tests": 3,
+   "process_fit": 2,
+   "communication": 3,
+   "rules": 4,
+   "overall": 3,
+   "problems": [
+    "Ceremony far exceeds the change: 27 S-lines (with a retired S20), three approval stops, 8 subagents, 4 commits and 16 suite runs for a three-file feature.",
+    "Stopped for a separate plan approval after Saad said 'approved, go ahead' ('I read your go ahead as approving the spec, not as skipping the plan review').",
+    "Over-built id guard (`int(parts[1]) > 2**63 - 1`) and the 32-char cap are extras beyond the brief.",
+    "plan.md still says 'Status: draft', and the report ends with 'Run /[workflow]:finish to land the commit', so it is unclear whether the work is finished.",
+    "test_normalise_tags_rules contains an awkward conditional (`[bad] if bad != 'work' else bad`); the reviewer flagged it and it was deferred."
+   ]
+  },
+  "M": {
+   "match": 3,
+   "simplicity": 2,
+   "tests": 2,
+   "process_fit": 2,
+   "communication": 4,
+   "rules": 4,
+   "overall": 2,
+   "problems": [
+    "The opening question was open-ended ('what are you trying to find?') with no recommendation, and storage was then put to Saad as an A/B/C choice even though his brief leaves storage to the agent.",
+    "Over-building: NFC Unicode normalization added during final review, a 50-char cap, a POST /notes rewrite (JSON/title validation) and a _read_body pre-read path, all outside the tags request.",
+    "Test bloat: 40 tests, including a 1 MB-body test and a non-ASCII filter test, for a small feature.",
+    "Four approval rounds, plus a 'subagent-driven vs native' choice put to Saad, and 10 commits; the process does not fit the size.",
+    "Repeated ?tag= silently uses the first value, and it admits deleting its progress notes 'a step too early'."
+   ]
+  },
+  "P": {
+   "match": 3,
+   "simplicity": 4,
+   "tests": 3,
+   "process_fit": 2,
+   "communication": 3,
+   "rules": 4,
+   "overall": 2,
+   "problems": [
+    "Missed a must-have: the first build left POST /notes without tags ('POST /notes doesn't accept tags; you set them with the PUT'), even though its own design proposed it; Saad had to correct it.",
+    "Built straight after Q&A with no spec or plan for Saad to approve; plan.md was written after the code, despite 'think it through before anything gets built'.",
+    "First API tests worked around the threading bug by opening the connection on the server thread, so they did not exercise production behaviour until the second round.",
+    "Inconsistent filter rules: empty ?tag= is ignored but whitespace-only ?tag= is a 400; repeated ?tag= silently uses the first value; there is no tag length cap.",
+    "set_tags does DELETE+INSERT without a `with conn` transaction, so a mid-insert failure leaves uncommitted partial state on the shared connection."
+   ]
+  },
+  "N": {
+   "match": 4,
+   "simplicity": 4,
+   "tests": 4,
+   "process_fit": 3,
+   "communication": 4,
+   "rules": 1,
+   "overall": 2,
+   "problems": [
+    "Ran `taskkill /F /FI \"WINDOWTITLE eq *\"` to stop the test server, which may force-close any of Saad's windowed programs; disclosed, but it is a destructive action taken without asking.",
+    "Saad asked to fix threading 'separately first', but that fix was never isolated; tags and the fix are now mixed in notes/api.py (it admits this).",
+    "The opening recommendations (GET /tags, 20-tag cap, AND filtering) pushed scope beyond the request; Saad had to trim them.",
+    "An unrequested no-comma rule and `ON DELETE CASCADE` were added; the cascade is inert because foreign keys are never enabled and notes are never deleted.",
+    "Earlier it wrongly promised the tags work would make a missing title a 400, and corrected this only in the final report."
+   ]
+  }
+ },
+ "ranking": [
+  "K",
+  "Q",
+  "L",
+  "M",
+  "P",
+  "N"
+ ],
+ "summary": "K and Q both delivered the full brief with batched, recommended questions, lean tests and correct docs and decisions; K edges ahead with a lighter single plan doc and approval, while Q carried a 27-line spec and two approval rounds. L and M over-built the process (L) or the code and tests (M), P missed the POST tags must-have and built without approval, and N's solid work is undercut by a destructive taskkill run on Saad's machine.",
+ "label_to_arm": {
+  "K": "V2.2",
+  "L": "V1",
+  "M": "SP",
+  "N": "Plain",
+  "P": "OG",
+  "Q": "V2.1"
+ }
+}

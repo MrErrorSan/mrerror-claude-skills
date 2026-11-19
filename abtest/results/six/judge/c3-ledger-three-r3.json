@@ -1,0 +1,112 @@
+{
+ "scores": {
+  "Q": {
+   "match": 5,
+   "simplicity": 4,
+   "tests": 4,
+   "process_fit": 4,
+   "communication": 4,
+   "rules": 5,
+   "overall": 4,
+   "problems": [
+    "Final report says 'If you want to clean up the leftover work branch, run /[workflow]:finish', but the plan names no work branch, so the remark is confusing.",
+    "Bad --since message is the argparse default 'invalid fromisoformat value: ...'. It is clean with exit 2, but it does not name the expected format.",
+    "test_since_filters_out_older_invoices and test_since_includes_the_boundary_date assert the same result ['INV-2','INV-3'], which is mild overlap.",
+    "The JSON is written with platform line endings (CRLF on Windows) while the CSV is pinned; the choice is stated but it is an odd inconsistency.",
+    "Spawned a reviewer subagent and kept progress.md and plan.md for a moderate change; the ceremony is acceptable but on the heavy side."
+   ]
+  },
+  "P": {
+   "match": 4,
+   "simplicity": 4,
+   "tests": 3,
+   "process_fit": 4,
+   "communication": 4,
+   "rules": 5,
+   "overall": 4,
+   "problems": [
+    "Decided that both flags write both files without asking. This matches Saad's wish and is stated as Decision 1, but it was not confirmed.",
+    "No test covers the both-flags behaviour it chose, so the behaviour it advertises is unverified.",
+    "A style slip in the new code: `type=_iso_date,metavar=` is missing a space.",
+    "No spec or plan for a three-part change; the work went straight to code."
+   ]
+  },
+  "N": {
+   "match": 3,
+   "simplicity": 4,
+   "tests": 4,
+   "process_fit": 4,
+   "communication": 4,
+   "rules": 5,
+   "overall": 3,
+   "problems": [
+    "Both --csv and --json is a usage error. The choice is stated, but Saad wanted both files written and was never asked.",
+    "Added a `model.oldest_first` helper to model.py that the request did not need, a small extra abstraction.",
+    "No spec or plan was shown for approval on three-part work."
+   ]
+  },
+  "L": {
+   "match": 3,
+   "simplicity": 3,
+   "tests": 4,
+   "process_fit": 3,
+   "communication": 4,
+   "rules": 5,
+   "overall": 3,
+   "problems": [
+    "Both flags is an error (stated as a choice), which contradicts Saad's preference; it did not ask.",
+    "Created a new module, ledger/export.py, where cli.py would have sufficed; this is an extra file.",
+    "Wrote a plan document (docs/plans/2026-11-19-export-and-since.md) only after the work, never offering it for approval, so the document is ceremony with no review step.",
+    "test_bad_date_is_a_usage_error calls cli.main without --data. It works only because parsing fails before the data file loads, which is fragile."
+   ]
+  },
+  "M": {
+   "match": 3,
+   "simplicity": 3,
+   "tests": 3,
+   "process_fit": 4,
+   "communication": 4,
+   "rules": 4,
+   "overall": 3,
+   "problems": [
+    "Changed model.money() for negative totals, a scope expansion into existing behaviour that `list` also uses, done without asking (though stated).",
+    "Both flags is an error, which contradicts Saad's preference; it did not ask.",
+    "test_export_requires_exactly_one_format does not assert exit code 2, only that SystemExit is raised.",
+    "No plan or approval step for three-part work."
+   ]
+  },
+  "K": {
+   "match": 3,
+   "simplicity": 2,
+   "tests": 4,
+   "process_fit": 1,
+   "communication": 2,
+   "rules": 4,
+   "overall": 2,
+   "problems": [
+    "Ran the test suite 18 times and dispatched 8 subagents for a small CLI change, rerunning the ~20 s suite repeatedly.",
+    "Added an unrequested S8/T3 guard (export refuses the data file path) mid-build without asking, which is over-building.",
+    "Both flags is a usage error, against Saad's preference. It was in the approved plan but never posed as a question.",
+    "plan.md still says 'Status: draft' and lists a synced branch and work branch that were never created, so the docs disagree with reality.",
+    "Reports are full of process jargon ('lane brief', 'wave-1 check', 'write set'), and the sort line is left duplicated in cli.py."
+   ]
+  }
+ },
+ "ranking": [
+  "Q",
+  "P",
+  "N",
+  "L",
+  "M",
+  "K"
+ ],
+ "summary": "Q is the only run that got Saad's both-flags requirement through a proper plan-and-approve loop and recorded it as a change in the docs, with proportionate verification. P landed the same behaviour by guessing but left it untested. The rest made the both-is-error call silently or with only a statement, and K buried a small change under heavy ceremony, repeated slow-suite runs and an unrequested feature.",
+ "label_to_arm": {
+  "K": "V1",
+  "L": "OG",
+  "M": "Plain",
+  "N": "SP",
+  "P": "V2.2",
+  "Q": "V2.1"
+ }
+}

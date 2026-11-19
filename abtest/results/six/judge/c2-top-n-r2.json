@@ -1,0 +1,112 @@
+{
+ "scores": {
+  "M": {
+   "match": 5,
+   "simplicity": 4,
+   "tests": 4,
+   "process_fit": 5,
+   "communication": 5,
+   "rules": 4,
+   "overall": 4,
+   "problems": [
+    "Initially made --top 0 an error, but surfaced it explicitly as 'two choices you may want to change' with the alternative, so Saad could correct it in one reply.",
+    "Validator uses an `n = -1` sentinel in the except branch to reach the error path: works, but is a slightly indirect trick.",
+    "8 tests total; test_top_limits_output and test_top_cuts_ties_alphabetically overlap a little (both check the head of the sorted list).",
+    "Reject test does not check that stdout stays empty for the non-numeric case before parse... it does check; minor: no test that output without --top is unchanged beyond the pre-existing test (acceptable)."
+   ]
+  },
+  "P": {
+   "match": 5,
+   "simplicity": 4,
+   "tests": 4,
+   "process_fit": 5,
+   "communication": 4,
+   "rules": 4,
+   "overall": 4,
+   "problems": [
+    "Chose --top 0 as an error up front; it was listed under 'Calls I made' with the alternative, but no reason was given for preferring the error.",
+    "Same `n = -1` sentinel trick in non_negative_int.",
+    "No plain 'limits output' test separate from the tie case; the single tie test carries both (acceptable but terse).",
+    "README line omits that negative/non-numeric N is an error and that N > word count prints all."
+   ]
+  },
+  "L": {
+   "match": 4,
+   "simplicity": 4,
+   "tests": 4,
+   "process_fit": 4,
+   "communication": 4,
+   "rules": 4,
+   "overall": 4,
+   "problems": [
+    "Created branch feature/top-n without asking ('I'm on main, so I'll put it on a branch first'); it was stated, but it is an unrequested action.",
+    "--top 0 as an error was flagged as 'A choice I made on my own', but with no reason beyond 'one-line change'.",
+    "README omits that N > word count prints all and that bad N exits 2.",
+    "Same `n = -1` sentinel trick; the non-numeric error message hides the real cause ('non-negative integer, got 'x'')."
+   ]
+  },
+  "K": {
+   "match": 4,
+   "simplicity": 4,
+   "tests": 3,
+   "process_fit": 4,
+   "communication": 4,
+   "rules": 4,
+   "overall": 3,
+   "problems": [
+    "--top 0 rejection was stated as a fact under 'Edge cases', not presented as a decision with a reason or alternative.",
+    "Reject test does not assert stdout is empty, which Saad explicitly required.",
+    "Did not name the --top 0 reversal as a requirement change; it just applied it.",
+    "First report spends several lines narrating line-ending repair (careful, but noise for the user)."
+   ]
+  },
+  "N": {
+   "match": 4,
+   "simplicity": 3,
+   "tests": 4,
+   "process_fit": 2,
+   "communication": 3,
+   "rules": 3,
+   "overall": 3,
+   "problems": [
+    "Wrote plan.md plus progress.md, ran an approval gate, and dispatched a reviewer subagent for a one-flag change: ceremony out of proportion.",
+    "Committed directly to main (ff50a75) and left a leftover work branch `[workflow]/top-n/work` for Saad to clean up.",
+    "The final report is long and full of workflow jargon (`/[workflow]:finish`, S-lines, D-numbers) for a trivial feature.",
+    "Positive: the change request was correctly recorded as conflicting with D2, with S4 retired, so docs and code agree."
+   ]
+  },
+  "Q": {
+   "match": 4,
+   "simplicity": 3,
+   "tests": 3,
+   "process_fit": 1,
+   "communication": 2,
+   "rules": 3,
+   "overall": 2,
+   "problems": [
+    "Heaviest process: plan, two approval rounds (it demanded a second 'yes' even after 'rest is fine'), 2 subagents, 7 suite runs, for one CLI flag.",
+    "plan.md still says 'Status: draft' after approval and build, so the doc disagrees with reality.",
+    "Work is not where it was promised: two commits on `[workflow]/top-n/work`, not on feat/top-n, and it needs a `/[workflow]:finish` step.",
+    "Knowingly left a duplicated error message and a raise without `from None` in non_negative_int; --top has no help text.",
+    "test_top_limits_output crams the 3, 10 and 0 cases into one test, which makes failures harder to read (light, but less clear)."
+   ]
+  }
+ },
+ "ranking": [
+  "M",
+  "P",
+  "L",
+  "K",
+  "N",
+  "Q"
+ ],
+ "summary": "All six runs ended with correct behaviour after Saad's correction; the decisive differences are how openly each surfaced the --top 0 decision and whether the process matched a trivial change. M, P and L stated their calls and stayed lean, while N and Q buried a one-flag feature under plans, subagents, approval gates and leftover workflow branches.",
+ "label_to_arm": {
+  "K": "Plain",
+  "L": "OG",
+  "M": "SP",
+  "N": "V2.1",
+  "P": "V2.2",
+  "Q": "V1"
+ }
+}

@@ -1,0 +1,117 @@
+{
+ "scores": {
+  "K": {
+   "match": 5,
+   "simplicity": 4,
+   "tests": 4,
+   "process_fit": 4,
+   "communication": 4,
+   "rules": 5,
+   "overall": 4,
+   "problems": [
+    "MAX_ID guard and test_put_huge_id_is_404 are over-building for an id-overflow edge nobody asked about (api.py MAX_ID = 2**63 - 1)",
+    "29 tests with some overlap: normalize tests duplicate store/API checks (test_normalize_tag_single vs test_rejects_bad_shapes)",
+    "list_notes joins every owner tag row, not only the listed notes; disclosed but left in",
+    "Process is heavy for the size: design doc, plan, then a reviewer subagent, with workflow-skill wording leaking into chat",
+    "Added a 50-char limit and made blank ?tag= a 400 as its own calls; both were stated with reasons, so these are minor"
+   ]
+  },
+  "Q": {
+   "match": 4,
+   "simplicity": 3,
+   "tests": 3,
+   "process_fit": 3,
+   "communication": 4,
+   "rules": 4,
+   "overall": 3,
+   "problems": [
+    "PUT with bad tags on someone else's or a missing note returns 400 instead of 404 (normalize_tags runs before the ownership check); disclosed as deferred",
+    "Comma ban exists partly so the group_concat split in list_notes works, which couples a user-facing tag rule to a storage trick",
+    "Two commits landed straight on main; Saad was told only afterwards that it was main, not on a branch",
+    "test_stalled_client_does_not_block_others depends on time.sleep(0.1) and prints a traceback, so it is fragile by its own admission",
+    "Recommended a bare-list PUT body and AND multi-tag filtering, and Saad had to correct both; README not updated for the new routes"
+   ]
+  },
+  "L": {
+   "match": 4,
+   "simplicity": 4,
+   "tests": 4,
+   "process_fit": 4,
+   "communication": 3,
+   "rules": 3,
+   "overall": 3,
+   "problems": [
+    "Docs disagree with code: spec.md still says 'Not built yet' and lists 'Assumptions: Nobody has confirmed these' after build and approval",
+    "The per-request connection change is not recorded in decisions.md or the spec, and README was not updated with the new endpoints",
+    "Found the thread bug only after building and first shipped tests that work around it with check_same_thread=False",
+    "Proposed max 20 tags and AND multi-tag filtering, which Saad had to correct",
+    "Ran a broad taskkill on python.exe that could have killed Saad's other processes; disclosed afterwards"
+   ]
+  },
+  "M": {
+   "match": 4,
+   "simplicity": 3,
+   "tests": 4,
+   "process_fit": 2,
+   "communication": 3,
+   "rules": 4,
+   "overall": 3,
+   "problems": [
+    "Tags are normalised twice: api.py calls normalise_tags and then add_note normalises again",
+    "Heavy ceremony for a small feature: 18 S-lines, plan, progress.md, spec reviewer subagent, squash workflow",
+    "Chat leaks tool jargon ('[workflow] didn't record it', 'Size: full' printed twice, '/[workflow]:finish')",
+    "No rollback in add_note if the tag insert fails after the note insert (conn.commit only at the end, no 'with conn'); disclosed",
+    "Recommended AND multi-tag filtering, which Saad overrode"
+   ]
+  },
+  "P": {
+   "match": 3,
+   "simplicity": 2,
+   "tests": 3,
+   "process_fit": 2,
+   "communication": 3,
+   "rules": 4,
+   "overall": 3,
+   "problems": [
+    "Started building right after Saad's answers, with no spec or plan approval stop, even though he asked to think it through first",
+    "Over-built: BadRequest class, _handle lambda dispatch, _note_id helper, title/body validation, and a Kelvin-sign ASCII check",
+    "Proposed GET /tags in the first draft API, a non-goal",
+    "Empty ?tag= is silently ignored (parse_qs drops it) while invalid tags are 400s; documented but inconsistent",
+    "Spent visible effort fighting heredoc, sed line endings and \\u escape issues; README not updated"
+   ]
+  },
+  "N": {
+   "match": 4,
+   "simplicity": 3,
+   "tests": 3,
+   "process_fit": 1,
+   "communication": 2,
+   "rules": 3,
+   "overall": 2,
+   "problems": [
+    "Massive ceremony: 23 S-lines, 6 subagents, 15 suite runs, smoke-harness debugging, failed cross-model review attempts, 4 commits on a work branch",
+    "spec.md and plan.md still say 'Status: draft' after the build finished, so docs and code disagree",
+    "list_notes runs one tag query per note (an N+1 query), deferred as allowed by the plan",
+    "Recommended adding GET /tags (a non-goal) and AND multi-tag filtering",
+    "Added an extra approval stop after Saad's 'approved, go ahead', and the final report is buried in workflow jargon; work is left unsquashed pending /finish"
+   ]
+  }
+ },
+ "ranking": [
+  "K",
+  "Q",
+  "L",
+  "M",
+  "P",
+  "N"
+ ],
+ "summary": "K asked the one question that mattered with a recommendation, confirmed the edge cases, kept its docs consistent with the code, and respected the no-commit instruction; Q, L and M delivered working features but carried a visible bug (Q's 400-before-404), stale docs (L), or needless ceremony (M). P built without an approval stop and over-abstracted the handler, and N buried a small feature under a large workflow while leaving its spec and plan marked draft.",
+ "label_to_arm": {
+  "K": "SP",
+  "L": "OG",
+  "M": "V2.1",
+  "N": "V1",
+  "P": "Plain",
+  "Q": "V2.2"
+ }
+}
