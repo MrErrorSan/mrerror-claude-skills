@@ -16,12 +16,12 @@ Seconds of the main session's active time (Saad's thinking time excluded), by wh
 | c2-top-n-A-r1 | 327 | 233 | 0 | 72 | 10 | 25 | 0 | 0 | 0 | 1 | 0 | 2 / 72 / 1.0 | build 140, plan 107, verify 50, brainstorm 23 |
 | c2-top-n-A-r2 | 328 | 238 | 0 | 66 | 12 | 26 | 0 | 0 | 0 | 1 | 0 | 2 / 66 / 1.0 | build 141, plan 110, verify 53, brainstorm 18 |
 | c2-top-n-A-r3 | 185 | 242 | 13 | 64 | 11 | 21 | 0 | 1 | 0 | 0 | 0 | 3 / 148 / 1.19 | build 198, plan 75, verify 33, brainstorm 21 |
-| c2-top-n-S-r1 | 113 | 105 | 0 | 0 | 12 | 0 | 4 | 1 | 0 | 0 | 0 | 0 / 0 / None | test-driven-development 116, router/none 6 |
-| c2-top-n-S-r2 | 97 | 86 | 0 | 0 | 10 | 0 | 4 | 4 | 0 | 0 | 0 | 0 / 0 / None | router/none 104 |
-| c2-top-n-S-r3 | 114 | 116 | 0 | 0 | 11 | 0 | 8 | 0 | 0 | 0 | 0 | 0 / 0 / None | router/none 135 |
-| c2-top-n-V-r1 | 87 | 84 | 0 | 0 | 4 | 0 | 4 | 8 | 0 | 0 | 0 | 0 / 0 / None | router/none 100 |
-| c2-top-n-V-r2 | 86 | 82 | 0 | 0 | 12 | 0 | 4 | 2 | 0 | 0 | 0 | 0 / 0 / None | router/none 99 |
-| c2-top-n-V-r3 | 65 | 64 | 0 | 0 | 3 | 0 | 8 | 0 | 0 | 0 | 0 | 0 / 0 / None | router/none 75 |
+| c2-top-n-S-r1 | 42 | 105 | 0 | 0 | 12 | 0 | 4 | 1 | 0 | 0 | 0 | 0 / 0 / None | test-driven-development 116, router/none 6 |
+| c2-top-n-S-r2 | 72 | 86 | 0 | 0 | 10 | 0 | 4 | 4 | 0 | 0 | 0 | 0 / 0 / None | router/none 104 |
+| c2-top-n-S-r3 | 90 | 116 | 0 | 0 | 11 | 0 | 8 | 0 | 0 | 0 | 0 | 0 / 0 / None | router/none 135 |
+| c2-top-n-V-r1 | 82 | 84 | 0 | 0 | 4 | 0 | 4 | 8 | 0 | 0 | 0 | 0 / 0 / None | router/none 100 |
+| c2-top-n-V-r2 | 67 | 82 | 0 | 0 | 12 | 0 | 4 | 2 | 0 | 0 | 0 | 0 / 0 / None | router/none 99 |
+| c2-top-n-V-r3 | 75 | 70 | 0 | 0 | 8 | 0 | 4 | 0 | 0 | 0 | 0 | 0 / 0 / None | router/none 82 |
 | c3-ledger-three-A-r1 | 734 | 454 | 10 | 355 | 43 | 27 | 1 | 6 | 0 | 4 | 0 | 7 / 810 / 1.44 | build 642, plan 118, verify 88, brainstorm 25 |
 | c3-ledger-three-A-r2 | 443 | 390 | 24 | 276 | 21 | 28 | 1 | 5 | 0 | 2 | 0 | 6 / 367 / 1.06 | build 490, plan 143, verify 65, brainstorm 29 |
 | c3-ledger-three-A-r3 | 330 | 585 | 49 | 226 | 58 | 26 | 0 | 6 | 0 | 12 | 0 | 8 / 650 / 1.27 | plan 807, verify 107, brainstorm 30, anvil 14 |

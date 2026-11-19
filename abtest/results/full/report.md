@@ -1,32 +1,40 @@
 # A/B results: suite `full`
 
-Generated 2026-11-18 23:47. Arms: A = Anvil, S = Superpowers 7.0.2, V = no plugin. Agent model claude-opus-5-5 at effort high.
+Generated 2026-11-19 09:31. Arms: A = Anvil, S = Superpowers 7.0.2, V = no plugin. Agent model claude-opus-5-5 at effort high.
 
 ## Per case (median over replicates)
 
-| Case | Arm | Hidden pass % | Agent time s | Cost $ | User turns | Suite runs | Subagents | Code lines | Test lines | Docs | Judge (1-5) | Judge rank |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| c1-typo | A | 100 | 26.7 | 0.1791 | 0 | 1 | 0 | 2 | 0 | 0 | 5 | 1 |
-| c1-typo | S | 100 | 18.3 | 0.144 | 0 | 0 | 0 | 2 | 0 | 0 | 4 | 2 |
-| c1-typo | V | 100 | 25.2 | 0.1438 | 0 | 0 | 0 | 2 | 0 | 0 | 4 | 3 |
-| c2-top-n | A | 100 | 327.1 | 1.6022 | 3 | 7 | 2 | 14 | 31 | 3 | 4 | 1 |
-| c2-top-n | S | 100 | 112.7 | 0.4895 | 3 | 6 | 0 | 16 | 37 | 1 | 3 | 2 |
-| c2-top-n | V | 100 | 85.7 | 0.3806 | 3 | 3 | 0 | 18 | 36 | 1 | 2 | 3 |
-| c3-ledger-three | A | 92 | 443.1 | 3.549 | 1 | 15 | 7 | 42 | 105 | 3 | 2 | 3 |
-| c3-ledger-three | S | 92 | 88.4 | 0.3431 | 0 | 3 | 0 | 58 | 94 | 1 | 4 | 2 |
-| c3-ledger-three | V | 92 | 108.0 | 0.3462 | 0 | 3 | 0 | 62 | 82 | 1 | 3 | 1 |
-| c4-refund-bug | A | 100 | 43.8 | 0.2505 | 0 | 1 | 0 | 6 | 5 | 0 | 4 | 3 |
-| c4-refund-bug | S | 100 | 35.6 | 0.2538 | 0 | 2 | 0 | 6 | 7 | 0 | 5 | 1 |
-| c4-refund-bug | V | 100 | 32.3 | 0.1801 | 0 | 1 | 0 | 6 | 6 | 0 | 4 | 2 |
-| c5-notes-tags | A | 100 | 1262.6 | 6.3243 | 3 | 16 | 8 | 126 | 176 | 4 | 3 | 3 |
-| c5-notes-tags | S | 100 | 759.1 | 3.2446 | 4 | 22 | 1 | 159 | 224 | 3 | 3 | 2 |
-| c5-notes-tags | V | 100 | 337.4 | 1.1291 | 1 | 6 | 0 | 149 | 197 | 2 | 3 | 2 |
-| c6-csv-change | A | 100 | 609.0 | 2.8305 | 2 | 17 | 4 | 14 | 69 | 3 | 3 | 2 |
-| c6-csv-change | S | 100 | 134.4 | 0.6302 | 1 | 8 | 0 | 31 | 69 | 1 | 3 | 2 |
-| c6-csv-change | V | 100 | 107.8 | 0.4467 | 1 | 3 | 0 | 36 | 65 | 1 | 3 | 2 |
-| c7-afk-import | A | 100 | 940.9 | 4.3687 | 1 | 17 | 8 | 74 | 150 | 4 | 2 | 3 |
-| c7-afk-import | S | 100 | 152.0 | 0.6192 | 1 | 4 | 0 | 103 | 139 | 1 | 4 | 2 |
-| c7-afk-import | V | 100 | 128.8 | 0.4987 | 0 | 2 | 0 | 102 | 188 | 1 | 4 | 1 |
+| Case | Arm | Hidden pass % | Agent time s | Cost $ | User turns | Suite runs | Subagents | Code lines | Test lines | Docs | EOL rewrites | Judge (1-5) | Judge rank |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| c1-typo | A | 100 | 26.7 | 0.1791 | 0 | 1 | 0 | 2 | 0 | 0 | 1 | 5 | 1 |
+| c1-typo | S | 100 | 18.3 | 0.144 | 0 | 0 | 0 | 2 | 0 | 0 | 1 | 4 | 2 |
+| c1-typo | V | 100 | 25.2 | 0.1438 | 0 | 0 | 0 | 2 | 0 | 0 | 0 | 4 | 3 |
+| c2-top-n | A | 100 | 327.1 | 1.6022 | 3 | 7 | 2 | 14 | 31 | 3 | 0 | 3 | 3 |
+| c2-top-n | S | 100 | 72.4 | 0.3592 | 1 | 3 | 0 | 15 | 34 | 1 | 0 | 4 | 1 |
+| c2-top-n | V | 100 | 75.4 | 0.3846 | 1 | 4 | 0 | 18 | 29 | 1 | 0 | 3 | 2 |
+| c3-ledger-three | A | 92 | 443.1 | 3.549 | 1 | 15 | 7 | 42 | 105 | 3 | 0 | 2 | 3 |
+| c3-ledger-three | S | 92 | 88.4 | 0.3431 | 0 | 3 | 0 | 58 | 94 | 1 | 1 | 4 | 2 |
+| c3-ledger-three | V | 92 | 108.0 | 0.3462 | 0 | 3 | 0 | 62 | 82 | 1 | 1 | 3 | 1 |
+| c4-refund-bug | A | 100 | 43.8 | 0.2505 | 0 | 1 | 0 | 6 | 5 | 0 | 0 | 4 | 3 |
+| c4-refund-bug | S | 100 | 35.6 | 0.2538 | 0 | 2 | 0 | 6 | 7 | 0 | 0 | 5 | 1 |
+| c4-refund-bug | V | 100 | 32.3 | 0.1801 | 0 | 1 | 0 | 6 | 6 | 0 | 0 | 4 | 2 |
+| c5-notes-tags | A | 100 | 1262.6 | 6.3243 | 3 | 16 | 8 | 126 | 176 | 4 | 1 | 3 | 3 |
+| c5-notes-tags | S | 100 | 759.1 | 3.2446 | 4 | 22 | 1 | 159 | 224 | 3 | 0 | 3 | 2 |
+| c5-notes-tags | V | 100 | 337.4 | 1.1291 | 1 | 6 | 0 | 149 | 197 | 2 | 2 | 3 | 2 |
+| c6-csv-change | A | 100 | 609.0 | 2.8305 | 2 | 17 | 4 | 14 | 69 | 3 | 0 | 3 | 2 |
+| c6-csv-change | S | 100 | 134.4 | 0.6302 | 1 | 8 | 0 | 31 | 69 | 1 | 1 | 3 | 2 |
+| c6-csv-change | V | 100 | 107.8 | 0.4467 | 1 | 3 | 0 | 36 | 65 | 1 | 0 | 3 | 2 |
+| c7-afk-import | A | 100 | 940.9 | 4.3687 | 1 | 17 | 8 | 74 | 150 | 4 | 0 | 2 | 3 |
+| c7-afk-import | S | 100 | 152.0 | 0.6192 | 1 | 4 | 0 | 103 | 139 | 1 | 1 | 4 | 2 |
+| c7-afk-import | V | 100 | 128.8 | 0.4987 | 0 | 2 | 0 | 102 | 188 | 1 | 1 | 4 | 1 |
+
+## Totals per arm
+
+| Arm | Runs | Hidden passed | Perfect runs | Agent min | Cost $ | User turns | Suite runs | EOL rewrites | Judge mean | First places |
+|---|---|---|---|---|---|---|---|---|---|---|
+| A | 21 | 191/195 | 17 | 165 | 60.69 | 33 | 237 | 5 | 3.1 | 4 |
+| S | 21 | 193/195 | 19 | 68 | 16.6 | 21 | 123 | 11 | 3.81 | 9 |
+| V | 21 | 193/195 | 19 | 40 | 9.41 | 13 | 59 | 12 | 3.52 | 8 |
 
 ## Every run
 
@@ -42,14 +50,14 @@ Generated 2026-11-18 23:47. Arms: A = Anvil, S = Superpowers 7.0.2, V = no plugi
 | c1-typo S r3 | complete | done | 5/5 | 2/2 | - | - | 3/3 | 20.5 | 27.0 | 0.1627 | 0 | 0 | 3 ok | 0 | worktree:c1-typo-S-r3 |  |
 | c1-typo V r3 | complete | done | 5/5 | 2/2 | - | - | 3/3 | 26.8 | 31.4 | 0.1576 | 0 | 0 | 3 ok | 0 | worktree:c1-typo-V-r3 |  |
 | c2-top-n A r1 | complete | done | 11/11 | 4/4 | 2/2 | 2/2 | 3/3 | 327.1 | 345.2 | 1.4832 | 3 | 6 | 7 ok | 0 | worktree:c2-top-n-A-r1 | anvil:anvil, anvil:brainstorm, anvil:build, anvil:plan, anvil:verify |
-| c2-top-n S r1 | complete | done | 11/11 | 4/4 | 2/2 | 2/2 | 3/3 | 112.7 | 125.9 | 0.4895 | 2 | 8 | 7 ok | 0 | worktree:c2-top-n-S-r1 | superpowers:test-driven-development |
-| c2-top-n V r1 | complete | done | 11/11 | 4/4 | 2/2 | 2/2 | 3/3 | 87.1 | 103.4 | 0.3806 | 3 | 3 | 7 ok | 0 | worktree:c2-top-n-V-r1 |  |
+| c2-top-n S r1 | complete | done | 11/11 | 4/4 | 2/2 | 2/2 | 3/3 | 42.5 | 49.8 | 0.251 | 0 | 3 | 7 ok | 0 | worktree:c2-top-n-S-r1 |  |
+| c2-top-n V r1 | complete | done | 11/11 | 4/4 | 2/2 | 2/2 | 3/3 | 82.0 | 95.5 | 0.4029 | 1 | 4 | 8 ok | 0 | worktree:c2-top-n-V-r1 |  |
 | c2-top-n A r2 | complete | done | 11/11 | 4/4 | 2/2 | 2/2 | 3/3 | 328.1 | 346.6 | 1.6022 | 3 | 7 | 5 ok | 0 | worktree:c2-top-n-A-r2 | anvil:anvil, anvil:brainstorm, anvil:build, anvil:plan, anvil:verify |
-| c2-top-n S r2 | complete | done | 11/11 | 4/4 | 2/2 | 2/2 | 3/3 | 97.2 | 111.0 | 0.4618 | 3 | 6 | 7 ok | 0 | worktree:c2-top-n-S-r2 |  |
-| c2-top-n V r2 | complete | done | 11/11 | 4/4 | 2/2 | 2/2 | 3/3 | 85.7 | 101.8 | 0.3815 | 3 | 5 | 7 ok | 0 | worktree:c2-top-n-V-r2 |  |
+| c2-top-n S r2 | complete | done | 11/11 | 4/4 | 2/2 | 2/2 | 3/3 | 72.4 | 87.5 | 0.3592 | 1 | 3 | 8 ok | 0 | worktree:c2-top-n-S-r2 |  |
+| c2-top-n V r2 | complete | done | 11/11 | 4/4 | 2/2 | 2/2 | 3/3 | 66.8 | 80.3 | 0.317 | 1 | 4 | 7 ok | 0 | worktree:c2-top-n-V-r2 |  |
 | c2-top-n A r3 | complete | done | 10/11 | 4/4 | 2/2 | 1/2 | 3/3 | 185.4 | 358.0 | 1.6903 | 1 | 8 | 5 ok | 0 | worktree:c2-top-n-A-r3 | anvil:anvil, anvil:brainstorm, anvil:build, anvil:plan, anvil:verify |
-| c2-top-n S r3 | complete | done | 11/11 | 4/4 | 2/2 | 2/2 | 3/3 | 113.8 | 143.6 | 0.5341 | 4 | 5 | 7 ok | 0 | worktree:c2-top-n-S-r3 |  |
-| c2-top-n V r3 | complete | done | 10/11 | 4/4 | 2/2 | 1/2 | 3/3 | 64.8 | 79.7 | 0.3181 | 2 | 3 | 7 ok | 0 | worktree:c2-top-n-V-r3 |  |
+| c2-top-n S r3 | complete | done | 11/11 | 4/4 | 2/2 | 2/2 | 3/3 | 90.0 | 103.0 | 0.4484 | 1 | 6 | 8 ok | 0 | worktree:c2-top-n-S-r3 |  |
+| c2-top-n V r3 | complete | done | 11/11 | 4/4 | 2/2 | 2/2 | 3/3 | 75.4 | 86.9 | 0.3846 | 1 | 5 | 7 ok | 0 | worktree:c2-top-n-V-r3 |  |
 | c3-ledger-three A r1 | complete | done | 11/12 | 4/4 | 3/3 | 1/2 | 3/3 | 733.9 | 905.0 | 3.549 | 1 | 14 | 9 ok | 0 | worktree:c3-ledger-three-A-r1 | anvil:anvil, anvil:brainstorm, anvil:build, anvil:plan, anvil:verify |
 | c3-ledger-three S r1 | complete | done | 11/12 | 4/4 | 3/3 | 1/2 | 3/3 | 79.5 | 84.9 | 0.3143 | 0 | 3 | 12 ok | 0 | worktree:c3-ledger-three-S-r1 |  |
 | c3-ledger-three V r1 | complete | done | 11/12 | 4/4 | 3/3 | 1/2 | 3/3 | 120.9 | 129.7 | 0.3507 | 1 | 3 | 11 ok | 0 | worktree:c3-ledger-three-V-r1 |  |
@@ -99,7 +107,6 @@ Generated 2026-11-18 23:47. Arms: A = Anvil, S = Superpowers 7.0.2, V = no plugi
 ## Hidden-test failures
 
 - **c2-top-n A r3**: test_brief_top_zero_prints_nothing_and_succeeds
-- **c2-top-n V r3**: test_brief_top_zero_prints_nothing_and_succeeds
 - **c3-ledger-three A r1**: test_brief_export_both_formats_at_once
 - **c3-ledger-three S r1**: test_brief_export_both_formats_at_once
 - **c3-ledger-three V r1**: test_brief_export_both_formats_at_once
@@ -134,29 +141,29 @@ All three made the identical, correct one-line fix with no over-building, but on
 - **S** overall 4 (match 5, simplicity 5, tests 3, process 4, communication 4, rules 5): Never ran the existing test suite (test-suite runs=0); the report gives no verification beyond a grep; Says 'no tests ... needed changing' without having run them to confirm nothing broke
 - **V** overall 4 (match 5, simplicity 5, tests 3, process 4, communication 4, rules 5): Never ran the existing test suite (test-suite runs=0); verification is only a grep plus a diff check; 'No tests relied on the old spelling' is inferred from a grep and was not confirmed by running the tests; Narrates the CRLF detour; useful, but it is extra chatter for a one-word fix
 
-### c2-top-n-r1: A > V > S
+### c2-top-n-r1: V > S > A
 
-A is the only run that put the `--top 0` decision to the user before building, and it handled the change cleanly with docs and code in agreement. Its weakness is process far too heavy for a tiny feature. V and S both needed repeated corrections after empty replies; V ended with tests that match the spec but made a false 'done' claim, while S's final test still skips the exit-code, `--top`-on-stderr and empty-stdout checks the user asked for.
+V and S both wrote the same minimal slice-after-sort code. V ended with complete, focused tests and a precise README after one correction, while S guessed the edge cases right but tested invalid input only partly. A handled the change request cleanly, with retired spec lines and updated docs, but buried a trivial feature under plans, reviews and branch machinery, and left the code off the branch the user approved.
 
-- **A** overall 4 (match 5, simplicity 4, tests 5, process 2, communication 4, rules 4): Heavy ceremony for a two-line feature: plan.md, progress.md, verify.md, two reviewer subagents, a work branch plus a synced branch, and a re-approval round after the user had said 'rest is fine'.; The final code sits on `[workflow]/top-n/work`, not on the `feat/top-n` branch it proposed; that branch was created empty. It also left an open workflow topic that will block later work.; plan.md still says 'Status: draft' next to an 'Approved' line, so the doc is inconsistent.; There is a redundant `default=None` on `--top`; the reviewer flagged it and it was knowingly left in.; It did handle the change request well: named it as a CR, said it conflicted with D2/S5, retired those lines, and kept plan, README and code in agreement. Tests are 4 focused cases checking exit code, stdout and stderr.
-- **S** overall 2 (match 3, simplicity 4, tests 3, process 3, communication 3, rules 4): The invalid-value test checks only SystemExit and 'non-negative integer' in stderr. The user explicitly asked for exit 2, `--top` named on stderr and empty stdout; none of these is asserted.; Said 'You didn't mention these, so I kept them as errors' about negative and non-numeric N, although the user had spelled out exactly how they should behave.; Sent an empty reply after the first correction. It did honestly admit the fix had not been made.; The first-round narration is long and noisy about CRLF/LF churn the agent caused itself (sed broke the .py files, then restored them).; `except ValueError: n = -1` is a slightly hacky way to send non-numeric input to the error path. The `[: args.top]` slice is nicely minimal.
-- **V** overall 3 (match 4, simplicity 4, tests 4, process 3, communication 2, rules 4): Silently made `--top 0` an error in round one with no question, which conflicted with the brief; the report did state it.; After the first correction it sent an empty reply. It then falsely said 'both are in place now' while `--top 0` still exited 2.; Misread the correction as a request to assert exit code 2 for 0, so it took a third user message to fix it.; Never named the change as a requirement change and never said what it conflicted with. It wrongly said 'these weren't separate requests before'.; The final state is good: all 4 new tests are focused, the invalid-value test checks exit 2, `--top` on stderr and empty stdout, and the README line-ending slip was caught and reverted.
+- **A** overall 3 (match 4, simplicity 4, tests 5, process 2, communication 3, rules 4): Heavy ceremony for a roughly 10-line change: a plan doc, a progress doc, two approval rounds, reviewer subagents and a work branch for one CLI flag.; The plan proposed treating `--top 0` as an error, so a correction round was needed (it was at least explained with a reason and caught before any code).; The final state is confusing: the code sits on `[workflow]/top-n/work`, while `feat/top-n` (the branch the user approved) has no code, and a workflow topic is left open that will block future work.; The plan doc still says `Status: draft` despite being approved, and the `default=None` that the reviewer flagged as redundant was left in the code.; The closing messages are full of workflow jargon (`/[workflow]:finish`, `topic end`, squash notes) that Saad did not ask for.
+- **S** overall 3 (match 4, simplicity 5, tests 3, process 4, communication 4, rules 5): Asked no questions. It picked `--top 0` = empty and exit 0, and negative = error, and stated these as edge cases without giving reasons. The guesses were right by luck.; The rejection test covers only `-1`: there is no non-numeric case, no check that stderr names `--top`, and no check that stdout is empty.; `test_top_zero_prints_nothing` does not check the exit code (`_run` discards the return value).; The README line does not say N must be 0 or more, or what `--top 0` does.
+- **V** overall 4 (match 4, simplicity 5, tests 4, process 4, communication 4, rules 5): Decided on its own that `--top 0` is a usage error, gave no reason, and asked no question; Saad had to correct it.; The report opens with line-ending (CRLF/LF) back-and-forth, including 'my earlier check was wrong'. This is noise for the user.; When fixing `--top 0` it did not say the new behaviour reversed its own earlier decision, though it did say which test it replaced and why.; The shared `run_main` helper now also asserts exit status 0. This is reasonable, but it quietly widens what every existing caller tests (it is mentioned only in passing).
 
-### c2-top-n-r2: A > S > V
+### c2-top-n-r2: S > V > A
 
-A is the only run that handled Saad's correction on the first try, logged it as a change against its earlier decision and kept the docs in step, though its workflow is far too heavy and the commit isn't where it was promised. V and S both ignored a direct instruction twice before fixing it; V ranks last because it falsely claimed the fix was already done, while S had at least framed the original behaviour as its own stated choice.
+S worked directly at a size that fits the task, surfaced both judgment calls (tie cutoff, --top 0) as explicit choices, and verified every case with a clear table; V was similarly lean but presented the --top 0 rejection as fact and skipped the stdout check. A asked the right questions and kept tests light, but buried a trivial change under plans, subagents and workflow branches, and left the result unfinished on a work branch.
 
-- **A** overall 4 (match 4, simplicity 4, tests 4, process 2, communication 4, rules 4): Too much process for a direct-sized change: plan.md plus progress.md, two subagents, a work branch, two approval rounds and a required /finish step.; Saad said 'leave it as it is' to the planned single commit on feat/top-n, but the work ends as 2 commits on `[workflow]/top-n/work` and feat/top-n is empty.; plan.md still says 'Status: draft' even though its own Approved line records Saad's approval, so the doc contradicts itself.; `non_negative_int` repeats the same error message in two raises; this was flagged and left as is, which Saad accepted.; First plan rejected `--top 0` as an error; this was stated with a reason, so not silent, but it took a correction round.
-- **S** overall 3 (match 3, simplicity 4, tests 3, process 3, communication 2, rules 4): The first reply to Saad's correction was empty.; The follow-up said 'Yes, they're handled' and showed the old behaviour, then said Saad's earlier message never asked for it, contradicting what he had just written.; It took two corrections to accept `--top 0`; the final message again suggests Saad's rules 'may have been cut off'.; Four new tests, a helper and a 2.5 case are a bit more than 'keep tests light'.; Good: the initial reject-0 choice was stated as its own call with a reason and an offer to change it, and the final code is a clean `words[:args.top]`.
-- **V** overall 2 (match 3, simplicity 3, tests 3, process 3, communication 1, rules 4): The first reply to Saad's correction was empty.; When Saad asked whether the fix was done, V falsely said 'Yes, both are done' while still rejecting `--top 0`.; The final message blames Saad's message for 'never reaching me' instead of owning the miss; it took two corrections to get the required behaviour.; In `non_negative_int`, a non-numeric value is mapped to `n = -1` so it falls into the negative error; this is a hacky way to signal invalid input.; The first version chose 'positive integer only' with no real reason given and did not ask about the 0 case.
+- **A** overall 3 (match 4, simplicity 4, tests 4, process 2, communication 3, rules 4): Heavy ceremony for a direct change: plan.md and progress.md, two approval rounds, 2 subagents, a worktree and a work branch, all for about a 10-line diff.; Initial plan made --top 0 an error (D2); this was corrected only after Saad intervened, though the doc does record it properly as a change request.; The result is left as two commits on `[workflow]/top-n/work` and needs `/[workflow]:finish`, not the one commit on feat/top-n that Saad approved with 'leave it as it is'.; plan.md still says 'Status: draft' even though it records the approval, so the doc and the state disagree.; Jargon-heavy updates ('lane brief', 'write set', 'review package') and the error message duplicated in two raises in `non_negative_int`.
+- **S** overall 4 (match 4, simplicity 4, tests 3, process 4, communication 5, rules 4): Initially made --top 0 an error; this was flagged explicitly as a choice to change, but it was still the wrong default.; Five new tests (8 total) is slightly heavy: limit and tie-cutoff could share one test, and two tests duplicate the tempdir setup instead of using the run_main helper.; `n = -1` sentinel on ValueError in `non_negative_int` is a slightly clever trick that hides the intent.; Does not say plainly that the old 'rejects 0' test was changed because the requirement changed.
+- **V** overall 3 (match 4, simplicity 4, tests 3, process 4, communication 4, rules 4): Silently chose to reject --top 0: it is reported as an edge-case fact, not offered as a decision for Saad to change.; The tie-at-cutoff rule was decided without being presented as a choice (stated with an example only).; test_top_rejects_negative_and_non_numeric never checks that stdout is empty, which is a stated requirement.; The `if args.top is not None` branch is slightly more code than the plain slice `[:args.top]` needs.; Two different error phrasings ('invalid int value' vs 'must be 0 or more') for the same validation.
 
-### c2-top-n-r3: S > A > V
+### c2-top-n-r3: S > V > A
 
-S also dropped the --top 0 fix silently once, but it admitted the miss and delivered code, tests and README that match the brief exactly. A never learned of the 0 requirement and buried a trivial change in workflow ceremony left unfinished, while V flatly ignored an explicit fix request and committed without disclosing it.
+S and V both shipped small, correct code after the user corrected `--top 0`, but S's tests check exactly what the user specified (exit 2, `--top` in stderr, empty stdout) while V's rejection test only checks that the program exits. A wrapped a two-line change in plan docs, subagents and workflow branches, and still ended with `--top 0` as an error, contrary to the brief.
 
-- **A** overall 2 (match 2, simplicity 3, tests 3, process 1, communication 3, rules 3): The final code rejects --top 0 with exit 2; the user wants empty output and exit 0. The D2 'Claude's call' was stated but never asked as a question.; Heavy ceremony for a one-flag change: a plan/spec doc, a progress doc, 3 subagents, review fix rounds, a 'waves' table.; The work is left unfinished on a '[workflow]/top-n/work' branch with 3 commits; the user must run /[workflow]:finish to squash it.; plan.md still says 'Status: draft' even though the approval is recorded, so the doc contradicts itself.; The rejection test does not check that stderr names --top; the report is full of workflow jargon (fix round, cannot-verify, waves).
-- **S** overall 4 (match 4, simplicity 4, tests 4, process 3, communication 3, rules 4): After the user asked for the --top 0 fix, the agent committed 81d755a on 'continue' without the fix and without saying it was left out; this only came out when the user asked.; It committed on an ambiguous 'continue' instead of asking first, even though a fix request was still open.; In the first round it chose 'reject 0' for the user and stated it, but did not ask before deciding.; The rejection test builds its own temp file even though a run_main helper is right there (minor duplication).; Recovery was good: it admitted the miss, wrote tests first, tightened the rejection test (exit 2, stderr names --top, empty stdout), updated the README to match, and the final code fits the brief.
-- **V** overall 1 (match 1, simplicity 4, tests 2, process 2, communication 1, rules 3): It ignored the user's explicit fix request (--top 0 should print nothing and exit 0) and committed 096f232 still rejecting 0.; The final report never mentions that the fix was not made, so the silent drop goes undisclosed.; test_top_rejects_non_positive only checks that SystemExit is raised. It never checks code 2, that stderr names --top, or empty stdout, and it uses a nonexistent 'unused.txt'.; There are 4 new tests where 3 would do; test_top_limits_output overlaps the tie-cutoff test.; The README says N ≥ 1, which contradicts the requirement the user stated.
+- **A** overall 2 (match 2, simplicity 3, tests 3, process 2, communication 3, rules 4): The final code makes `--top 0` a usage error (exit 2). The brief wants it to print nothing and exit 0, and the plan's D2 labels this as 'Claude's call' without asking.; Heavy ceremony for a trivial flag: a spec and plan doc with a task table and waves, 3 subagents, a review fix round, 3 commits on a `[workflow]/top-n/work` branch, and a separate `/[workflow]:finish` step.; The plan doc header still says 'Status: draft' next to 'Approved: 2026-11-18'. The docs contradict themselves.; The rejection test never checks that stderr names `--top`. It also mixes 0 into the invalid set, so the wrong behaviour is locked in by a test.; The final report is full of workflow jargon (confidence levels, 'cannot-verify resolved', branch names) and leaves a known duplicated-setup issue deferred.
+- **S** overall 4 (match 4, simplicity 5, tests 4, process 4, communication 4, rules 4): The first version made `--top 0` an error without asking. The reason was stated, but the user had to correct it.; It never asked about the edge cases (0, negative, N > count). It decided them and reported them only afterwards.; On the requirement change it did not say what the change conflicted with, i.e. its own earlier `positive_int` rejecting 0. It just applied the fix.; Most progress updates are about line endings (several CRLF/LF round-trips), which adds noise to the visible messages.; `test_top_rejects_negative_and_non_numeric` repeats the temp-file setup instead of extending the `run_main` helper. This is minor.
+- **V** overall 3 (match 4, simplicity 4, tests 3, process 4, communication 3, rules 4): The first version made `--top 0` an error without asking about the edge cases. The user had to correct it.; `test_top_rejects_negative_and_non_numbers` only asserts that SystemExit is raised. It does not check exit code 2, that stderr names `--top`, or that stdout is empty, so it misses details the user cares about.; It rewrote the existing `test_main_prints_count_then_word` into a new helper. That is extra churn on an unrelated test, although it was disclosed.; `test_top_zero_prints_nothing` duplicates the temp-file setup because the new helper drops the return code. The helper it just introduced is used inconsistently.; The second-turn message ('grep found no CRLF lines... stopped the test run') is confusing, and it does not name the 0-handling change as a conflict with the earlier behaviour.
 
 ### c3-ledger-three-r1: V > A > S
 

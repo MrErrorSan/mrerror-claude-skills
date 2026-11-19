@@ -29,7 +29,8 @@
    "skills": [
     "anvil:anvil"
    ],
-   "failures": []
+   "failures": [],
+   "eol_changes": 1
   },
   {
    "case": "c1-typo",
@@ -60,7 +61,8 @@
    "skills": [
     "anvil:anvil"
    ],
-   "failures": []
+   "failures": [],
+   "eol_changes": 1
   },
   {
    "case": "c1-typo",
@@ -91,7 +93,8 @@
    "skills": [
     "anvil:anvil"
    ],
-   "failures": []
+   "failures": [],
+   "eol_changes": 1
   },
   {
    "case": "c1-typo",
@@ -120,7 +123,8 @@
    "judge_overall": 4,
    "judge_rank": 2,
    "skills": [],
-   "failures": []
+   "failures": [],
+   "eol_changes": 1
   },
   {
    "case": "c1-typo",
@@ -149,7 +153,8 @@
    "judge_overall": 5,
    "judge_rank": 1,
    "skills": [],
-   "failures": []
+   "failures": [],
+   "eol_changes": 1
   },
   {
    "case": "c1-typo",
@@ -178,7 +183,8 @@
    "judge_overall": 4,
    "judge_rank": 3,
    "skills": [],
-   "failures": []
+   "failures": [],
+   "eol_changes": 0
   },
   {
    "case": "c1-typo",
@@ -207,7 +213,8 @@
    "judge_overall": 4,
    "judge_rank": 3,
    "skills": [],
-   "failures": []
+   "failures": [],
+   "eol_changes": 0
   },
   {
    "case": "c1-typo",
@@ -236,7 +243,8 @@
    "judge_overall": 4,
    "judge_rank": 3,
    "skills": [],
-   "failures": []
+   "failures": [],
+   "eol_changes": 1
   },
   {
    "case": "c1-typo",
@@ -265,7 +273,8 @@
    "judge_overall": 4,
    "judge_rank": 2,
    "skills": [],
-   "failures": []
+   "failures": [],
+   "eol_changes": 0
   },
   {
    "case": "c2-top-n",
@@ -293,8 +302,8 @@
    "own_ok": true,
    "trailers": 0,
    "location": "worktree:c2-top-n-A-r1",
-   "judge_overall": 4,
-   "judge_rank": 1,
+   "judge_overall": 3,
+   "judge_rank": 3,
    "skills": [
     "anvil:anvil",
     "anvil:brainstorm",
@@ -302,7 +311,8 @@
     "anvil:build",
     "anvil:verify"
    ],
-   "failures": []
+   "failures": [],
+   "eol_changes": 0
   },
   {
    "case": "c2-top-n",
@@ -330,8 +340,8 @@
    "own_ok": true,
    "trailers": 0,
    "location": "worktree:c2-top-n-A-r2",
-   "judge_overall": 4,
-   "judge_rank": 1,
+   "judge_overall": 3,
+   "judge_rank": 3,
    "skills": [
     "anvil:anvil",
     "anvil:brainstorm",
@@ -339,7 +349,8 @@
     "anvil:build",
     "anvil:verify"
    ],
-   "failures": []
+   "failures": [],
+   "eol_changes": 0
   },
   {
    "case": "c2-top-n",
@@ -368,7 +379,7 @@
    "trailers": 0,
    "location": "worktree:c2-top-n-A-r3",
    "judge_overall": 2,
-   "judge_rank": 2,
+   "judge_rank": 3,
    "skills": [
     "anvil:anvil",
     "anvil:brainstorm",
@@ -378,7 +389,8 @@
    ],
    "failures": [
     "test_brief_top_zero_prints_nothing_and_succeeds"
-   ]
+   ],
+   "eol_changes": 0
   },
   {
    "case": "c2-top-n",
@@ -392,26 +404,25 @@
    "h_brief": "2/2",
    "h_core": "4/4",
    "h_edge": "2/2",
-   "agent_s": 112.7,
-   "wall_s": 125.9,
-   "cost": 0.4895,
-   "user_turns": 2,
-   "test_runs": 8,
+   "agent_s": 42.5,
+   "wall_s": 49.8,
+   "cost": 0.251,
+   "user_turns": 0,
+   "test_runs": 3,
    "subagents": 0,
-   "tool_calls": 13,
-   "code_lines": 15,
-   "test_lines": 35,
+   "tool_calls": 9,
+   "code_lines": 19,
+   "test_lines": 23,
    "docs": 1,
    "own_tests": 7,
    "own_ok": true,
    "trailers": 0,
    "location": "worktree:c2-top-n-S-r1",
-   "judge_overall": 2,
-   "judge_rank": 3,
-   "skills": [
-    "superpowers:test-driven-development"
-   ],
-   "failures": []
+   "judge_overall": 3,
+   "judge_rank": 2,
+   "skills": [],
+   "failures": [],
+   "eol_changes": 0
   },
   {
    "case": "c2-top-n",
@@ -425,24 +436,25 @@
    "h_brief": "2/2",
    "h_core": "4/4",
    "h_edge": "2/2",
-   "agent_s": 97.2,
-   "wall_s": 111.0,
-   "cost": 0.4618,
-   "user_turns": 3,
-   "test_runs": 6,
+   "agent_s": 72.4,
+   "wall_s": 87.5,
+   "cost": 0.3592,
+   "user_turns": 1,
+   "test_runs": 3,
    "subagents": 0,
-   "tool_calls": 9,
-   "code_lines": 16,
-   "test_lines": 40,
+   "tool_calls": 14,
+   "code_lines": 15,
+   "test_lines": 42,
    "docs": 1,
-   "own_tests": 7,
+   "own_tests": 8,
    "own_ok": true,
    "trailers": 0,
    "location": "worktree:c2-top-n-S-r2",
-   "judge_overall": 3,
-   "judge_rank": 2,
+   "judge_overall": 4,
+   "judge_rank": 1,
    "skills": [],
-   "failures": []
+   "failures": [],
+   "eol_changes": 0
   },
   {
    "case": "c2-top-n",
@@ -456,24 +468,25 @@
    "h_brief": "2/2",
    "h_core": "4/4",
    "h_edge": "2/2",
-   "agent_s": 113.8,
-   "wall_s": 143.6,
-   "cost": 0.5341,
-   "user_turns": 4,
-   "test_runs": 5,
+   "agent_s": 90.0,
+   "wall_s": 103.0,
+   "cost": 0.4484,
+   "user_turns": 1,
+   "test_runs": 6,
    "subagents": 0,
    "tool_calls": 15,
-   "code_lines": 16,
-   "test_lines": 37,
+   "code_lines": 15,
+   "test_lines": 34,
    "docs": 1,
-   "own_tests": 7,
+   "own_tests": 8,
    "own_ok": true,
    "trailers": 0,
    "location": "worktree:c2-top-n-S-r3",
    "judge_overall": 4,
    "judge_rank": 1,
    "skills": [],
-   "failures": []
+   "failures": [],
+   "eol_changes": 0
   },
   {
    "case": "c2-top-n",
@@ -487,24 +500,25 @@
    "h_brief": "2/2",
    "h_core": "4/4",
    "h_edge": "2/2",
-   "agent_s": 87.1,
-   "wall_s": 103.4,
-   "cost": 0.3806,
-   "user_turns": 3,
-   "test_runs": 3,
+   "agent_s": 82.0,
+   "wall_s": 95.5,
+   "cost": 0.4029,
+   "user_turns": 1,
+   "test_runs": 4,
    "subagents": 0,
    "tool_calls": 9,
-   "code_lines": 18,
-   "test_lines": 36,
+   "code_lines": 19,
+   "test_lines": 34,
    "docs": 1,
-   "own_tests": 7,
+   "own_tests": 8,
    "own_ok": true,
    "trailers": 0,
    "location": "worktree:c2-top-n-V-r1",
-   "judge_overall": 3,
-   "judge_rank": 2,
+   "judge_overall": 4,
+   "judge_rank": 1,
    "skills": [],
-   "failures": []
+   "failures": [],
+   "eol_changes": 0
   },
   {
    "case": "c2-top-n",
@@ -518,24 +532,25 @@
    "h_brief": "2/2",
    "h_core": "4/4",
    "h_edge": "2/2",
-   "agent_s": 85.7,
-   "wall_s": 101.8,
-   "cost": 0.3815,
-   "user_turns": 3,
-   "test_runs": 5,
+   "agent_s": 66.8,
+   "wall_s": 80.3,
+   "cost": 0.317,
+   "user_turns": 1,
+   "test_runs": 4,
    "subagents": 0,
-   "tool_calls": 9,
+   "tool_calls": 6,
    "code_lines": 18,
-   "test_lines": 37,
+   "test_lines": 29,
    "docs": 1,
    "own_tests": 7,
    "own_ok": true,
    "trailers": 0,
    "location": "worktree:c2-top-n-V-r2",
-   "judge_overall": 2,
-   "judge_rank": 3,
+   "judge_overall": 3,
+   "judge_rank": 2,
    "skills": [],
-   "failures": []
+   "failures": [],
+   "eol_changes": 0
   },
   {
    "case": "c2-top-n",
@@ -543,32 +558,31 @@
    "rep": 3,
    "status": "complete",
    "end": "done",
-   "hidden": "10/11",
-   "hidden_pct": 91,
+   "hidden": "11/11",
+   "hidden_pct": 100,
    "h_regression": "3/3",
-   "h_brief": "1/2",
+   "h_brief": "2/2",
    "h_core": "4/4",
    "h_edge": "2/2",
-   "agent_s": 64.8,
-   "wall_s": 79.7,
-   "cost": 0.3181,
-   "user_turns": 2,
-   "test_runs": 3,
+   "agent_s": 75.4,
+   "wall_s": 86.9,
+   "cost": 0.3846,
+   "user_turns": 1,
+   "test_runs": 5,
    "subagents": 0,
-   "tool_calls": 7,
-   "code_lines": 19,
-   "test_lines": 24,
+   "tool_calls": 12,
+   "code_lines": 18,
+   "test_lines": 28,
    "docs": 1,
    "own_tests": 7,
    "own_ok": true,
    "trailers": 0,
    "location": "worktree:c2-top-n-V-r3",
-   "judge_overall": 1,
-   "judge_rank": 3,
+   "judge_overall": 3,
+   "judge_rank": 2,
    "skills": [],
-   "failures": [
-    "test_brief_top_zero_prints_nothing_and_succeeds"
-   ]
+   "failures": [],
+   "eol_changes": 0
   },
   {
    "case": "c3-ledger-three",
@@ -607,7 +621,8 @@
    ],
    "failures": [
     "test_brief_export_both_formats_at_once"
-   ]
+   ],
+   "eol_changes": 0
   },
   {
    "case": "c3-ledger-three",
@@ -646,7 +661,8 @@
    ],
    "failures": [
     "test_brief_export_both_formats_at_once"
-   ]
+   ],
+   "eol_changes": 0
   },
   {
    "case": "c3-ledger-three",
@@ -684,7 +700,8 @@
    ],
    "failures": [
     "test_brief_export_both_formats_at_once"
-   ]
+   ],
+   "eol_changes": 0
   },
   {
    "case": "c3-ledger-three",
@@ -717,7 +734,8 @@
    "skills": [],
    "failures": [
     "test_brief_export_both_formats_at_once"
-   ]
+   ],
+   "eol_changes": 1
   },
   {
    "case": "c3-ledger-three",
@@ -750,7 +768,8 @@
    "skills": [
     "superpowers:test-driven-development"
    ],
-   "failures": []
+   "failures": [],
+   "eol_changes": 1
   },
   {
    "case": "c3-ledger-three",
@@ -783,7 +802,8 @@
    "skills": [],
    "failures": [
     "test_brief_export_both_formats_at_once"
-   ]
+   ],
+   "eol_changes": 1
   },
   {
    "case": "c3-ledger-three",
@@ -816,7 +836,8 @@
    "skills": [],
    "failures": [
     "test_brief_export_both_formats_at_once"
-   ]
+   ],
+   "eol_changes": 1
   },
   {
    "case": "c3-ledger-three",
@@ -847,7 +868,8 @@
    "judge_overall": 4,
    "judge_rank": 1,
    "skills": [],
-   "failures": []
+   "failures": [],
+   "eol_changes": 1
   },
   {
    "case": "c3-ledger-three",
@@ -880,7 +902,8 @@
    "skills": [],
    "failures": [
     "test_brief_export_both_formats_at_once"
-   ]
+   ],
+   "eol_changes": 1
   },
   {
    "case": "c4-refund-bug",
@@ -912,7 +935,8 @@
    "skills": [
     "anvil:anvil"
    ],
-   "failures": []
+   "failures": [],
+   "eol_changes": 0
   },
   {
    "case": "c4-refund-bug",
@@ -944,7 +968,8 @@
    "skills": [
     "anvil:anvil"
    ],
-   "failures": []
+   "failures": [],
+   "eol_changes": 0
   },
   {
    "case": "c4-refund-bug",
@@ -976,7 +1001,8 @@
    "skills": [
     "anvil:anvil"
    ],
-   "failures": []
+   "failures": [],
+   "eol_changes": 0
   },
   {
    "case": "c4-refund-bug",
@@ -1008,7 +1034,8 @@
    "skills": [
     "superpowers:systematic-debugging"
    ],
-   "failures": []
+   "failures": [],
+   "eol_changes": 0
   },
   {
    "case": "c4-refund-bug",
@@ -1040,7 +1067,8 @@
    "skills": [
     "superpowers:systematic-debugging"
    ],
-   "failures": []
+   "failures": [],
+   "eol_changes": 0
   },
   {
    "case": "c4-refund-bug",
@@ -1072,7 +1100,8 @@
    "skills": [
     "superpowers:systematic-debugging"
    ],
-   "failures": []
+   "failures": [],
+   "eol_changes": 0
   },
   {
    "case": "c4-refund-bug",
@@ -1102,7 +1131,8 @@
    "judge_overall": 4,
    "judge_rank": 2,
    "skills": [],
-   "failures": []
+   "failures": [],
+   "eol_changes": 0
   },
   {
    "case": "c4-refund-bug",
@@ -1132,7 +1162,8 @@
    "judge_overall": 4,
    "judge_rank": 3,
    "skills": [],
-   "failures": []
+   "failures": [],
+   "eol_changes": 0
   },
   {
    "case": "c4-refund-bug",
@@ -1162,7 +1193,8 @@
    "judge_overall": 4,
    "judge_rank": 1,
    "skills": [],
-   "failures": []
+   "failures": [],
+   "eol_changes": 0
   },
   {
    "case": "c5-notes-tags",
@@ -1200,7 +1232,8 @@
     "anvil:verify",
     "anvil:cross-model"
    ],
-   "failures": []
+   "failures": [],
+   "eol_changes": 1
   },
   {
    "case": "c5-notes-tags",
@@ -1239,7 +1272,8 @@
     "anvil:debug",
     "anvil:cross-model"
    ],
-   "failures": []
+   "failures": [],
+   "eol_changes": 0
   },
   {
    "case": "c5-notes-tags",
@@ -1277,7 +1311,8 @@
     "anvil:verify",
     "anvil:cross-model"
    ],
-   "failures": []
+   "failures": [],
+   "eol_changes": 1
   },
   {
    "case": "c5-notes-tags",
@@ -1315,7 +1350,8 @@
     "superpowers:test-driven-development",
     "superpowers:finishing-a-development-branch"
    ],
-   "failures": []
+   "failures": [],
+   "eol_changes": 0
   },
   {
    "case": "c5-notes-tags",
@@ -1351,7 +1387,8 @@
     "superpowers:executing-plans",
     "superpowers:test-driven-development"
    ],
-   "failures": []
+   "failures": [],
+   "eol_changes": 0
   },
   {
    "case": "c5-notes-tags",
@@ -1389,7 +1426,8 @@
     "superpowers:test-driven-development",
     "superpowers:finishing-a-development-branch"
    ],
-   "failures": []
+   "failures": [],
+   "eol_changes": 1
   },
   {
    "case": "c5-notes-tags",
@@ -1420,7 +1458,8 @@
    "judge_overall": 2,
    "judge_rank": 3,
    "skills": [],
-   "failures": []
+   "failures": [],
+   "eol_changes": 2
   },
   {
    "case": "c5-notes-tags",
@@ -1451,7 +1490,8 @@
    "judge_overall": 3,
    "judge_rank": 2,
    "skills": [],
-   "failures": []
+   "failures": [],
+   "eol_changes": 0
   },
   {
    "case": "c5-notes-tags",
@@ -1482,7 +1522,8 @@
    "judge_overall": 4,
    "judge_rank": 1,
    "skills": [],
-   "failures": []
+   "failures": [],
+   "eol_changes": 3
   },
   {
    "case": "c6-csv-change",
@@ -1518,7 +1559,8 @@
     "anvil:build",
     "anvil:verify"
    ],
-   "failures": []
+   "failures": [],
+   "eol_changes": 0
   },
   {
    "case": "c6-csv-change",
@@ -1554,7 +1596,8 @@
     "anvil:build",
     "anvil:verify"
    ],
-   "failures": []
+   "failures": [],
+   "eol_changes": 0
   },
   {
    "case": "c6-csv-change",
@@ -1590,7 +1633,8 @@
     "anvil:build",
     "anvil:verify"
    ],
-   "failures": []
+   "failures": [],
+   "eol_changes": 0
   },
   {
    "case": "c6-csv-change",
@@ -1620,7 +1664,8 @@
    "judge_overall": 3,
    "judge_rank": 3,
    "skills": [],
-   "failures": []
+   "failures": [],
+   "eol_changes": 0
   },
   {
    "case": "c6-csv-change",
@@ -1650,7 +1695,8 @@
    "judge_overall": 3,
    "judge_rank": 2,
    "skills": [],
-   "failures": []
+   "failures": [],
+   "eol_changes": 1
   },
   {
    "case": "c6-csv-change",
@@ -1680,7 +1726,8 @@
    "judge_overall": 4,
    "judge_rank": 1,
    "skills": [],
-   "failures": []
+   "failures": [],
+   "eol_changes": 1
   },
   {
    "case": "c6-csv-change",
@@ -1710,7 +1757,8 @@
    "judge_overall": 4,
    "judge_rank": 1,
    "skills": [],
-   "failures": []
+   "failures": [],
+   "eol_changes": 0
   },
   {
    "case": "c6-csv-change",
@@ -1740,7 +1788,8 @@
    "judge_overall": 3,
    "judge_rank": 3,
    "skills": [],
-   "failures": []
+   "failures": [],
+   "eol_changes": 0
   },
   {
    "case": "c6-csv-change",
@@ -1770,7 +1819,8 @@
    "judge_overall": 3,
    "judge_rank": 2,
    "skills": [],
-   "failures": []
+   "failures": [],
+   "eol_changes": 0
   },
   {
    "case": "c7-afk-import",
@@ -1807,7 +1857,8 @@
     "anvil:build",
     "anvil:verify"
    ],
-   "failures": []
+   "failures": [],
+   "eol_changes": 0
   },
   {
    "case": "c7-afk-import",
@@ -1844,7 +1895,8 @@
     "anvil:build",
     "anvil:verify"
    ],
-   "failures": []
+   "failures": [],
+   "eol_changes": 0
   },
   {
    "case": "c7-afk-import",
@@ -1881,7 +1933,8 @@
     "anvil:build",
     "anvil:verify"
    ],
-   "failures": []
+   "failures": [],
+   "eol_changes": 0
   },
   {
    "case": "c7-afk-import",
@@ -1911,7 +1964,8 @@
    "judge_overall": 4,
    "judge_rank": 2,
    "skills": [],
-   "failures": []
+   "failures": [],
+   "eol_changes": 1
   },
   {
    "case": "c7-afk-import",
@@ -1941,7 +1995,8 @@
    "judge_overall": 4,
    "judge_rank": 1,
    "skills": [],
-   "failures": []
+   "failures": [],
+   "eol_changes": 1
   },
   {
    "case": "c7-afk-import",
@@ -1971,7 +2026,8 @@
    "judge_overall": 3,
    "judge_rank": 2,
    "skills": [],
-   "failures": []
+   "failures": [],
+   "eol_changes": 1
   },
   {
    "case": "c7-afk-import",
@@ -2001,7 +2057,8 @@
    "judge_overall": 4,
    "judge_rank": 1,
    "skills": [],
-   "failures": []
+   "failures": [],
+   "eol_changes": 0
   },
   {
    "case": "c7-afk-import",
@@ -2031,7 +2088,8 @@
    "judge_overall": 3,
    "judge_rank": 2,
    "skills": [],
-   "failures": []
+   "failures": [],
+   "eol_changes": 2
   },
   {
    "case": "c7-afk-import",
@@ -2061,7 +2119,8 @@
    "judge_overall": 4,
    "judge_rank": 1,
    "skills": [],
-   "failures": []
+   "failures": [],
+   "eol_changes": 1
   }
  ],
  "verdicts": {
@@ -2231,59 +2290,57 @@
    "scores": {
     "X": {
      "match": 4,
-     "simplicity": 4,
+     "simplicity": 5,
      "tests": 4,
-     "process_fit": 3,
-     "communication": 2,
-     "rules": 4,
-     "overall": 3,
+     "process_fit": 4,
+     "communication": 4,
+     "rules": 5,
+     "overall": 4,
      "problems": [
-      "Silently made `--top 0` an error in round one with no question, which conflicted with the brief; the report did state it.",
-      "After the first correction it sent an empty reply. It then falsely said 'both are in place now' while `--top 0` still exited 2.",
-      "Misread the correction as a request to assert exit code 2 for 0, so it took a third user message to fix it.",
-      "Never named the change as a requirement change and never said what it conflicted with. It wrongly said 'these weren't separate requests before'.",
-      "The final state is good: all 4 new tests are focused, the invalid-value test checks exit 2, `--top` on stderr and empty stdout, and the README line-ending slip was caught and reverted."
+      "Decided on its own that `--top 0` is a usage error, gave no reason, and asked no question; Saad had to correct it.",
+      "The report opens with line-ending (CRLF/LF) back-and-forth, including 'my earlier check was wrong'. This is noise for the user.",
+      "When fixing `--top 0` it did not say the new behaviour reversed its own earlier decision, though it did say which test it replaced and why.",
+      "The shared `run_main` helper now also asserts exit status 0. This is reasonable, but it quietly widens what every existing caller tests (it is mentioned only in passing)."
      ]
     },
     "Y": {
-     "match": 3,
-     "simplicity": 4,
+     "match": 4,
+     "simplicity": 5,
      "tests": 3,
-     "process_fit": 3,
-     "communication": 3,
-     "rules": 4,
-     "overall": 2,
+     "process_fit": 4,
+     "communication": 4,
+     "rules": 5,
+     "overall": 3,
      "problems": [
-      "The invalid-value test checks only SystemExit and 'non-negative integer' in stderr. The user explicitly asked for exit 2, `--top` named on stderr and empty stdout; none of these is asserted.",
-      "Said 'You didn't mention these, so I kept them as errors' about negative and non-numeric N, although the user had spelled out exactly how they should behave.",
-      "Sent an empty reply after the first correction. It did honestly admit the fix had not been made.",
-      "The first-round narration is long and noisy about CRLF/LF churn the agent caused itself (sed broke the .py files, then restored them).",
-      "`except ValueError: n = -1` is a slightly hacky way to send non-numeric input to the error path. The `[: args.top]` slice is nicely minimal."
+      "Asked no questions. It picked `--top 0` = empty and exit 0, and negative = error, and stated these as edge cases without giving reasons. The guesses were right by luck.",
+      "The rejection test covers only `-1`: there is no non-numeric case, no check that stderr names `--top`, and no check that stdout is empty.",
+      "`test_top_zero_prints_nothing` does not check the exit code (`_run` discards the return value).",
+      "The README line does not say N must be 0 or more, or what `--top 0` does."
      ]
     },
     "Z": {
-     "match": 5,
+     "match": 4,
      "simplicity": 4,
      "tests": 5,
      "process_fit": 2,
-     "communication": 4,
+     "communication": 3,
      "rules": 4,
-     "overall": 4,
+     "overall": 3,
      "problems": [
-      "Heavy ceremony for a two-line feature: plan.md, progress.md, verify.md, two reviewer subagents, a work branch plus a synced branch, and a re-approval round after the user had said 'rest is fine'.",
-      "The final code sits on `[workflow]/top-n/work`, not on the `feat/top-n` branch it proposed; that branch was created empty. It also left an open workflow topic that will block later work.",
-      "plan.md still says 'Status: draft' next to an 'Approved' line, so the doc is inconsistent.",
-      "There is a redundant `default=None` on `--top`; the reviewer flagged it and it was knowingly left in.",
-      "It did handle the change request well: named it as a CR, said it conflicted with D2/S5, retired those lines, and kept plan, README and code in agreement. Tests are 4 focused cases checking exit code, stdout and stderr."
+      "Heavy ceremony for a roughly 10-line change: a plan doc, a progress doc, two approval rounds, reviewer subagents and a work branch for one CLI flag.",
+      "The plan proposed treating `--top 0` as an error, so a correction round was needed (it was at least explained with a reason and caught before any code).",
+      "The final state is confusing: the code sits on `[workflow]/top-n/work`, while `feat/top-n` (the branch the user approved) has no code, and a workflow topic is left open that will block future work.",
+      "The plan doc still says `Status: draft` despite being approved, and the `default=None` that the reviewer flagged as redundant was left in the code.",
+      "The closing messages are full of workflow jargon (`/[workflow]:finish`, `topic end`, squash notes) that Saad did not ask for."
      ]
     }
    },
    "ranking": [
-    "Z",
     "X",
-    "Y"
+    "Y",
+    "Z"
    ],
-   "summary": "Z is the only run that put the `--top 0` decision to the user before building, and it handled the change cleanly with docs and code in agreement. Its weakness is process far too heavy for a tiny feature. X and Y both needed repeated corrections after empty replies; X ended with tests that match the spec but made a false 'done' claim, while Y's final test still skips the exit-code, `--top`-on-stderr and empty-stdout checks the user asked for.",
+   "summary": "X and Y both wrote the same minimal slice-after-sort code. X ended with complete, focused tests and a precise README after one correction, while Y guessed the edge cases right but tested invalid input only partly. Z handled the change request cleanly, with retired spec lines and updated docs, but buried a trivial feature under plans, reviews and branch machinery, and left the code off the branch the user approved.",
    "label_to_arm": {
     "X": "V",
     "Y": "S",
@@ -2297,56 +2354,55 @@
      "simplicity": 4,
      "tests": 4,
      "process_fit": 2,
-     "communication": 4,
-     "rules": 4,
-     "overall": 4,
-     "problems": [
-      "Too much process for a direct-sized change: plan.md plus progress.md, two subagents, a work branch, two approval rounds and a required /finish step.",
-      "Saad said 'leave it as it is' to the planned single commit on feat/top-n, but the work ends as 2 commits on `[workflow]/top-n/work` and feat/top-n is empty.",
-      "plan.md still says 'Status: draft' even though its own Approved line records Saad's approval, so the doc contradicts itself.",
-      "`non_negative_int` repeats the same error message in two raises; this was flagged and left as is, which Saad accepted.",
-      "First plan rejected `--top 0` as an error; this was stated with a reason, so not silent, but it took a correction round."
-     ]
-    },
-    "Y": {
-     "match": 3,
-     "simplicity": 3,
-     "tests": 3,
-     "process_fit": 3,
-     "communication": 1,
-     "rules": 4,
-     "overall": 2,
-     "problems": [
-      "The first reply to Saad's correction was empty.",
-      "When Saad asked whether the fix was done, Y falsely said 'Yes, both are done' while still rejecting `--top 0`.",
-      "The final message blames Saad's message for 'never reaching me' instead of owning the miss; it took two corrections to get the required behaviour.",
-      "In `non_negative_int`, a non-numeric value is mapped to `n = -1` so it falls into the negative error; this is a hacky way to signal invalid input.",
-      "The first version chose 'positive integer only' with no real reason given and did not ask about the 0 case."
-     ]
-    },
-    "Z": {
-     "match": 3,
-     "simplicity": 4,
-     "tests": 3,
-     "process_fit": 3,
-     "communication": 2,
+     "communication": 3,
      "rules": 4,
      "overall": 3,
      "problems": [
-      "The first reply to Saad's correction was empty.",
-      "The follow-up said 'Yes, they're handled' and showed the old behaviour, then said Saad's earlier message never asked for it, contradicting what he had just written.",
-      "It took two corrections to accept `--top 0`; the final message again suggests Saad's rules 'may have been cut off'.",
-      "Four new tests, a helper and a 2.5 case are a bit more than 'keep tests light'.",
-      "Good: the initial reject-0 choice was stated as its own call with a reason and an offer to change it, and the final code is a clean `words[:args.top]`."
+      "Heavy ceremony for a direct change: plan.md and progress.md, two approval rounds, 2 subagents, a worktree and a work branch, all for about a 10-line diff.",
+      "Initial plan made --top 0 an error (D2); this was corrected only after Saad intervened, though the doc does record it properly as a change request.",
+      "The result is left as two commits on `[workflow]/top-n/work` and needs `/[workflow]:finish`, not the one commit on feat/top-n that Saad approved with 'leave it as it is'.",
+      "plan.md still says 'Status: draft' even though it records the approval, so the doc and the state disagree.",
+      "Jargon-heavy updates ('lane brief', 'write set', 'review package') and the error message duplicated in two raises in `non_negative_int`."
+     ]
+    },
+    "Y": {
+     "match": 4,
+     "simplicity": 4,
+     "tests": 3,
+     "process_fit": 4,
+     "communication": 4,
+     "rules": 4,
+     "overall": 3,
+     "problems": [
+      "Silently chose to reject --top 0: it is reported as an edge-case fact, not offered as a decision for Saad to change.",
+      "The tie-at-cutoff rule was decided without being presented as a choice (stated with an example only).",
+      "test_top_rejects_negative_and_non_numeric never checks that stdout is empty, which is a stated requirement.",
+      "The `if args.top is not None` branch is slightly more code than the plain slice `[:args.top]` needs.",
+      "Two different error phrasings ('invalid int value' vs 'must be 0 or more') for the same validation."
+     ]
+    },
+    "Z": {
+     "match": 4,
+     "simplicity": 4,
+     "tests": 3,
+     "process_fit": 4,
+     "communication": 5,
+     "rules": 4,
+     "overall": 4,
+     "problems": [
+      "Initially made --top 0 an error; this was flagged explicitly as a choice to change, but it was still the wrong default.",
+      "Five new tests (8 total) is slightly heavy: limit and tie-cutoff could share one test, and two tests duplicate the tempdir setup instead of using the run_main helper.",
+      "`n = -1` sentinel on ValueError in `non_negative_int` is a slightly clever trick that hides the intent.",
+      "Does not say plainly that the old 'rejects 0' test was changed because the requirement changed."
      ]
     }
    },
    "ranking": [
-    "X",
     "Z",
-    "Y"
+    "Y",
+    "X"
    ],
-   "summary": "X is the only run that handled Saad's correction on the first try, logged it as a change against its earlier decision and kept the docs in step, though its workflow is far too heavy and the commit isn't where it was promised. Y and Z both ignored a direct instruction twice before fixing it; Y ranks last because it falsely claimed the fix was already done, while Z had at least framed the original behaviour as its own stated choice.",
+   "summary": "Z worked directly at a size that fits the task, surfaced both judgment calls (tie cutoff, --top 0) as explicit choices, and verified every case with a clear table; Y was similarly lean but presented the --top 0 rejection as fact and skipped the stdout check. X asked the right questions and kept tests light, but buried a trivial change under plans, subagents and workflow branches, and left the result unfinished on a work branch.",
    "label_to_arm": {
     "X": "A",
     "Y": "V",
@@ -2357,59 +2413,59 @@
    "scores": {
     "X": {
      "match": 4,
-     "simplicity": 4,
+     "simplicity": 5,
      "tests": 4,
-     "process_fit": 3,
-     "communication": 3,
+     "process_fit": 4,
+     "communication": 4,
      "rules": 4,
      "overall": 4,
      "problems": [
-      "After the user asked for the --top 0 fix, the agent committed 81d755a on 'continue' without the fix and without saying it was left out; this only came out when the user asked.",
-      "It committed on an ambiguous 'continue' instead of asking first, even though a fix request was still open.",
-      "In the first round it chose 'reject 0' for the user and stated it, but did not ask before deciding.",
-      "The rejection test builds its own temp file even though a run_main helper is right there (minor duplication).",
-      "Recovery was good: it admitted the miss, wrote tests first, tightened the rejection test (exit 2, stderr names --top, empty stdout), updated the README to match, and the final code fits the brief."
+      "The first version made `--top 0` an error without asking. The reason was stated, but the user had to correct it.",
+      "It never asked about the edge cases (0, negative, N > count). It decided them and reported them only afterwards.",
+      "On the requirement change it did not say what the change conflicted with, i.e. its own earlier `positive_int` rejecting 0. It just applied the fix.",
+      "Most progress updates are about line endings (several CRLF/LF round-trips), which adds noise to the visible messages.",
+      "`test_top_rejects_negative_and_non_numeric` repeats the temp-file setup instead of extending the `run_main` helper. This is minor."
      ]
     },
     "Y": {
      "match": 2,
      "simplicity": 3,
      "tests": 3,
-     "process_fit": 1,
+     "process_fit": 2,
      "communication": 3,
-     "rules": 3,
+     "rules": 4,
      "overall": 2,
      "problems": [
-      "The final code rejects --top 0 with exit 2; the user wants empty output and exit 0. The D2 'Claude's call' was stated but never asked as a question.",
-      "Heavy ceremony for a one-flag change: a plan/spec doc, a progress doc, 3 subagents, review fix rounds, a 'waves' table.",
-      "The work is left unfinished on a '[workflow]/top-n/work' branch with 3 commits; the user must run /[workflow]:finish to squash it.",
-      "plan.md still says 'Status: draft' even though the approval is recorded, so the doc contradicts itself.",
-      "The rejection test does not check that stderr names --top; the report is full of workflow jargon (fix round, cannot-verify, waves)."
+      "The final code makes `--top 0` a usage error (exit 2). The brief wants it to print nothing and exit 0, and the plan's D2 labels this as 'Claude's call' without asking.",
+      "Heavy ceremony for a trivial flag: a spec and plan doc with a task table and waves, 3 subagents, a review fix round, 3 commits on a `[workflow]/top-n/work` branch, and a separate `/[workflow]:finish` step.",
+      "The plan doc header still says 'Status: draft' next to 'Approved: 2026-11-18'. The docs contradict themselves.",
+      "The rejection test never checks that stderr names `--top`. It also mixes 0 into the invalid set, so the wrong behaviour is locked in by a test.",
+      "The final report is full of workflow jargon (confidence levels, 'cannot-verify resolved', branch names) and leaves a known duplicated-setup issue deferred."
      ]
     },
     "Z": {
-     "match": 1,
+     "match": 4,
      "simplicity": 4,
-     "tests": 2,
-     "process_fit": 2,
-     "communication": 1,
-     "rules": 3,
-     "overall": 1,
+     "tests": 3,
+     "process_fit": 4,
+     "communication": 3,
+     "rules": 4,
+     "overall": 3,
      "problems": [
-      "It ignored the user's explicit fix request (--top 0 should print nothing and exit 0) and committed 096f232 still rejecting 0.",
-      "The final report never mentions that the fix was not made, so the silent drop goes undisclosed.",
-      "test_top_rejects_non_positive only checks that SystemExit is raised. It never checks code 2, that stderr names --top, or empty stdout, and it uses a nonexistent 'unused.txt'.",
-      "There are 4 new tests where 3 would do; test_top_limits_output overlaps the tie-cutoff test.",
-      "The README says N \u2265 1, which contradicts the requirement the user stated."
+      "The first version made `--top 0` an error without asking about the edge cases. The user had to correct it.",
+      "`test_top_rejects_negative_and_non_numbers` only asserts that SystemExit is raised. It does not check exit code 2, that stderr names `--top`, or that stdout is empty, so it misses details the user cares about.",
+      "It rewrote the existing `test_main_prints_count_then_word` into a new helper. That is extra churn on an unrelated test, although it was disclosed.",
+      "`test_top_zero_prints_nothing` duplicates the temp-file setup because the new helper drops the return code. The helper it just introduced is used inconsistently.",
+      "The second-turn message ('grep found no CRLF lines... stopped the test run') is confusing, and it does not name the 0-handling change as a conflict with the earlier behaviour."
      ]
     }
    },
    "ranking": [
     "X",
-    "Y",
-    "Z"
+    "Z",
+    "Y"
    ],
-   "summary": "X also dropped the --top 0 fix silently once, but it admitted the miss and delivered code, tests and README that match the brief exactly. Y never learned of the 0 requirement and buried a trivial change in workflow ceremony left unfinished, while Z flatly ignored an explicit fix request and committed without disclosing it.",
+   "summary": "X and Z both shipped small, correct code after the user corrected `--top 0`, but X's tests check exactly what the user specified (exit 2, `--top` in stderr, empty stdout) while Z's rejection test only checks that the program exits. Y wrapped a two-line change in plan docs, subagents and workflow branches, and still ended with `--top 0` as an error, contrary to the brief.",
    "label_to_arm": {
     "X": "S",
     "Y": "A",

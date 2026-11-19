@@ -17,6 +17,8 @@
   - [runs/](../../abtest/results/full/runs/): one record per run;
   - generated tables in [report.md](../../abtest/results/full/report.md) and [timeline.md](../../abtest/results/full/timeline.md).
 
+> **Correction (2026-11-19).** A harness bug crashed the 6 Superpowers and no-plugin c2 runs: a reply starting with `--top` was parsed as a CLI option. They were rerun with the message on stdin. Corrected totals: Superpowers 68 min / $16.60 / judge 3.81; no plugin 40 min / $9.41 / judge 3.52; Anvil unchanged at 165 min / $60.69 / judge 3.10. Anvil's c2 rank fell from 1st to 3rd. Current numbers and the full three-way comparison: [2026-11-19-three-way-comparison.md](2026-11-19-three-way-comparison.md).
+
 ## Verdict
 
 **Not ready to replace Superpowers yet.** The reason is speed and process, not correctness.

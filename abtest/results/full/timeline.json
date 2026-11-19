@@ -307,7 +307,7 @@
  "c2-top-n-S-r1": {
   "case": "c2-top-n",
   "arm": "S",
-  "agent_time_s": 112.7,
+  "agent_time_s": 42.5,
   "main": {
    "active_s": 121.9,
    "by_kind": {
@@ -332,7 +332,7 @@
  "c2-top-n-S-r2": {
   "case": "c2-top-n",
   "arm": "S",
-  "agent_time_s": 97.2,
+  "agent_time_s": 72.4,
   "main": {
    "active_s": 103.6,
    "by_kind": {
@@ -355,7 +355,7 @@
  "c2-top-n-S-r3": {
   "case": "c2-top-n",
   "arm": "S",
-  "agent_time_s": 113.8,
+  "agent_time_s": 90.0,
   "main": {
    "active_s": 135.4,
    "by_kind": {
@@ -379,7 +379,7 @@
  "c2-top-n-V-r1": {
   "case": "c2-top-n",
   "arm": "V",
-  "agent_time_s": 87.1,
+  "agent_time_s": 82.0,
   "main": {
    "active_s": 100.2,
    "by_kind": {
@@ -403,7 +403,7 @@
  "c2-top-n-V-r2": {
   "case": "c2-top-n",
   "arm": "V",
-  "agent_time_s": 85.7,
+  "agent_time_s": 66.8,
   "main": {
    "active_s": 98.6,
    "by_kind": {
@@ -426,17 +426,18 @@
  "c2-top-n-V-r3": {
   "case": "c2-top-n",
   "arm": "V",
-  "agent_time_s": 64.8,
+  "agent_time_s": 75.4,
   "main": {
-   "active_s": 74.7,
+   "active_s": 82.1,
    "by_kind": {
-    "model": 63.5,
-    "bash:git": 7.5,
-    "bash:tests": 3.3,
-    "bash:other": 0.4
+    "model": 70.1,
+    "bash:tests": 7.5,
+    "bash:git": 4.2,
+    "edit": 0.2,
+    "read": 0.1
    },
    "by_phase": {
-    "router/none": 74.7
+    "router/none": 82.1
    }
   },
   "subagents": {
