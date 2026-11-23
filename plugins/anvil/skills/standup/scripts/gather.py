@@ -86,6 +86,15 @@ def next_report_paths(log_dir, today):
         n += 1
 
 
+def missed_working_days(latest, today, working_days=(0, 1, 2, 3, 4)):
+    """Working days strictly between the last report's date and today (0 = no gap)."""
+    day, missed = latest + dt.timedelta(days=1), 0
+    while day < today:
+        missed += day.weekday() in working_days
+        day += dt.timedelta(days=1)
+    return missed
+
+
 def window_start(log_dir, now):
     """covered_until of the newest saved report, else the previous working day."""
     for path in reversed(reports(log_dir, "json")):
@@ -373,7 +382,10 @@ def gather(root, since=None, until=None, authors=(), projects_dir=None, depth=3,
         notes.append(f"window start from {source}")
     next_md, next_json = next_report_paths(log_dir, now.date())
     latest = reports(log_dir, "md")
+    latest_date = dt.date.fromisoformat(REPORT_RE.match(os.path.basename(latest[-1])).group(1)) if latest else None
     log = {"dir": log_dir, "latest_report": latest[-1] if latest else None,
+           "latest_date": latest_date.isoformat() if latest_date else None,
+           "missed_working_days": missed_working_days(latest_date, now.date()) if latest_date else None,
            "save_report_to": next_md, "save_json_to": next_json}
     repos, folders = find_repos(root, depth)
     repos_out = [repo_evidence(r, since, until, list(authors)) for r in repos]

@@ -58,6 +58,24 @@ can be found in one place.
   newest `YYYY-MM-DD*.json` there for the window. Read `log.latest_report`
   for the previous Today and Left items. When there's no JSON, take them
   from that Markdown file ("read from text").
+- **Gaps:** `log.missed_working_days` counts the working days with no saved
+  report between `log.latest_date` and today.
+  - **0:** the log is where things were left off. Don't ask for anything
+    pasted.
+  - **More than 0:** stand-ups were missed, or posted without this skill, so
+    the log may be behind what the team last saw. Say so in one line: "Last
+    saved report is Wed 18 Nov, 2 working days ago." Then use the newest
+    baseline available: the chat (own account), a pasted bot message ("In
+    your previous report, you mentioned: …"), or the user's own account. If
+    none is newer than the log, ask once for the bot's previous-report text,
+    or for what they last posted. If they have neither, draft from the old
+    log over the whole gap: Yesterday says "since <date>", and days with no
+    evidence are asked about (a day off isn't a day of no work).
+  - **null:** no report yet. Use whatever the user pastes, plus the
+    evidence.
+
+  A newer baseline found this way goes under Sources checked. It's evidence
+  only: it isn't saved as a back-dated report.
 - **Window:** from the newest report's `covered_until`, or from the start of the
   previous working day (Mon–Fri, local time) when there is none. Monday covers
   Friday and the weekend. Session timestamps are UTC, so convert them.
@@ -154,8 +172,8 @@ Left, Blocked, Other), following
   moved. If they say the work isn't in the folders ("you'll find nothing
   there"), don't go looking for it.
 - **Yesterday starts where the last report left off.** Take each Today item
-  of the previous report (from the log, the chat, or the bot's "In your
-  previous report, you mentioned" text). Say what happened to each one:
+  of the baseline from step 2 (normally the log; after a gap, the newest of
+  the chat, the pasted bot text, or the user's account). Say what happened to each one:
   done, moved, still in progress with what changed, or slipped and why. Then
   add ticketed work that wasn't planned. Items with no evidence and nothing
   from the user are listed as "planned, not seen", for the user to confirm

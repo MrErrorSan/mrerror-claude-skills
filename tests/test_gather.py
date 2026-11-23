@@ -65,6 +65,23 @@ class WindowTests(unittest.TestCase):
             self.assertTrue(source.endswith("2026-11-20-2.json"))
 
 
+class GapTests(unittest.TestCase):
+    """A22: an undetected gap makes Yesterday start from a stale report."""
+
+    def test_friday_report_on_monday_is_no_gap(self):
+        self.assertEqual(gather.missed_working_days(dt.date(2026, 11, 20), dt.date(2026, 11, 23)), 0)
+
+    def test_report_from_last_wednesday_on_monday_misses_two_days(self):
+        self.assertEqual(gather.missed_working_days(dt.date(2026, 11, 18), dt.date(2026, 11, 23)), 2)
+
+    def test_gather_reports_the_gap(self):
+        with tempfile.TemporaryDirectory() as root, tempfile.TemporaryDirectory() as log:
+            open(os.path.join(log, "2026-01-05.md"), "w").close()
+            r = gather.gather(root, projects_dir=os.path.join(root, "none"), with_prs=False, log_dir=log)
+            self.assertEqual(r["log"]["latest_date"], "2026-01-05")
+            self.assertGreater(r["log"]["missed_working_days"], 0)
+
+
 class LogLocationTests(unittest.TestCase):
     """A10: the save path is computed, never guessed, so reports don't scatter across folders."""
 
