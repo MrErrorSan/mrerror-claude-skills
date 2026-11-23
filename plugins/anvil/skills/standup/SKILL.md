@@ -6,8 +6,9 @@ description: >-
   in the folder they work from. Use it when the user asks for their stand-up,
   stand-up answers, daily status, status report, "what did I do yesterday",
   "what's on today", or pastes a stand-up bot prompt ("It's time for Daily
-  standup", "Yesterday: which tickets did you finish or move?"), or answers one
-  question of it at a time. It drafts the answers (Yesterday, Today, Left,
+  standup", "Yesterday: which tickets did you finish or move?"), answers one
+  question of it at a time, pastes what they posted to record it, or pastes a
+  reviewer's request to fix a posted report. It drafts the answers (Yesterday, Today, Left,
   Blocked, Other by default), lets the user edit them, saves the approved
   version to a dated log in `~/standups/` only when they say "good to go", and
   uses that log to keep the next day's report consistent. Read-only towards
@@ -98,12 +99,17 @@ there's more than one. Read:
 
 - the tickets assigned to the user that changed in the window, or are in
   progress or to do, with status, due date and estimate;
-- every ticket id found in the evidence, to confirm it exists and get its
-  title.
+- every ticket id found in the evidence or mentioned by the user, to confirm
+  it exists and get its title and status. **No id goes into the draft unless
+  this run's tracker read confirmed it.** List the confirmed ones under
+  Sources checked.
 
 **Never write to the tracker from this skill, comments included.** A
 connector may be signed in as someone else, and anything it writes shows up
-under that person's name. Changing tickets is a separate request.
+under that person's name. Changing tickets is a separate step: offer it at
+the end, and do it only when the user says so, as its own task. That includes
+clean-ups or new tickets asked for in the same message: finish the stand-up
+first.
 
 With no tracker, the report works by outcome instead of ticket id.
 
@@ -117,7 +123,8 @@ Left, Blocked, Other), following
   today is, that's the frame. Evidence confirms it, fills gaps, and surfaces
   ticketed work they forgot. It never overrides them. "Today is only X"
   means only X goes under Today, and the other open tickets go under Left as
-  moved.
+  moved. If they say the work isn't in the folders ("you'll find nothing
+  there"), don't go looking for it.
 - **Every Yesterday line traces to something:** their account, a session, a
   commit, changed files, a PR or a ticket change. When the last report's
   Today items have no evidence now, list them as "planned, not seen" for the
@@ -137,6 +144,19 @@ Show it in this order:
 4. **Left out:** evidence deliberately not used (no ticket, admin work, out of
    scope).
 5. **Questions:** what only the user can answer.
+
+### One question at a time
+
+Stand-up bots often ask one question per message, and quote the previous
+report ("In your previous report, you mentioned: …"). When the user pastes a
+single question:
+
+- Answer only that question, in one paste-ready block, plus the guesses,
+  mismatches and questions that apply to it.
+- Treat the quoted previous report as carry-over, alongside the log.
+- Keep the earlier answers in mind for the next questions.
+- Save once the last answer is approved, or once the user says the report is
+  posted.
 
 ## 6. Edit, approve, save
 
@@ -158,6 +178,19 @@ Show it in this order:
     path you used.
 - Reply with one paste-ready block per question and the saved file's path.
 
+**Recording what was posted.** When the user pastes the text they actually
+posted ("record this", "this is my standup message"), that text is the
+approved version, even if it differs from the draft:
+
+1. Save it verbatim.
+2. Check it against the rules and the tracker, and list anything a reviewer
+   is likely to send back: a late ticket with only "late" under Today, a
+   tracker due date that doesn't match Left, an id that isn't confirmed, a
+   missing answer.
+3. Give each problem as a suggested edit, plus the tracker change and comment
+   text it needs.
+4. Don't rewrite the saved text unless the user asks.
+
 ## 7. After posting
 
 If the report is sent back or edited after posting (a reviewer asks for a
@@ -167,7 +200,8 @@ fix), update that day's files:
 - a **Fixes** section saying what changed and why;
 - the JSON, updated to match.
 
-Then draft any tracker change the fix needs, for the user to make.
+Then draft any tracker change the fix needs, for the user to make, and a
+one-line reply to the reviewer saying what was fixed, for the user to send.
 
 ## Never
 

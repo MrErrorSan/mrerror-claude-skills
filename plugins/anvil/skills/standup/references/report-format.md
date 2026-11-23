@@ -56,6 +56,12 @@ or order wins.
 - Bold question headers, `•` bullets, one line per bullet, about four lines
   per answer at most.
 - Plain words. No file paths, branch names, internal jargon or tool names.
+- Use concrete specifics: "compared four vendors and picked two to test",
+  not "did research".
+- Write in the user's voice, about the user's work. Don't make someone else
+  the subject of a line, or credit them with the user's decisions. Name a
+  person only when they need to act (Blocked), when the work waits on them,
+  or when the user named them.
 - Use ticket ids when the team's stand-up asks for them.
 - Never invent an id, date or duration. Write `XXX-___` and say so.
 

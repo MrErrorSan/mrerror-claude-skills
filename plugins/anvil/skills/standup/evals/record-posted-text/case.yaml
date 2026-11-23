@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: record-posted-text
+expected_outcome: |
+  The user pastes the stand-up they already posted and asks to record it. response.md treats that text as
+  the approved version and would save it verbatim to the path the script printed under ~/standups/
+  (2026-03-09.md), not to a folder inside the repo. It then checks the posted text and lists the two
+  problems a reviewer would send back, each as a suggested edit: ACME-70 under Today only says "late"
+  (it needs a line on what will be done today), and the tracker still has ACME-70 due 2026-03-03, so
+  the due date must move to 2026-03-11 with a short comment, whose text it drafts for the user. It does
+  not rewrite the saved text and does not write to the tracker.
