@@ -1,0 +1,123 @@
+#!/usr/bin/env bash
+# Anvil SessionStart hook.
+# 1. Injects the user's machine rules (machine-rules.md) into every session.
+# 2. In a git repo that opts in with a committed .claude/rules/remote-sync.md,
+#    fetches (capped at ~5 s) and reports how the branch stands against its
+#    upstream, so Claude pulls before editing. It never pulls, commits or pushes.
+# Any failure degrades to "rules only"; the hook always exits 0.
+
+set -u
+
+case "$0" in
+  */*|*\\*) HOOK_DIR="${0%[/\\]*}" ;;
+  *) HOOK_DIR="." ;;
+esac
+
+rules=""
+if [ -r "${HOOK_DIR}/machine-rules.md" ]; then
+  IFS= read -r -d '' rules < "${HOOK_DIR}/machine-rules.md" || true
+fi
+
+sync=""
+work_dir="${CLAUDE_PROJECT_DIR:-$PWD}"
+if command -v git >/dev/null 2>&1; then
+  top="$(git -C "$work_dir" rev-parse --show-toplevel 2>/dev/null)" || top=""
+  if [ -n "$top" ] && [ -f "$top/.claude/rules/remote-sync.md" ]; then
+    fetch_note=""
+    if git -C "$top" remote 2>/dev/null | grep -q .; then
+      GIT_TERMINAL_PROMPT=0 GCM_INTERACTIVE=never \
+        git -C "$top" fetch --quiet --no-tags --no-recurse-submodules >/dev/null 2>&1 &
+      pid=$!
+      i=0
+      while kill -0 "$pid" 2>/dev/null; do
+        if [ "$i" -ge 50 ]; then
+          kill "$pid" 2>/dev/null
+          fetch_note="timed out"
+          break
+        fi
+        sleep 0.1
+        i=$((i + 1))
+      done
+      if [ -z "$fetch_note" ]; then
+        wait "$pid" 2>/dev/null || fetch_note="failed (offline, or no access)"
+      fi
+    else
+      fetch_note="skipped (no remote configured)"
+    fi
+
+    head="" upstream="" ahead=0 behind=0 changes=0
+    while IFS= read -r line; do
+      case "$line" in
+        "# branch.head "*) head="${line#\# branch.head }" ;;
+        "# branch.upstream "*) upstream="${line#\# branch.upstream }" ;;
+        "# branch.ab "*)
+          ab="${line#\# branch.ab }"
+          ahead="${ab%% *}"; ahead="${ahead#+}"
+          behind="${ab##* }"; behind="${behind#-}"
+          ;;
+        "#"*) ;;
+        ?*) changes=$((changes + 1)) ;;
+      esac
+    done <<EOF
+$(git -C "$top" status --porcelain=v2 --branch 2>/dev/null)
+EOF
+
+    sync="## Remote sync (this repo is worked on from more than one machine)
+
+The repo opts in with .claude/rules/remote-sync.md: follow that rule. State at session start:
+- Branch: ${head:-unknown}"
+    if [ -n "$upstream" ]; then
+      sync="${sync}, tracking ${upstream}: ahead ${ahead}, behind ${behind}"
+    else
+      sync="${sync}, with no upstream: push with -u once work is committed"
+    fi
+    sync="${sync}
+- Uncommitted changes: ${changes}"
+    if [ -n "$fetch_note" ]; then
+      sync="${sync}
+- Fetch ${fetch_note}: the remote state above may be stale. Say so before relying on it."
+    fi
+    if [ "$behind" != "0" ] && [ "$ahead" != "0" ]; then
+      sync="${sync}
+- DIVERGED from the remote: stop and tell the user before writing any code."
+    elif [ "$behind" != "0" ]; then
+      sync="${sync}
+- BEHIND the remote: pull before touching anything (tell the user first if there are uncommitted changes)."
+    fi
+    if [ "$ahead" != "0" ] && [ "$behind" = "0" ]; then
+      sync="${sync}
+- ${ahead} local commit(s) not pushed yet: push them, or tell the user why not."
+    fi
+    if [ "$changes" != "0" ]; then
+      sync="${sync}
+- Uncommitted work from an earlier session is present: mention it to the user before starting."
+    fi
+  fi
+fi
+
+context="<anvil-machine-rules>
+${rules}
+</anvil-machine-rules>"
+if [ -n "$sync" ]; then
+  context="${context}
+
+<anvil-remote-sync>
+${sync}
+</anvil-remote-sync>"
+fi
+
+escape_for_json() {
+  local s="$1"
+  s="${s//\\/\\\\}"
+  s="${s//\"/\\\"}"
+  s="${s//$'\n'/\\n}"
+  s="${s//$'\r'/\\r}"
+  s="${s//$'\t'/\\t}"
+  escaped="$s"
+}
+escape_for_json "$context"
+
+# Ignore EPIPE: the harness may close stdout early on Windows (see Superpowers #1612).
+trap '' PIPE
+printf '{\n  "hookSpecificOutput": {\n    "hookEventName": "SessionStart",\n    "additionalContext": "%s"\n  }\n}\n' "$escaped" 2>/dev/null || true
+exit 0

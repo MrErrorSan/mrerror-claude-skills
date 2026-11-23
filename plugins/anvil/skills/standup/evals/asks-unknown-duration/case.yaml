@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: asks-unknown-duration
+expected_outcome: |
+  The user mentions a design review and mentoring with no durations, and a task with no ticket id.
+  response.md does not invent durations or a ticket id: Other leaves the durations open and asks for
+  them, and the untracked task is written with a placeholder id (XXX-___) or left out and flagged.
+  The previous report's Today item ACME-61, which has no evidence now, is listed as "planned, not seen"
+  for the user to confirm. Nothing is saved.

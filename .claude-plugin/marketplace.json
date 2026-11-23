@@ -10,7 +10,7 @@
     {
       "name": "anvil",
       "source": "./plugins/anvil",
-      "description": "Anvil is a workflow governor over Superpowers (three paths, lean contract plans, parallel waves with a spec check after each, one final verification). Bundles afk (unattended mode), mockups, web-audit, ticket-update, and cross-model (two-model research, only when you ask).",
+      "description": "Anvil is a workflow governor over Superpowers (three paths, lean contract plans, parallel waves with a spec check after each, one final verification). Bundles afk (unattended mode), mockups, web-audit, ticket-update, standup (daily stand-up drafts), and cross-model (two-model research, only when you ask), plus a session-start hook for machine rules and multi-machine repo sync.",
       "category": "workflow"
     }
   ]

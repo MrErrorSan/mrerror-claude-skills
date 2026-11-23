@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: late-ticket-tracker-mismatch
+expected_outcome: |
+  response.md drafts the five answers in the default order (Yesterday, Today, Left, Blocked, Other).
+  ACME-52 is late (due 2026-03-06, still In Progress): it still gets a Today line saying what will be
+  done on it, and its lateness and new date go under Left. Under the draft, a tracker mismatch says
+  ACME-52's due date must be moved and gives a short comment text for the user to paste. Nothing is
+  written to the tracker and nothing is saved to standups/ (no approval yet).

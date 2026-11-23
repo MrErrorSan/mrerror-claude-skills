@@ -1,8 +1,8 @@
 {
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "anvil",
-  "version": "0.2.0",
-  "description": "Anvil is a workflow governor over Superpowers: three paths (just do it, spec first, full), lean contract plans, parallel waves with a spec check after each, and one final verification that ticks off what was asked. Bundles afk (unattended mode), mockups, web-audit, ticket-update, and cross-model (two-model research, only when you ask). Requires superpowers@claude-plugins-official.",
+  "version": "0.3.0",
+  "description": "Anvil is a workflow governor over Superpowers: three paths (just do it, spec first, full), lean contract plans, parallel waves with a spec check after each, and one final verification that ticks off what was asked. Bundles afk (unattended mode), mockups, web-audit, ticket-update, standup (daily stand-up drafts from evidence), and cross-model (two-model research, only when you ask), plus a session-start hook that applies the machine rules (local files, no Artifacts, no Claude co-author trailers) and checks multi-machine sync in repos that opt in. Requires superpowers@claude-plugins-official.",
   "author": {
     "name": "MrError"
   },

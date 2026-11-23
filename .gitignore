@@ -9,6 +9,7 @@ Thumbs.db
 # local experiments / outputs that shouldn't ship with the marketplace
 *.log
 graphify-out/
+__pycache__/
 
 # private working notes (may quote client work; repo is public)
 docs/**/private/
