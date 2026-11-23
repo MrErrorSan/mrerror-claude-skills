@@ -100,6 +100,25 @@ Saved as `~/standups/2026-03-10.md` (every report goes in the home folder's
 - Tracker (read 2026-03-10): ACME-41 Done, ACME-44 In Review due 10 Mar, ACME-47 To Do due 13 Mar.
 ```
 
+## Asks for you (shown under the draft, not part of the answers)
+
+Example, when the chat was read:
+
+```markdown
+**Asks for you** (since Mon 9 Mar)
+1. Dana (lead), Mon 16:40, DM: wants the CSV export to include refunds by Thursday.
+   No reply yet. No ticket. → **New ticket:** "Include refunds in invoice CSV export";
+   done when refunds appear as negative rows and totals match; due 12 Mar.
+2. Sam, Tue 09:05, stand-up thread: ACME-44 still shows the old due date. You replied
+   "will fix". → **Update ticket:** move ACME-44's due date to 10 Mar, with the comment
+   "Slipped one day for review fixes."
+3. Priya, Mon 11:20, #payments: asked you to review PR #93. Approved Mon 15:02.
+   → **Nothing to do.** It goes under Other as a review, if you want it listed.
+```
+
+Paraphrase, never quote direct messages. Each ask is one line of facts plus one
+suggested path.
+
 When a report is changed after posting, add these after the answers:
 
 ```markdown
@@ -128,8 +147,15 @@ When a report is changed after posting, add these after the answers:
   ],
   "today": ["ACME-44: answer review comments and merge", "ACME-47: audit-log filters"],
   "blockers": [],
+  "asks": [
+    {"from": "Dana", "summary": "include refunds in CSV export", "due": "2026-03-12",
+     "ticket": null, "path": "new ticket", "status": "open"}
+  ],
   "posted_edits": []
 }
 ```
+
+`asks` carries the open asks to the next report, which checks whether each one
+was handled. One-line summaries only.
 
 `covered_until` is when the report was approved. The next report's window starts there.

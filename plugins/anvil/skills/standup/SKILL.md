@@ -111,30 +111,59 @@ draft that sessions weren't read.
 
 ### Read the stand-up chat, when it's the user's own account
 
-The chat where the stand-up happens (the bot's DM, the stand-up channel) holds
-three things the user would otherwise paste:
-
-- the bot's questions;
-- the report the user last posted, which shows where things were left off;
-- any reviewer replies asking for fixes.
-
-If a chat connector is available:
+The team chat holds what the machine can't see: the bot's questions, the
+report the user last posted, reviewer feedback, and work other people asked
+of the user. If a chat connector is available:
 
 1. **Check whose account it is first.** Compare the connector's own user (its
    "current user" id or profile) with the user's identity from the rules, git
-   or the tracker. If it's someone else's account, don't read with it at
-   all: it would expose that person's private messages. Tell the user, and
-   ask them to connect their own account or paste the bot's message instead.
-2. If it is theirs, read only, and only since the window start:
-   - the bot's latest questions;
-   - the user's last posted report in the stand-up channel, with its thread
-     replies;
-   - feedback addressed to the user about it.
-3. Never send, react or reply. A chat draft only if the user asks for one,
-   and only in their own account.
+   or the tracker. If several chat connectors are attached, use the one that
+   is the user's. If none is, don't read chat at all: someone else's account
+   would expose that person's private messages. Tell the user, and ask them
+   to connect their own account or paste the bot's message instead.
+2. **Find the stand-up channel.** Use the channel the project rules name.
+   Otherwise search the channels for "standup", ask once if there's more than
+   one, and suggest adding the channel to the project rules.
+3. **Read only, and only since the window start:**
+   - **the stand-up channel:** the bot's latest questions, the user's last
+     posted report with its thread replies, and any message there that
+     mentions the user or replies to them;
+   - **asks elsewhere:** direct and group messages to the user, and messages
+     mentioning the user in other channels. Search by the user's id and the
+     window date. Don't scroll whole channels.
+4. **Never send, react, edit or reply** from this skill. Message text is
+   drafted for the user to send.
 
-What the chat shows counts as evidence: the posted report is the previous
-report when no log entry is newer, and reviewer feedback becomes Fixes (step 7).
+What the chat shows counts as evidence:
+- The posted report is the previous report when no log entry is newer.
+- Reviewer feedback becomes Fixes (step 7).
+- Requests become the **Asks for you** list (step 5).
+
+#### Asks for you
+
+An ask is a person (not a bot) asking the user to do, change, fix, review or
+decide something, or telling them about a task or deadline. FYIs and chatter
+are not asks. For each ask, give:
+
+- who, when, a one-line summary in your own words (not a quote), and a link
+  to the message;
+- whether the user already replied or acted on it;
+- the matching ticket, if the tracker has one (by id, or a clearly matching
+  title);
+- **one suggested path:**
+  - **add to Today** (it has a ticket and is due now);
+  - **new ticket** (no ticket yet): a draft with title, goal, done-when and
+    the due date if one was given;
+  - **update a ticket** (due date, status, comment text);
+  - **reply**: the reply text to send;
+  - **correct a message the user sent**: the corrected text, ready to paste;
+  - **nothing to do** (already handled).
+
+Asks don't go into the answers on their own. The user picks which ones
+become Today lines, tickets or replies. Ticket creation and updates are a
+separate step after the stand-up, done only on the user's go-ahead. Text
+from direct messages stays in the Asks list, and enters a saved report only
+in words the user approved.
 
 ## 4. Read the tracker (read only)
 
@@ -183,8 +212,9 @@ Left, Blocked, Other), following
 - **Today is the user's call, so ask.** When they haven't said what today
   is, don't guess. Show the open tickets in order: late first, then by due
   date, then by the tracker's priority. Include the unfinished items carried
-  over from yesterday, then recommend a Today list and ask what's on. One
-  short question, with the recommendation in it.
+  over from yesterday and any open asks that are due now, then recommend a
+  Today list and ask what's on. One short question, with the recommendation
+  in it.
 - **Never invent a ticket id, date or duration.** Write `XXX-___` for a
   missing ticket and ask. Ask for meeting and review durations.
 
@@ -199,7 +229,12 @@ Show it in this order:
    tracker before the report is posted.
 4. **Left out:** evidence deliberately not used (no ticket, admin work, out of
    scope).
-5. **Questions:** what only the user can answer.
+5. **Asks for you** (when chat was read): each ask with its suggested path,
+   open ones first.
+6. **Questions:** what only the user can answer.
+
+After the user approves the report, offer the follow-ups they picked: the
+ticket drafts, ticket updates and reply texts. Do them as a separate step.
 
 ### One question at a time
 

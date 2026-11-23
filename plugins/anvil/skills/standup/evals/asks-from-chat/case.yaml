@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: asks-from-chat
+expected_outcome: |
+  response.md drafts the stand-up and, under it, an "Asks for you" list with the three asks from the chat:
+  Dana's DM (refunds in the CSV export by Thursday, no ticket) with a drafted new ticket; Sam's thread reply
+  about ACME-44's stale due date with an update-ticket path and drafted comment; Priya's review request
+  marked as nothing to do (already approved). The bot's reminder is not an ask. Dana's request is not put
+  under Today without asking; the DM text is paraphrased, not quoted, and doesn't appear in the answers.
+  Nothing is sent, created or updated, and nothing is saved before approval.
