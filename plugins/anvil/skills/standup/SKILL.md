@@ -48,6 +48,10 @@ can be found in one place.
 2. **Defaults:** [references/report-format.md](references/report-format.md)
    covers the questions, how to answer each one, the style, the log format and
    a worked example.
+3. **The user's voice:** when the script prints `log.voice`, read that file
+   and write every draft in it, following
+   [references/voice.md](references/voice.md). It's private: never quote it
+   anywhere else.
 
 ## 2. Scope and window
 
@@ -217,6 +221,12 @@ Left, Blocked, Other), following
   in it.
 - **Never invent a ticket id, date or duration.** Write `XXX-___` for a
   missing ticket and ask. Ask for meeting and review durations.
+- **Sound like the user, not like a model.** The answers, the reply drafts
+  and the ticket comments all follow the voice guide when there is one: the
+  user's register for that audience, their words, their length, without their
+  typos. Without a guide, keep it plain and short. After the report is
+  approved, offer once to build the guide
+  ([references/voice.md](references/voice.md)).
 
 Show it in this order:
 

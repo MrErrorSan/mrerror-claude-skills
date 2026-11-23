@@ -62,6 +62,9 @@ or order wins.
   the subject of a line, or credit them with the user's decisions. Name a
   person only when they need to act (Blocked), when the work waits on them,
   or when the user named them.
+- Sound like the user: their verbs and length from the voice guide
+  ([voice.md](voice.md)) when there is one. Under about 20 words per line. No
+  stacked achievements, adjective triplets, em dashes or words they never use.
 - Use ticket ids when the team's stand-up asks for them.
 - Never invent an id, date or duration. Write `XXX-___` and say so.
 

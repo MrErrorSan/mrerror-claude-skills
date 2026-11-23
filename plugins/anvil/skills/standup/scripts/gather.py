@@ -57,6 +57,7 @@ def previous_working_day_start(now, working_days=(0, 1, 2, 3, 4)):
 
 
 REPORT_RE = re.compile(r"^(\d{4}-\d{2}-\d{2})(?:-(\d+))?\.(md|json)$")
+VOICE_FILE = "voice.md"  # the user's writing-voice guide, private, next to the reports
 
 
 def default_log_dir():
@@ -381,12 +382,14 @@ def gather(root, since=None, until=None, authors=(), projects_dir=None, depth=3,
         since, source = window_start(log_dir, now)
         notes.append(f"window start from {source}")
     next_md, next_json = next_report_paths(log_dir, now.date())
+    voice_path = os.path.join(log_dir, VOICE_FILE)
     latest = reports(log_dir, "md")
     latest_date = dt.date.fromisoformat(REPORT_RE.match(os.path.basename(latest[-1])).group(1)) if latest else None
     log = {"dir": log_dir, "latest_report": latest[-1] if latest else None,
            "latest_date": latest_date.isoformat() if latest_date else None,
            "missed_working_days": missed_working_days(latest_date, now.date()) if latest_date else None,
-           "save_report_to": next_md, "save_json_to": next_json}
+           "save_report_to": next_md, "save_json_to": next_json,
+           "voice": voice_path if os.path.isfile(voice_path) else None, "voice_path": voice_path}
     repos, folders = find_repos(root, depth)
     repos_out = [repo_evidence(r, since, until, list(authors)) for r in repos]
     folders_out = [x for x in (folder_evidence(f, since) for f in folders) if x]

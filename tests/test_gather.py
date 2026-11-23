@@ -103,6 +103,16 @@ class LogLocationTests(unittest.TestCase):
             self.assertTrue(r["log"]["save_report_to"].startswith(os.path.abspath(log)))
             self.assertIsNone(r["log"]["latest_report"])
 
+    def test_voice_path_is_reported_only_when_the_file_exists(self):
+        """A26: drafts must not claim a voice guide that isn't there, nor build one in a random folder."""
+        with tempfile.TemporaryDirectory() as root, tempfile.TemporaryDirectory() as log:
+            run = lambda: gather.gather(root, projects_dir=os.path.join(root, "none"), with_prs=False, log_dir=log)["log"]
+            first = run()
+            self.assertIsNone(first["voice"])
+            self.assertEqual(first["voice_path"], os.path.join(os.path.abspath(log), "voice.md"))
+            open(first["voice_path"], "w").close()
+            self.assertEqual(run()["voice"], first["voice_path"])
+
 
 class SessionScopeTests(unittest.TestCase):
     """A13: titles or prompts from outside the scope would leak another project's work into a report."""
