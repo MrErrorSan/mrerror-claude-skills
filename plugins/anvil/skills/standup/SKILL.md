@@ -1,19 +1,19 @@
 ---
 name: standup
 description: >-
-  Draft the user's daily stand-up or status report from evidence: what they say,
-  plus the Claude sessions, git activity, uncommitted work, PRs and tracker tickets
-  in the folder they work from. Use it when the user asks for their stand-up,
-  stand-up answers, daily status, status report, "what did I do yesterday",
-  "what's on today", or pastes a stand-up bot prompt ("It's time for Daily
-  standup", "Yesterday: which tickets did you finish or move?"), answers one
-  question of it at a time, pastes what they posted to record it, or pastes a
-  reviewer's request to fix a posted report. It drafts the answers (Yesterday, Today, Left,
-  Blocked, Other by default), lets the user edit them, saves the approved
-  version to a dated log in `~/standups/` only when they say "good to go", and
-  uses that log to keep the next day's report consistent. Read-only towards
-  the tracker. Not for updating tickets or writing a one-line status after a
-  ticket change.
+  Draft the user's daily stand-up from evidence: what they say, where the last
+  report left off, and the Claude sessions, git activity, uncommitted work,
+  PRs, tracker tickets and (on the user's own account) stand-up chat for the
+  folder they work from. Use it when the user asks for their stand-up, daily
+  status or status report, "what did I do yesterday", "what's on today", or
+  pastes a stand-up bot prompt ("It's time for Daily standup", "Yesterday:
+  which tickets did you finish or move?"), answers it one question at a time,
+  pastes what they posted to record it, or pastes a reviewer's fix request.
+  It drafts the answers (Yesterday, Today, Left, Blocked, Other by default),
+  lets the user edit them, saves the approved version to `~/standups/` only
+  on "good to go", and uses that log to keep the next report consistent.
+  Read-only towards the tracker and chat. Not for updating tickets or a
+  one-line status after a ticket change.
 ---
 
 # Stand-up
@@ -91,6 +91,33 @@ If no Python is available, say so. Run `git log --since`, `git status` and
 `git branch` in each repo under the scope, skip the sessions, and say in the
 draft that sessions weren't read.
 
+### Read the stand-up chat, when it's the user's own account
+
+The chat where the stand-up happens (the bot's DM, the stand-up channel) holds
+three things the user would otherwise paste:
+
+- the bot's questions;
+- the report the user last posted, which shows where things were left off;
+- any reviewer replies asking for fixes.
+
+If a chat connector is available:
+
+1. **Check whose account it is first.** Compare the connector's own user (its
+   "current user" id or profile) with the user's identity from the rules, git
+   or the tracker. If it's someone else's account, don't read with it at
+   all: it would expose that person's private messages. Tell the user, and
+   ask them to connect their own account or paste the bot's message instead.
+2. If it is theirs, read only, and only since the window start:
+   - the bot's latest questions;
+   - the user's last posted report in the stand-up channel, with its thread
+     replies;
+   - feedback addressed to the user about it.
+3. Never send, react or reply. A chat draft only if the user asks for one,
+   and only in their own account.
+
+What the chat shows counts as evidence: the posted report is the previous
+report when no log entry is newer, and reviewer feedback becomes Fixes (step 7).
+
 ## 4. Read the tracker (read only)
 
 Find the tracker the way the project's rules say. Otherwise look for a
@@ -106,7 +133,8 @@ there's more than one. Read:
 
 **Never write to the tracker from this skill, comments included.** A
 connector may be signed in as someone else, and anything it writes shows up
-under that person's name. Changing tickets is a separate step: offer it at
+under that person's name. Check whose account it is. If it isn't the
+user's, say so once in the reply. Changing tickets is a separate step: offer it at
 the end, and do it only when the user says so, as its own task. That includes
 clean-ups or new tickets asked for in the same message: finish the stand-up
 first.
@@ -125,10 +153,20 @@ Left, Blocked, Other), following
   means only X goes under Today, and the other open tickets go under Left as
   moved. If they say the work isn't in the folders ("you'll find nothing
   there"), don't go looking for it.
+- **Yesterday starts where the last report left off.** Take each Today item
+  of the previous report (from the log, the chat, or the bot's "In your
+  previous report, you mentioned" text). Say what happened to each one:
+  done, moved, still in progress with what changed, or slipped and why. Then
+  add ticketed work that wasn't planned. Items with no evidence and nothing
+  from the user are listed as "planned, not seen", for the user to confirm
+  or drop.
 - **Every Yesterday line traces to something:** their account, a session, a
-  commit, changed files, a PR or a ticket change. When the last report's
-  Today items have no evidence now, list them as "planned, not seen" for the
-  user to confirm or drop.
+  commit, changed files, a PR or a ticket change.
+- **Today is the user's call, so ask.** When they haven't said what today
+  is, don't guess. Show the open tickets in order: late first, then by due
+  date, then by the tracker's priority. Include the unfinished items carried
+  over from yesterday, then recommend a Today list and ask what's on. One
+  short question, with the recommendation in it.
 - **Never invent a ticket id, date or duration.** Write `XXX-___` for a
   missing ticket and ask. Ask for meeting and review durations.
 
