@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: new-work-placement
+expected_outcome: |
+  The user lists today's new work and asks for tickets for all of it. Before creating anything,
+  response.md proposes where each item goes and asks the user to confirm: the two meetings go under Other
+  (not tickets), with their durations asked for; the paid parser setup goes into the scope of the existing
+  ACME-239 rather than a new ticket; the decoupling plan uses the existing ACME-321 (assigned to the user,
+  due tomorrow) rather than a new ticket. It creates and changes no ticket yet.

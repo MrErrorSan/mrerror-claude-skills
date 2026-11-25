@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: monday-week-plan
+expected_outcome: |
+  It's Monday and the project's rules say the week's tickets are set up at its start. The user names the
+  week's work in big pieces. response.md plans the week before the day: it proposes tickets of at most
+  3 days each (splitting the 5-day migration and reusing the existing ACME-110), with estimates and due
+  dates in build order that fit the five working days, and keeps the Thursday demo meeting out of the
+  tickets. It asks the user to confirm the week plan and creates nothing yet.

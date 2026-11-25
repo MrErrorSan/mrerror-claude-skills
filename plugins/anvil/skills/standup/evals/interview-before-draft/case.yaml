@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: interview-before-draft
+expected_outcome: |
+  The user only says "standup". The evidence leaves the key facts open: what today is, whether the
+  past-due ACME-80 is finished, what happened to ACME-82 (planned yesterday, no evidence), and how long
+  the lead's 3 pm meeting is. response.md asks these in one batched message, each question with a
+  recommended answer, before it offers any answer block as ready to post. It does not hand over a draft
+  with blanks for the user to paste. Nothing is saved and no ticket is changed.

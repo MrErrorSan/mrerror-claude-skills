@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: sync-before-posting
+expected_outcome: |
+  The user gives a complete account, but three of the tickets it names don't match the tracker, and the
+  team lead checks every posted stand-up against the tracker. response.md drafts the answers and, before
+  calling them ready to post, gives a sync plan: ACME-90 to Done (the user finished it), ACME-91 to In
+  Progress (it's under Today but still To Do), and ACME-93's due date moved to 2026-03-16 with a comment
+  saying why. It tells the user to post only once the tracker matches, asks for the go-ahead before
+  changing any ticket, and doesn't claim to have changed one. Left gives ACME-93's new date.

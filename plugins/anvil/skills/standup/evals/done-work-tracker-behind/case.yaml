@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: done-work-tracker-behind
+expected_outcome: |
+  The user says ACME-70 was finished last week and only the tracker is behind; the evidence (a commit and
+  a report file) backs that. response.md reports ACME-70 as Done and plans to bring the tracker up to the
+  work: set ACME-70 to Done with a closing comment giving the evidence. It never moves ACME-70's due date,
+  never calls it late, at risk or in progress, and never lists it under Left. It asks before changing the
+  tracker and doesn't claim to have changed it.
